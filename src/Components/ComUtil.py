@@ -10,7 +10,7 @@ def contains(_list, item):
     return _list.count(item) > 0
 
 def OnChange(var_name, flagOnChange):
-    """If the self.var_name != new_value, self.flagOnChange = True"""
+    """If self.var_name != new_value, self.flagOnChange = True"""
     def fn_wrapper(fn):
         def wrapped_call(self, new_value):
             old_value = getattr(self, var_name)
