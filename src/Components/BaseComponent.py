@@ -215,17 +215,6 @@ class BaseComponent(object):
             InputBuffer.Push(InputBuffer.Pop())
         InputBuffer.Flip()
     
-    def MigrateParent(self, parent, preserveAbsoluteCoordinates = True):
-        """Allows migration of parents with coordinate preservation"""
-        if preserveAbsoluteCoordinates:
-            x = self.x
-            y = self.y
-            self.Parent = parent
-            self.x = x
-            self.y = y
-        else:
-            self.Parent = parent
-    
     def RemoveChild(self, child):
         if ComUtil.contains(self._Children, child):
             self._Children.remove(child)
