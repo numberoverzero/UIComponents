@@ -27,7 +27,6 @@ class BaseComponent(object):
             Coordinates are stored in local, and transformed to global.
         '''
         
-        
         #Either a Component or a Screen
         self._Parent = None
         #Components contained in this Component
@@ -53,7 +52,6 @@ class BaseComponent(object):
         
         self.Parent = parent
         
-    
     def __setattr__(self, name, value):
         if name in BaseComponent.__triggers_redraw:
             old_value = getattr(self, name)
@@ -78,17 +76,14 @@ class BaseComponent(object):
         return None
     def __get_children(self):
         return self._Children[:]
-    
     def __get_name(self):
         return self._Name
     def __get_id(self):
         return self._ID
-    
     def __get_visible(self):
         return self._Visible
     def __get_enabled(self):
         return self._Enabled
-    
     def __get_has_focus(self):
         return self._HasFocus
     def __get_is_content_loaded(self):
@@ -119,7 +114,6 @@ class BaseComponent(object):
         else:
             self.Visible = False
         self._Parent = parent
-    
     def __set_name(self, value):
         self._Name = value    
     def __set_visible(self, value):
@@ -134,7 +128,6 @@ class BaseComponent(object):
             self._UnloadContent()        
     def __set_enabled(self, value):
         self._Enabled = value
-        
     def __set_tab_index(self, value):
         self._TabIndex = value
     def __set_tooltip(self, value):
@@ -152,7 +145,6 @@ class BaseComponent(object):
         self._anchor_x = value.lower()
     def __set_anchor_y(self, value):
         self._anchor_y = value.lower()
-    
     
     def _LoadContent(self):
         """Protected method for loading graphical content when Visible set to True (from False)"""
