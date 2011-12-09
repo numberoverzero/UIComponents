@@ -231,6 +231,10 @@ class BaseComponent(object):
             self._Children.remove(child)
     
     def Update(self, dt):
+        """Derived classes should call this method AFTER their implementation,
+            so that changes made to critical values (x, y, etc) are reflected in
+            the frame of their change.  Calling base before overriding method logic
+            will effectively apply that logic to the NEXT update call, not THIS call."""
         if self._Needs_Redraw:
             self._ReloadContent()
     
