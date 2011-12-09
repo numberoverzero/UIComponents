@@ -1,3 +1,4 @@
+import functools
 
 NEXT_ID = 0
 
@@ -12,6 +13,7 @@ def contains(_list, item):
 def OnChange(var_name, flagOnChange):
     """If self.var_name != new_value, self.flagOnChange = True"""
     def fn_wrapper(fn):
+        @functools.wraps(fn)
         def wrapped_call(self, new_value):
             old_value = getattr(self, var_name)
             fn(self, new_value)
