@@ -10,7 +10,9 @@ class BaseComponent(object):
     Base Component from which all components (combo/check boxes, list selection boxes)
     are derived.
     '''
-
+    
+    __triggers_redraw = ["x", "y", "width", "height",
+                         "anchor_x", "anchor_y", "parent"]
 
     def __init__(self, parent=None, x=0, y=0, width=0, height=0,
                  anchor_x="left", anchor_y="top", coords="local",
@@ -50,9 +52,16 @@ class BaseComponent(object):
         self._height = height
         
         self.Parent = parent
+        
+    
+    def __setattr__(self, name, value):
+        if name in BaseComponent.__triggers_redraw:
+            old_value = getattr(self, name)
+            if old_value != value:
+                self._Needs_Redraw = True
+        super(BaseComponent, self).__setattr__(name, value)
             
-
-    def get_screen(self):
+    def __get_screen(self):
         #No parent, no screen
         if self.Parent is None:
             return None
@@ -61,49 +70,48 @@ class BaseComponent(object):
             return self.Parent.Screen
         #Otherwise self._Parent IS the screen
         return self.Parent
-    def get_parent(self):
+    def __get_parent(self):
         #This is expecting an actual BaseComponent- don't return true unless we
             #ACTUALLY have a Component for a parent.
         if isinstance(self._Parent, BaseComponent):
             return self._Parent
         return None
-    def get_children(self):
+    def __get_children(self):
         return self._Children[:]
     
-    def get_name(self):
+    def __get_name(self):
         return self._Name
-    def get_id(self):
+    def __get_id(self):
         return self._ID
     
-    def get_visible(self):
+    def __get_visible(self):
         return self._Visible
-    def get_enabled(self):
+    def __get_enabled(self):
         return self._Enabled
     
-    def get_has_focus(self):
+    def __get_has_focus(self):
         return self._HasFocus
-    def get_is_content_loaded(self):
+    def __get_is_content_loaded(self):
         return self.__IsContentLoaded
-    def get_tab_index(self):
+    def __get_tab_index(self):
         return self._TabIndex
-    def get_tooltip(self):
+    def __get_tooltip(self):
         return self._Tooltip
     
-    def get_x(self):
+    def __get_x(self):
         return self._x
-    def get_y(self):
+    def __get_y(self):
         return self._y
-    def get_width(self):
+    def __get_width(self):
         return self._width
-    def get_height(self):
+    def __get_height(self):
         return self._height
-    def get_anchor_x(self):
+    def __get_anchor_x(self):
         return self._anchor_x
-    def get_anchor_y(self):
+    def __get_anchor_y(self):
         return self._anchor_y
     
-    @ComUtil.OnChange("_Parent", "_Needs_Redraw")
-    def set_parent(self, parent):
+    def __set_parent(self, parent):
         if self.Parent is not None:
             self.Parent.RemoveChild(self)
         if parent is not None:
@@ -112,9 +120,9 @@ class BaseComponent(object):
             self.Visible = False
         self._Parent = parent
     
-    def set_name(self, value):
+    def __set_name(self, value):
         self._Name = value    
-    def set_visible(self, value):
+    def __set_visible(self, value):
         self._Visible = value
         #Enabling Visible
             #only draw if not drawn
@@ -124,70 +132,59 @@ class BaseComponent(object):
             #only undraw if drawn
         if not value and self.IsContentLoaded:
             self._UnloadContent()        
-    
-    @ComUtil.OnChange("_Enabled", "_Needs_Redraw")
-    def set_enabled(self, value):
+    def __set_enabled(self, value):
         self._Enabled = value
         
-    def set_tab_index(self, value):
+    def __set_tab_index(self, value):
         self._TabIndex = value
-    def set_tooltip(self, value):
+    def __set_tooltip(self, value):
         self._Tooltip = value
     
-    @ComUtil.OnChange("_x", "_Needs_Redraw")
-    def set_x(self, value):
+    def __set_x(self, value):
         self._x = value
-    
-    @ComUtil.OnChange("_y", "_Needs_Redraw")
-    def set_y(self, value):
+    def __set_y(self, value):
         self._y = value
-    
-    @ComUtil.OnChange("_width", "_Needs_Redraw")
-    def set_width(self, value):
+    def __set_width(self, value):
         self._width = value
-    
-    @ComUtil.OnChange("_height", "_Needs_Redraw")
-    def set_height(self, value):
+    def __set_height(self, value):
         self._height = value
-    
-    @ComUtil.OnChange("_anchor_x", "_Needs_Redraw")
-    def set_anchor_x(self, value):
+    def __set_anchor_x(self, value):
         self._anchor_x = value.lower()
-    
-    @ComUtil.OnChange("_anchor_y", "_Needs_Redraw")
-    def set_anchor_y(self, value):
+    def __set_anchor_y(self, value):
         self._anchor_y = value.lower()
     
     
     def _LoadContent(self):
         """Protected method for loading graphical content when Visible set to True (from False)"""
         self.__IsContentLoaded = True
+        self._Needs_Redraw = False
     def _UnloadContent(self):
         """Protected method for unloading graphical content when Visible set to False (from True)"""
         self.__IsContentLoaded = False
+        self._Needs_Redraw = False
     def _ReloadContent(self):
         """Protected method for reloading graphical content.  Called when x, y, width, height, anchor_x, anchor_y change."""
         self._Needs_Redraw = False        
 
-    Screen = property(get_screen, None, None, "The screen which this is contained in")
-    Parent = property(get_parent, set_parent, None, "The Component this is contained in")
-    Children = property(get_children, None, None, "Copy of the Component's child Components")
-    Name = property(get_name, set_name, None, "Sting used to describe the Component")
-    ID = property(get_id, None, None, "Unique ID to reference the Component")
-    Visible = property(get_visible, set_visible, None, "If the Component is drawn")
-    Enabled = property(get_enabled, set_enabled, None, "If the Component is Enabled")
-    HasFocus = property(get_has_focus, None, None, "If the Component has key focus (tab, enter)")
-    IsContentLoaded = property(get_is_content_loaded, None, None, 
+    Screen = property(__get_screen, None, None, "The screen which this is contained in")
+    Parent = property(__get_parent, __set_parent, None, "The Component this is contained in")
+    Children = property(__get_children, None, None, "Copy of the Component's child Components")
+    Name = property(__get_name, __set_name, None, "Sting used to describe the Component")
+    ID = property(__get_id, None, None, "Unique ID to reference the Component")
+    Visible = property(__get_visible, __set_visible, None, "If the Component is drawn")
+    Enabled = property(__get_enabled, __set_enabled, None, "If the Component is Enabled")
+    HasFocus = property(__get_has_focus, None, None, "If the Component has key focus (tab, enter)")
+    IsContentLoaded = property(__get_is_content_loaded, None, None, 
                                "If the Component has loaded necessary drawing content")
-    TabIndex = property(get_tab_index, set_tab_index, None, "The index for tabbing through Components")
-    Tooltip = property(get_tooltip, set_tooltip, None, "Component tooltip for hover")
+    TabIndex = property(__get_tab_index, __set_tab_index, None, "The index for tabbing through Components")
+    Tooltip = property(__get_tooltip, __set_tooltip, None, "Component tooltip for hover")
     
-    x = property(get_x, set_x, None, "Global x position")
-    y = property(get_y, set_y, None, "Global y position")
-    width = property(get_width, set_width, None, "Width of the Component")
-    height = property(get_height, set_height, None, "Height of the Component")
-    anchor_x = property(get_anchor_x, set_anchor_x, None, "Where the Component is connected to its x value. [left, center, right]")
-    anchor_y = property(get_anchor_y, set_anchor_y, None, "Where the Component is connected to its y value. [top, center, bottom]")
+    x = property(__get_x, __set_x, None, "Global x position")
+    y = property(__get_y, __set_y, None, "Global y position")
+    width = property(__get_width, __set_width, None, "Width of the Component")
+    height = property(__get_height, __set_height, None, "Height of the Component")
+    anchor_x = property(__get_anchor_x, __set_anchor_x, None, "Where the Component is connected to its x value. [left, center, right]")
+    anchor_y = property(__get_anchor_y, __set_anchor_y, None, "Where the Component is connected to its y value. [top, center, bottom]")
     
     def AddChild(self, child):
         if not ComUtil.contains(self._Children, child):
@@ -210,8 +207,6 @@ class BaseComponent(object):
     def Update(self, dt):
         if self._Needs_Redraw:
             self._ReloadContent()
-    
-    
     
         
         
