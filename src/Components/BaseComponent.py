@@ -181,9 +181,39 @@ class BaseComponent(object):
     def AddChild(self, child):
         if not ComUtil.contains(self._Children, child):
             self._Children.append(child)
-    def RemoveChild(self, child):
-        if ComUtil.contains(self._Children, child):
-            self._Children.remove(child)
+            
+    def Contains(self, x, y):
+        """Returns True if (x, y) is interior to the Component"""
+        minx = maxx = self.x
+        miny = maxy = self.y
+        
+        if self.anchor_x == "left":
+            maxx += self.width
+        elif self.anchor_x == "center":
+            minx -= 0.5 * self.width
+            maxx += 0.5 * self.width
+        elif self.anchor_x == "right":
+            maxx += self.width
+        
+        if self.anchor_y == "top":
+            miny -= self.height
+        elif self.anchor_y == "center":
+            miny -= 0.5 * self.height
+            maxy += 0.5 * self.height
+        elif self.anchor_y == "bottom":
+            maxy += self.height
+        
+        return (minx < x < maxx) and (miny < y < maxy)
+        
+    def HandleInput(self, InputBuffer):
+        """Should pop each event in the InputBuffer, look at it, and then
+            either push it back on the InputBuffer or not.  Any events "pushed back"
+            are considered "unused" and will be seen by the next object to 
+            inspect the InputBuffer.  Pushed events are not available until the InputBuffer
+            is flipped again."""
+        while InputBuffer.HasEvents:
+            InputBuffer.Push(InputBuffer.Pop())
+        InputBuffer.Flip()
     
     def MigrateParent(self, parent, preserveAbsoluteCoordinates = True):
         """Allows migration of parents with coordinate preservation"""
@@ -196,9 +226,16 @@ class BaseComponent(object):
         else:
             self.Parent = parent
     
+    def RemoveChild(self, child):
+        if ComUtil.contains(self._Children, child):
+            self._Children.remove(child)
+    
     def Update(self, dt):
         if self._Needs_Redraw:
             self._ReloadContent()
+    
+    
+    
     
         
         
