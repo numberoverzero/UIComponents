@@ -179,6 +179,8 @@ class BaseComponent(object):
     anchor_y = property(__get_anchor_y, __set_anchor_y, None, "Where the Component is connected to its y value. [top, center, bottom]")
     
     def AddChild(self, child):
+        """Adds the Component to Children, as long as the Component
+            isn't already considered a child."""
         if not contains(self._Children, child):
             self._Children.append(child)
             
@@ -220,10 +222,9 @@ class BaseComponent(object):
         return None 
     
     def ExitComponent(self):
-        self._Needs_Redraw = False
-        self.Enabled = False
-        self.Visible = False
-        self.Parent = None
+        """Recursively exits the Component and all child Components.
+            Exits components children-first so that they have reference
+            to Screen while exiting."""
         
         #We pop because when child sets parent to none,
             #it calls parent.remove.
@@ -233,6 +234,11 @@ class BaseComponent(object):
             child = self._Children.pop()
             child.ExitComponent()
             
+        self._Needs_Redraw = False
+        self.Enabled = False
+        self.Visible = False
+        self.Parent = None
+        
     def HandleInput(self, InputBuffer):
         """Should pop each event in the InputBuffer, look at it, and then
             either push it back on the InputBuffer or not.  Any events "pushed back"
@@ -244,6 +250,8 @@ class BaseComponent(object):
         InputBuffer.Flip()
     
     def RemoveChild(self, child):
+        """Removes the Component from Children, as long as the Component
+            is actually considered a child."""
         if ComUtil.contains(self._Children, child):
             self._Children.remove(child)
     
