@@ -3,7 +3,7 @@ Created on Dec 8, 2011
 
 @author: Joe Laptop
 '''
-import ComUtil
+from ComUtil import contains
 
 class BaseComponent(object):
     '''
@@ -179,7 +179,7 @@ class BaseComponent(object):
     anchor_y = property(__get_anchor_y, __set_anchor_y, None, "Where the Component is connected to its y value. [top, center, bottom]")
     
     def AddChild(self, child):
-        if not ComUtil.contains(self._Children, child):
+        if not contains(self._Children, child):
             self._Children.append(child)
             
     def Contains(self, x, y):
@@ -218,7 +218,21 @@ class BaseComponent(object):
         
         #Not within this or any child Component
         return None 
+    
+    def ExitComponent(self):
+        self._Needs_Redraw = False
+        self.Enabled = False
+        self.Visible = False
+        self.Parent = None
         
+        #We pop because when child sets parent to none,
+            #it calls parent.remove.
+            #Popping safely removes it from the list0
+            #otherwise we'd be doing list.remove during a list iteration
+        while len(self._Children) > 0:
+            child = self._Children.pop()
+            child.ExitComponent()
+            
     def HandleInput(self, InputBuffer):
         """Should pop each event in the InputBuffer, look at it, and then
             either push it back on the InputBuffer or not.  Any events "pushed back"
