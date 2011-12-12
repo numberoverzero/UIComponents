@@ -3,7 +3,7 @@ Created on Dec 8, 2011
 
 @author: Joe Laptop
 '''
-from ComUtil import contains
+import ComUtil
 
 class BaseComponent(object):
     '''
@@ -33,7 +33,7 @@ class BaseComponent(object):
         self._Children = []
         
         self._Name = name
-        self._ID = ComUtil._get_next_id()
+        self._ID = ComUtil.ID_Manager.NextID(self)
         
         self.__IsContentLoaded = False
         self._Visible = visible
@@ -252,7 +252,7 @@ class BaseComponent(object):
     def RemoveChild(self, child):
         """Removes the Component from Children, as long as the Component
             is actually considered a child."""
-        if ComUtil.contains(self._Children, child):
+        if contains(self._Children, child):
             self._Children.remove(child)
     
     def Update(self, dt):
