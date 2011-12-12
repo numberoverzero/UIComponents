@@ -183,7 +183,16 @@ class BaseComponent(object):
             self._Children.append(child)
             
     def Contains(self, x, y):
-        """Returns True if (x, y) is interior to the Component"""
+        """Returns the Component that contains (x, y)- this allows parent
+            Components to pass the contain check to their most appropriate
+            child Component if they have one)."""
+        for child in self._Children:
+            #Containing component
+            ccomponent = child.Contains(x, y)
+            if ccomponent is not None:
+                return ccomponent
+        
+        #Didn't contain the point in any child, check this Component
         minx = maxx = self.x
         miny = maxy = self.y
         
@@ -203,7 +212,12 @@ class BaseComponent(object):
         elif self.anchor_y == "bottom":
             maxy += self.height
         
-        return (minx < x < maxx) and (miny < y < maxy)
+        #Within this Component
+        if (minx < x < maxx) and (miny < y < maxy):
+            return this
+        
+        #Not within this or any child Component
+        return None 
         
     def HandleInput(self, InputBuffer):
         """Should pop each event in the InputBuffer, look at it, and then
