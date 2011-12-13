@@ -11,10 +11,20 @@ class BaseComponent(object):
     are derived.
     '''
     
+    #Initial values
+    _Parent = None
+    _x = _y = 0
+    _width = _height = 0
+    _anchor_x = 'left'
+    _anchor_y = 'top'
+     
+    
+    
+    
     __triggers_redraw = ["x", "y", "width", "height",
                          "anchor_x", "anchor_y", "parent"]
 
-    def __init__(self, parent=None, x=0, y=0, width=0, height=0,
+    def __init__(self, Parent=None, x=0, y=0, width=0, height=0,
                  anchor_x="left", anchor_y="top", coords="local",
                  name="BaseComponent", tooltip="Empty ToolTip",
                  visible = True, enabled = True):
