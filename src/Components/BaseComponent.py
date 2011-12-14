@@ -12,22 +12,31 @@ class BaseComponent(object):
     '''
     
     #Initial values
+    _Visible = False
+    _Enabled = False
+    
     _Parent = None
+    _Children = []
+    
+    _HasFocus = False
+    __IsContentLoaded = False
+    
     _x = _y = 0
     _width = _height = 0
     _anchor_x = 'left'
     _anchor_y = 'top'
-     
     
-    
+    _Name = "BaseComponent"
+    _Tooltip = "Empty Tooltip"
     
     __triggers_redraw = ["x", "y", "width", "height",
                          "anchor_x", "anchor_y", "parent"]
 
+    @ComUtil.InjectArgs(['coords'])
     def __init__(self, Parent=None, x=0, y=0, width=0, height=0,
                  anchor_x="left", anchor_y="top", coords="local",
-                 name="BaseComponent", tooltip="Empty ToolTip",
-                 visible = True, enabled = True):
+                 Name="BaseComponent", Tooltip="Empty Tooltip",
+                 Visible = True, Enabled = True):
         '''
         Pass a screen as parent if this is DIRECTLY attached to the screen
         
@@ -38,29 +47,30 @@ class BaseComponent(object):
         '''
         
         #Either a Component or a Screen
-        self._Parent = None
-        #Components contained in this Component
-        self._Children = []
+        #self._Parent = None
         
-        self._Name = name
+        #self._Name = name
         self._ID = ComUtil.ID_Manager.NextID(self)
         
-        self.__IsContentLoaded = False
-        self._Visible = visible
-        self._Enabled = enabled
-        self._HasFocus = False
+        #self._Visible = visible
+        #self._Enabled = enabled
         
         self._TabIndex = 0
-        self._Tooltip = tooltip
+        #self._Tooltip = tooltip
         
-        self._x = x
-        self._y = y
-        self._anchor_x = anchor_x
-        self._anchor_y = anchor_y
-        self._width = width
-        self._height = height
+        #self._x = x
+        #self._y = y
+        #self._anchor_x = anchor_x
+        #self._anchor_y = anchor_y
+        #self._width = width
+        #self._height = height
         
-        self.Parent = parent
+        #self.Parent = parent
+        
+        if Visible:
+            #Make sure that content loads properly, since args may have been
+                #injected out of order
+            self._LoadContent()
         
     def __setattr__(self, name, value):
         if name in BaseComponent.__triggers_redraw:
@@ -131,11 +141,11 @@ class BaseComponent(object):
         #Enabling Visible
             #only draw if not drawn
         if value and not self.IsContentLoaded:
-            self._LoadContent()
+            self._Needs_Redraw = True
         #Disabling Visible
             #only undraw if drawn
         if not value and self.IsContentLoaded:
-            self._UnloadContent()        
+            self._UnloadContent()
     def __set_enabled(self, value):
         self._Enabled = value
     def __set_tab_index(self, value):
@@ -166,6 +176,7 @@ class BaseComponent(object):
         self._Needs_Redraw = False
     def _ReloadContent(self):
         """Protected method for reloading graphical content.  Called when x, y, width, height, anchor_x, anchor_y change."""
+        self.__IsContentLoaded = True
         self._Needs_Redraw = False        
 
     Screen = property(__get_screen, None, None, "The screen which this is contained in")

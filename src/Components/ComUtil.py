@@ -54,8 +54,6 @@ def InjectArgs(ignores = None):
 
         #List of kwarg var names
         kw_names = fn.func_code.co_varnames[arg_count:]
-
-        
         
         @functools.wraps(fn)
         def wrapped_call(*args, **kwargs):
@@ -67,8 +65,6 @@ def InjectArgs(ignores = None):
 
             #Pull out self
             _self = args[0]
-
-            #Grab 
 
             #Inject defaults into kwargs if they're not already there
             vkwargs = {}
@@ -92,7 +88,6 @@ def InjectArgs(ignores = None):
             
             #Filter out var names that are in kwargs
             _names = [n for n in _all_names if not vkwargs.has_key(n)]
-            
             
             #Don't grab first, it's self
             _values = args[1:]
