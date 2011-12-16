@@ -3,7 +3,11 @@ Created on Dec 8, 2011
 
 @author: Joe Laptop
 '''
-from Util.Wrappers import InjectArgs
+import Util
+import Util.Wrappers
+import Engine
+
+print "BaseComponent Loaded."
 
 class BaseComponent(object):
     '''
@@ -32,7 +36,7 @@ class BaseComponent(object):
     __triggers_redraw = ["x", "y", "width", "height",
                          "anchor_x", "anchor_y", "parent"]
 
-    @InjectArgs(['coords'])
+    @Util.Wrappers.InjectArgs(['coords'])
     def __init__(self, Parent=None, x=0, y=0, width=0, height=0,
                  anchor_x="left", anchor_y="top", coords="local",
                  Name="BaseComponent", Tooltip="Empty Tooltip",
@@ -50,7 +54,7 @@ class BaseComponent(object):
         #self._Parent = None
         
         #self._Name = name
-        self._ID = ComUtil.ID_Manager.NextID(self)
+        self._ID = Engine.ID_Manager.NextID(self)
         
         #self._Visible = visible
         #self._Enabled = enabled
@@ -202,7 +206,7 @@ class BaseComponent(object):
     def AddChild(self, child):
         """Adds the Component to Children, as long as the Component
             isn't already considered a child."""
-        if not contains(self._Children, child):
+        if not Util.contains(self._Children, child):
             self._Children.append(child)
             
     def Contains(self, x, y):
@@ -237,7 +241,7 @@ class BaseComponent(object):
         
         #Within this Component
         if (minx < x < maxx) and (miny < y < maxy):
-            return this
+            return self
         
         #Not within this or any child Component
         return None 
@@ -273,7 +277,7 @@ class BaseComponent(object):
     def RemoveChild(self, child):
         """Removes the Component from Children, as long as the Component
             is actually considered a child."""
-        if contains(self._Children, child):
+        if Util.contains(self._Children, child):
             self._Children.remove(child)
     
     def Update(self, dt):

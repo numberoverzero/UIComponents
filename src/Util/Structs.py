@@ -1,4 +1,3 @@
-print "Structs.__init__"
 
 #From:
 #http://stackoverflow.com/q/1695250
@@ -182,11 +181,11 @@ class TypedLockableList(TypeCheckedList):
             return
 
         for item in self.__toAdd:
-            super(LockableList, self).append(item)
+            super(TypedLockableList, self).append(item)
         self.__toAdd = []
 
         for item in self.__toRemove:
-            super(LockableList, self).remove(item)
+            super(TypedLockableList, self).remove(item)
         self.__toRemove = []
 
         self.__needsUpdate = False

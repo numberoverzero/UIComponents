@@ -1,4 +1,3 @@
-print "Math.__init__"
 import math
 import random
 import trig_tables

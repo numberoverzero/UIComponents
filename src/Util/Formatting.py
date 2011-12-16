@@ -1,4 +1,3 @@
-print "Formatting.__init__"
 
 def str2tuple(s, dType, hasParens = True):
     """Convert tuple-like strings to real tuples.

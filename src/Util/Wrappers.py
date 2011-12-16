@@ -1,5 +1,3 @@
-print "Wrappers.__init__"
-
 import functools
 
 def OnChange(var_name, flagOnChange):
