@@ -1,5 +1,6 @@
 import math
 import random
+
 import trig_tables
 
 cos = trig_tables.cos

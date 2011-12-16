@@ -4,7 +4,6 @@ Created on Dec 8, 2011
 @author: Joe Laptop
 '''
 import Util
-import Util.Wrappers
 import Engine
 
 print "BaseComponent Loaded."
@@ -82,7 +81,12 @@ class BaseComponent(object):
             if old_value != value:
                 self._Needs_Redraw = True
         super(BaseComponent, self).__setattr__(name, value)
-            
+    
+    def __get_settings(self):
+        if self.Screen is None:
+            return None
+        else:
+            return self.Screen.Settings;
     def __get_screen(self):
         #No parent, no screen
         if self.Parent is None:
@@ -183,6 +187,7 @@ class BaseComponent(object):
         self.__IsContentLoaded = True
         self._Needs_Redraw = False        
 
+    Settings = property(__get_settings, None, None, "The Settings inherited from Screen")
     Screen = property(__get_screen, None, None, "The screen which this is contained in")
     Parent = property(__get_parent, __set_parent, None, "The Component this is contained in")
     Children = property(__get_children, None, None, "Copy of the Component's child Components")
