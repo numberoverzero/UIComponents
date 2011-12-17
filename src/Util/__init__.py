@@ -42,19 +42,6 @@ if  __name__ == "__main__":
         for i in xrange(n):
             fn(1.0, 1.0, 1.0, 1.0, 1.5)
     
-    print "NEW RUN"
-    
-    #profile("run(Math.rotate)", 20)
-    
-    print "OLD RUN"
-        
-    #profile("run(Math.old_rotate)", 20)
-
     print "INT RUN"
     
-    #profile("run(Math.int_rotate)", 20)
-    
-    print "C++ Table Run"
-    
-    #profile("run(Math.rotateTable)", 20)
-    
+    profile("run(Math.rotate)", 20)
