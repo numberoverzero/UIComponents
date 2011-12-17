@@ -2,6 +2,8 @@ from ctypes import CDLL, c_double, pointer, POINTER
 
 mydll = CDLL("C:/Users/Joe Laptop/git/numberoverzero/UIComponents/src/Util/Math/fast_rot.dll")
 
+mydll.makeTables()
+
 __c_ox = c_double()
 __c_oy = c_double()
 __c_px = c_double()
@@ -21,5 +23,15 @@ def rotate(ox, oy, px, py, theta):
     __c_theta.value = theta
     
     mydll.rot(__c_ox, __c_oy, __c_px, __c_py, __c_theta, __prx, __pry)
-    return __rx.value, __ry.value    
+    return __rx.value, __ry.value
+
+def rotateTable(ox, oy, px, py, theta):
+    __c_ox.value = ox
+    __c_px.value = px
+    __c_oy.value = oy
+    __c_py.value = py
+    __c_theta.value = theta
+    
+    mydll.rotTable(__c_ox, __c_oy, __c_px, __c_py, __c_theta, __prx, __pry)
+    return __rx.value, __ry.value
     

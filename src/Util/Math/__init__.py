@@ -4,10 +4,12 @@ import trig_tables
 
 tt_cos = trig_tables.cos
 tt_sin = trig_tables.sin
-tt_factor = trig_tables.factor
-tt_values = trig_tables.values
+#tt_factor = trig_tables.factor
+#tt_values = trig_tables.values
+tt_size = trig_tables.size
+tt_index = trig_tables.index
 
-from __rot_dll import rotate
+from __rot_dll import rotate, rotateTable
 def iwrap(x, M):
     """Returns the wrapped integer on [0,M]"""
     return int(x%M)
@@ -37,7 +39,8 @@ def old_rotate(ox,oy,px,py,r):
     return px1, py1
 
 def int_rotate(ox, oy, px, py, theta):
-    theta = int ((tt_factor * theta) % tt_values)
+    #theta = tt_index(theta)
+    theta = int(0.001 + theta * tt_size / (2*math.pi) % tt_size)
     px1 = tt_cos[theta] * (px - ox) - tt_sin[theta] * (py - oy) + ox
     py1 = tt_sin[theta] * (px - ox) + tt_cos[theta] * (py - oy) + oy
     return px1, py1
