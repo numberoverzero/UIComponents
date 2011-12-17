@@ -1,11 +1,13 @@
 import math
 import random
-
 import trig_tables
 
-cos = trig_tables.cos
-sin = trig_tables.sin
+tt_cos = trig_tables.cos
+tt_sin = trig_tables.sin
+tt_factor = trig_tables.factor
+tt_values = trig_tables.values
 
+from __rot_dll import rotate
 def iwrap(x, M):
     """Returns the wrapped integer on [0,M]"""
     return int(x%M)
@@ -28,21 +30,22 @@ def clamp(v, vmin, vmax):
         v = vmax
     return v
 
-def rotate(px,py, ox,oy, theta):
-    theta = iwrap(trig_tables.factor * theta, trig_tables.values)
-    px1 = cos[theta] * (px - ox) - sin[theta] * (py - oy) + ox
-    py1 = sin[theta] * (px - ox) + cos[theta] * (py - oy) + oy
+
+def old_rotate(ox,oy,px,py,r):
+    px1 = math.cos(r) * (px - ox) - math.sin(r) * (py - oy) + ox
+    py1 = math.sin(r) * (px - ox) + math.cos(r) * (py - oy) + oy
+    return px1, py1
+
+def int_rotate(ox, oy, px, py, theta):
+    theta = int ((tt_factor * theta) % tt_values)
+    px1 = tt_cos[theta] * (px - ox) - tt_sin[theta] * (py - oy) + ox
+    py1 = tt_sin[theta] * (px - ox) + tt_cos[theta] * (py - oy) + oy
     return px1, py1
 
 def mkRotFn(ox, oy, r):
-    if isZero(r):
-        #Don't send it through transforms for no rotation.
-        def rot(px, py):
-            return px, py
-    else:
-        def rot(px, py):
-            return rotate(px, py, ox, oy, r)
-    return rot
+    def rot_(px, py):
+        return rotate(ox, oy, px, py, r)
+    return rot_
 
 def randint(rMin, rMax):
     """Random Integer on [rMin, rMax]"""
@@ -106,3 +109,6 @@ def normalize(vals):
                 vals[i] = (vals[i] - m) / (M - m)
     else:
         pass
+    
+
+#print rotate(0,0,1,0,math.pi/2)
