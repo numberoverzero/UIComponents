@@ -20,6 +20,19 @@ class Setting(object):
         self._selection = value
     CurrentIndex = property(__gCurrentIndex)
 
+    def __gDefault(self):
+        return self._default
+    def __sDefault(self, value):
+        value = value%len(self._options)
+        self._default = value
+    Default = property(__gDefault, __sDefault)
+    
+    def __gDescription(self):
+        return self._default
+    def __sDescription(self, value):
+        self._description = value
+    Description = property(__gDescription, __sDescription)
+
     def __gCurrent(self):
         if len(self._options) < 1:
             return None
@@ -73,9 +86,10 @@ class Setting(object):
             #This is terrible code.  I dislike I/O
             pass
         finally:
-            self._description = description
-            self._default = default
             self._options = options[:]
+            self.Description = description
+            self.Default = default
+            self.CurrentIndex = selection
     
     def SaveUsingConfigParser(self, config, name = None):
         if name is None:
