@@ -4,14 +4,14 @@ import Util
 class Setting(object):
     __no_opt_err = "Tried to set current to option not in list: {0}"
     def __init__(self, name = "", description = "",
-                 default = None, selection = -1,
+                 default = -1, selection = -1,
                  options = []):
 
-        self._options = options[:]
         self._name = name
         self._description = description
-        self._default = None
+        self._default = default
         self._selection = selection
+        self._options = options[:]
 
     def __gCurrentIndex(self):
         return self._selection
@@ -53,56 +53,103 @@ class Setting(object):
             self._options.remove(value)
         if self.CurrentIndex > len(self._options):
             self.CurrentIndex = len(self._options) - 1
-
+    
+    def LoadUsingConfigParser(self, config, name = None):
+        if name is None:
+            if self._name is None:
+                raise AttributeError("No section name specified.") 
+            else:
+                section = self._name
+        else:
+            section = name
+            
+        try:
+            description = config.get(section, 'description')
+            default = int(config.get(section, 'default'))
+            selection = int(config.get(section, 'selection'))
+            options_str = config.get(section, 'options')
+            options = list(Util.Formatting.str2tuple(options_str,str))
+        except:
+            #This is terrible code.  I dislike I/O
+            pass
+        finally:
+            self._description = description
+            self._default = default
+            self._options = options[:]
+    
+    def SaveUsingConfigParser(self, config, name = None):
+        if name is None:
+            if self._name is None:
+                raise AttributeError("No section name specified.") 
+            else:
+                section = self._name
+        else:
+            section = name
+            
+        if not config.has_section(section):
+            config.add_section(section)
+        
+        config.set(section, 'description', self._description)
+        config.set(section, 'default', str(self._default))
+        config.set(section, 'selection', str(self._selection))
+        config.set(section, 'options', str(self._options))
+        
 class Settings(object):
     __no_setting_err = 'No setting with name: "{0}"'
-    def __init__(self, loadFrom = None):
-        #If loadFrom is a string, load as if it's a file
-        #If loadFrom is a dict, update
+    def __init__(self, filename = None):
         
+        self.__filename = filename
         self.dict = {}
-        self.LoadFrom(loadFrom)
-        
     
-    def LoadFrom(self, loadFrom):
-        if loadFrom is None:
-            return
-        
-        if hasattr(loadFrom, '__iter__'):
-            self.dict.update(loadFrom)
-            
-        #Try loading from file (in case it supports open/close)
+    def Load(self, filename):
+        if filename is None:
+            if self.__filename is None:
+                return
+            else:
+                filename = self.__filename
         else:
-            added_settings = []
-            try:
-                config = ConfigParser.ConfigParser()
-                config.read(levelFile)
-                fields = config.sections()
-                for field in fields:
-                    name = ""
-                    description = ""
-                    default = None
-                    selection = -1
-                    options = []
-                    try:
-                        name = config.get(field, 'name')
-                        description = config.get(field, 'description')
-                        default = config.get(field, 'default')
-                        selection = config.get(field, 'selection')
-                        options = config.get(field, 'options')
-                        options = list(Util.Formatting.str2tuple(options,str))
-                    except:
-                        pass
-                    finally:
-                        new_setting = Setting(name, description, 
-                                              default, selection, options)
-                    self.AddSetting(field, new_setting)
-                    added_settings.append(field)
-            except:
-                for field in added_settings:
-                    if self.HasSetting(field):
-                        self.RemoveSetting(field)
+            if hasattr(filename, '__iter__'):
+                #Not a string pointing to the file, don't update self.__filename
+                self.dict.update(filename)
+            else:
+                self.__filename = filename
+
+                #Try loading from file (in case it supports open/close)
+                added_settings = []
+                try:
+                    config = ConfigParser.ConfigParser()
+                    config.read(filename)
+                    sections = config.sections()
+                    for section in sections:
+                        new_setting = Setting()
+                        new_setting.LoadUsingConfigParser(config, section)
+                        self.AddSetting(section, new_setting)
+                        added_settings.append(section)
+                except:
+                    #If there was an exception while loading,
+                        #undo all added fields
+                    for section in added_settings:
+                        if self.HasSetting(section):
+                            self.RemoveSetting(section)
     
+    def Save(self, filename = None):
+        """If the settings were loaded from a file and no
+            filename is specified, saves to the same place it was loaded from."""
+        if filename is None:
+            if self.__filename is None:
+                raise AttributeError("No save location specified.")
+            else:
+                filename = self.__filename
+        else:
+            filename = self.__filename
+        
+        config = ConfigParser.ConfigParser()
+        config.write(filename)
+        sections = self.dict.keys()
+        for section in sections:
+            self.dict[section].SaveUsingConfigParser(config, section)
+        
+        
     def __getitem__(self, key):
         if self.dict.has_key(key):
             return self.dict[key]
