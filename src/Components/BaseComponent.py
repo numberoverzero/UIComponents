@@ -49,27 +49,8 @@ class BaseComponent(object):
             Coordinates are stored in local, and transformed to global.
         '''
         
-        #Either a Component or a Screen
-        #self._Parent = None
-        
-        #self._Name = name
-        self._ID = Engine.ID_Manager.NextID(self)
-        
-        #self._Visible = visible
-        #self._Enabled = enabled
-        
+        self._ID = Engine.ID_Manager.NextID(self)        
         self._TabIndex = 0
-        #self._Tooltip = tooltip
-        
-        #self._x = x
-        #self._y = y
-        #self._anchor_x = anchor_x
-        #self._anchor_y = anchor_y
-        #self._width = width
-        #self._height = height
-        
-        #self.Parent = parent
-        
         if Visible:
             #Make sure that content loads properly, since args may have been
                 #injected out of order
