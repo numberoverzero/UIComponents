@@ -32,7 +32,10 @@ def InjectArgs(ignores = None):
         
     def fn_wrapper(fn):
         #Non-kwarg count
-        kw_count = len(fn.func_defaults)
+        try:
+            kw_count = len(fn.func_defaults)
+        except TypeError:
+            kw_count = 0
         arg_count = fn.func_code.co_argcount - kw_count
 
         #List of kwarg var names
