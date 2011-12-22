@@ -32,11 +32,14 @@ def isCorrect(theta, print_ = False):
     return diff < 1E-5
 
 def check_all(n):
-    for i in xrange(size*n):
+    errors = []
+    for i in xrange(int(size*n)):
         pct = float(i) / size
         theta = 2*math.pi * pct
         if not isCorrect(theta):
-            print i
+            errors.append(i)
+    return (len(errors)>0, errors)
+    
 
 def check_random(n):
     import random

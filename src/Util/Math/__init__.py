@@ -2,6 +2,7 @@ import math
 import random
 import trig_tables
 
+PI = math.pi
 tt_cos = trig_tables.cos
 tt_sin = trig_tables.sin
 tt_size = trig_tables.size
@@ -29,7 +30,7 @@ def clamp(v, vmin, vmax):
     return v
 
 def rotate(ox, oy, px, py, theta):
-    index = int(0.001 + theta * tt_size / (2*math.pi) % tt_size)
+    index = int(0.001 + theta * tt_size / (2*PI) % tt_size)
     
     px1 = tt_cos[index] * (px - ox) - tt_sin[index] * (py - oy) + ox
     py1 = tt_sin[index] * (px - ox) + tt_cos[index] * (py - oy) + oy
@@ -104,4 +105,3 @@ def normalize(vals):
         pass
     
 
-#print rotate(0,0,1,0,math.pi/2)
