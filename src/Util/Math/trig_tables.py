@@ -1,7 +1,7 @@
 import math
 
 resolution = 2000
-size = 360 * resolution
+size = int(360 * resolution)
 
 cos = {}
 sin = {}
@@ -10,6 +10,8 @@ for i in xrange(size):
     pct = float(i) / size
     cos[i] = math.cos(pct * 2 * math.pi)
     sin[i] = math.sin(pct * 2 * math.pi)
+
+print "Loaded Trig Tables."
 
 def index(theta):
     ind = int(0.001 + theta * size / (2*math.pi))

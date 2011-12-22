@@ -7,6 +7,7 @@ tt_cos = trig_tables.cos
 tt_sin = trig_tables.sin
 tt_size = trig_tables.size
 
+
 def iwrap(x, M):
     """Returns the wrapped integer on [0,M]"""
     return int(x%M)
@@ -72,6 +73,8 @@ def unitV(vx, vy):
     return vx, vy
 
 def limV(vx, vy, maxV):
+    if maxV < 0:
+        raise ArithmeticError("max_magnitude can't be negative: {0}".format(maxV))
     m = (vx**2 + vy**2 ) ** 0.5
     if m > maxV:
         vx, vy = unitV(vx,vy)
@@ -82,24 +85,30 @@ def angleFromVector(vx, vy):
     return math.atan2(vy, vx)
 
 def distance(p1, p2):
-    x2 = (p2[0]-p1[0]) ** 2.0
-    y2 = (p2[1]-p1[1]) ** 2.0
-    return (x2 + y2) ** 0.5
+    if len(p1) != len(p2):
+        raise IndexError("Unequal length vectors")
+    n = len(p1)
+    s = 0.0
+    for i in xrange(n):
+        s += (p2[i]-p1[i]) ** 2.0
+    return s ** 0.5
 
 def isZero(v, precision = 1E-8):
     return abs(v) <= precision
 
 def normalize(vals):
-    if len(vals) == 1:
+    """No return value- takes sequences and replaces their values"""
+    n = len(vals)
+    if n == 1:
         vals[0] = 1.0
-    elif len(vals) > 0:
+    elif n > 0:
         m = float(min(vals))
         M = float(max(vals))
         if isZero(M-m):
-            for i in xrange(len(vals)):
+            for i in xrange(n):
                 vals[i] = 1.0
         else:
-            for i in xrange(len(vals)):
+            for i in xrange(n):
                 vals[i] = (vals[i] - m) / (M - m)
     else:
         pass

@@ -1,7 +1,7 @@
 import unittest
 import Util.Math as Math
 
-class MathTester(unittest.TestCase):
+class MathTest(unittest.TestCase):
     
     def assertAlmostEqualSequence(self, first, second, 
                                places = None, msg = None, delta = None):
@@ -131,19 +131,104 @@ class MathTester(unittest.TestCase):
         self.assertAlmostEqualSequence(expected, actual, 5)
     
     def test_limV(self):
-        pass
+        #Check in-range values
+        v = (-4, 0, 4)
+        expected = (-4, 0)
+        actual = Math.limV(*v)
+        self.assertAlmostEqualSequence(expected, actual, 5)
+        
+        #Check out-of range positives, and vertical vectors
+        v = (10, 0, 3.5)
+        expected = (3.5, 0)
+        actual = Math.limV(*v)
+        self.assertAlmostEqualSequence(expected, actual, 5)
+        
+        #Check out-of-range negatives and multi-direction
+        v = (-4, -4, 1)
+        expected = (-(2 ** -0.5), -(2 ** -0.5))
+        actual = Math.limV(*v)
+        self.assertAlmostEqualSequence(expected, actual, 5)
+        
+        #Check negative mags raise Error
+        v = (-4, 0, -3)
+        expected = (-4, 0)
+        with self.assertRaises(ArithmeticError):
+            actual = Math.limV(*v)
     
     def test_angleFromVector(self):
+        #We know that math.atan works as expected
         pass
     
     def test_distance(self):
-        pass
-    
+        #Test that zeros work
+        p1 = [1,1,1]
+        p2 = [0,0,0]
+        expected = 3 ** 0.5
+        actual = Math.distance(p1, p2)
+        self.assertAlmostEqual(expected, actual, 5)
+        
+        #Test that unequal size vectors fail
+        p1 = [1,1,1]
+        p2 = [0,0]
+        expected = 2 ** 0.5
+        with self.assertRaises(IndexError):
+            actual = Math.distance(p1, p2)
+        
+        #Test positive/negative mixing
+        p1 = [0,5.5]
+        p2 = [0,-7.5]
+        expected = 13.0
+        actual = Math.distance(p1, p2)
+        self.assertAlmostEqual(expected, actual, 5)
+        
+        #Test orthogonal vectors (not that this should matter tbh)
+        p1 = [0,1]
+        p2 = [1,0]
+        expected = 2 ** 0.5
+        actual = Math.distance(p1, p2)
+        self.assertAlmostEqual(expected, actual, 5)
+        
     def test_isZero(self):
-        pass
-    
+        #Test default precision
+        self.assertTrue(Math.isZero(0.000000009))
+        
+        #Test fail default precision
+        self.assertFalse(Math.isZero(0.000000011))
+        
+        #Test low-precision
+        self.assertTrue(Math.isZero(0.001, 2))
+        self.assertTrue(Math.isZero(0.01, 1))
+        
+        #Test negatives
+        self.assertTrue(Math.isZero(-1.5E-9))
+        
+        #Test positives
+        self.assertTrue(Math.isZero(-1.5E-9))
+        
     def test_normalize(self):
-        pass
+        #Test on single value
+        actual = [4.5]
+        expected = [1.0]
+        Math.normalize(actual)
+        self.assertAlmostEqualSequence(expected, actual, 5)
+        
+        #Test on roughly (isZero) equal values
+        actual = [4.5, 4.50000000001, 4.4999999999999]
+        expected = [1.0] * len(actual)
+        Math.normalize(actual)
+        self.assertAlmostEqualSequence(expected, actual, 5)
+        
+        #Test on negatives
+        actual = [-4.0, -4.0]
+        expected = [1.0] * len(actual)
+        Math.normalize(actual)
+        self.assertAlmostEqualSequence(expected, actual, 5)
+        
+        #Test on positives
+        actual = [2.0, 1.5, 1.0]
+        expected = [1.0, 0.5, 0.0]
+        Math.normalize(actual)
+        self.assertAlmostEqualSequence(expected, actual, 5)
     
     def test_Math_trig_tables(self):
         tt = Math.trig_tables
@@ -152,3 +237,10 @@ class MathTester(unittest.TestCase):
         has_errors, errors = tt.check_all(2)
         msg = "Errors on indices: {0}".format(str(errors))
         self.assertFalse(has_errors, msg)
+        
+def suite():
+    suite1 = unittest.makeSuite(MathTest)
+    return unittest.TestSuite(suite1)
+    
+def load_tests():
+    return suite()
