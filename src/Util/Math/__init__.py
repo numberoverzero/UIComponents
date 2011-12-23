@@ -1,115 +1,138 @@
+"""
+Common math functions and structures.
+Sub-modules will include (basic) 2d vectors and funcitons on them.
+"""
+
 import math
 import random
 import trig_tables
 
 PI = math.pi
-tt_cos = trig_tables.cos
-tt_sin = trig_tables.sin
-tt_size = trig_tables.size
+TT_COS = trig_tables.cos
+TT_SIN = trig_tables.sin
+TT_SIZE = trig_tables.size
 
 
-def iwrap(x, M):
-    """Returns the wrapped integer on [0,M]"""
-    return int(x%M)
+def iwrap(val, max_):
+    """Returns the wrapped integer on [0,max_]"""
+    return int(val%max_)
 
-def fwrap(x, m, M):
-    """Returns the wrapped float on [m, M]"""
-    s = -m
-    return ( (x + s) % (M + s) ) - s
+def fwrap(val, min_, max_):
+    """Returns the wrapped float on [min_, max_]"""
+    nmin = -min_
+    return ( (val + nmin) % (max_ + nmin) ) - nmin
 
-def mkWrapFn(m, M):
-    def _wrap(x):
-        s = -m
-        return ( (x + s) % (M + s) ) - s
-    return _wrap
+def mk_wrap_fn(min_, max_):
+    """Returns a function that wraps a value on min_, max_"""
+    def wrap_(val):
+        """Returns the wrapped float on [min_,max_]"""
+        return fwrap(val, min_, max_)
+    return wrap_
 
-def clamp(v, vmin, vmax):
-    if v < vmin:
-        v = vmin
-    elif v > vmax:
-        v = vmax
-    return v
+def clamp(val, min_, max_):
+    """Clamps val to the range [min_, max_]"""
+    if val < min_:
+        val = min_
+    elif val > max_:
+        val = max_
+    return val
 
-def rotate(ox, oy, px, py, theta):
-    index = int(0.001 + theta * tt_size / (2*PI) % tt_size)
+def rotate(o_x, o_y, p_x, p_y, theta):
+    """Rotate point (px, py) around origin (ox, oy) by theta degrees."""
+    index = int(0.001 + theta * TT_SIZE / (2*PI) % TT_SIZE)
     
-    px1 = tt_cos[index] * (px - ox) - tt_sin[index] * (py - oy) + ox
-    py1 = tt_sin[index] * (px - ox) + tt_cos[index] * (py - oy) + oy
+    px1 = TT_COS[index] * (p_x - o_x) - TT_SIN[index] * (p_y - o_y) + o_x
+    py1 = TT_SIN[index] * (p_x - o_x) + TT_COS[index] * (p_y - o_y) + o_y
     return px1, py1
 
-def mkRotFn(ox, oy, r):
-    def rot_(px, py):
-        return rotate(ox, oy, px, py, r)
+def mk_rot_fn(o_x, o_y, theta):
+    """Returns a function that rotates around (ox, oy) by theta degrees."""
+    def rot_(p_x, p_y):
+        """Rotate point (px, py) around origin (ox, oy) by theta degrees."""
+        return rotate(o_x, o_y, p_x, p_y, theta)
     return rot_
 
-def randint(rMin, rMax):
-    """Random Integer on [rMin, rMax]"""
-    return random.randint(rMin, rMax)
+def randint(min_, max_):
+    """Returns a random integer on [min_, max_]"""
+    return random.randint(min_, max_)
 
-def rand(rMin, rMax):
-    return (rMax-rMin) * random.random() + rMin
+def rand(min_, max_):
+    """Returns a random float on [min_, max_)"""
+    return (max_-min_) * random.random() + min_
 
-def mkRndFn(rMin, rMax):
-    def rnd():
-        return rand(rMin, rMax)
-    return rnd
+def mk_rand_fn(min_, max_):
+    """Returns a function that gives random floats on [min_, max_)"""
+    def rnd_():
+        """Returns a random float on [min_, max_)"""
+        return rand(min_, max_)
+    return rnd_
 
-def randWithGap(rMin, rMax):
-    r = random.random()
-    if r <= 0.5:
-        return -( (rMax-rMin) * 2 * r + rMin )
+def rand_with_gap(min_, max_):
+    """Returns a random value on [-max_,-min_] or [min_,max_]"""
+    r_pct = random.random()
+    if r_pct <= 0.5:
+        return -( (max_-min_) * 2 * r_pct + min_ )
     else:
-        return (rMax-rMin) * (2*r - 1) + rMin
+        return (max_-min_) * (2*r_pct - 1) + min_
 
-def mkRndWGapFn(rMin, rMax):
+def mk_rnd_with_gap_fn(min_, max_):
+    """Returns a function that creates random values on 
+            [-max_,-min_] or [min_,max_]"""
     def rnd():
-        return randWithGap(rMin, rMax)
+        """Returns a random value on [-max_,-min_] or [min_,max_]"""
+        return rand_with_gap(min_, max_)
     return rnd
 
-def unitV(vx, vy):
-    m = (vx**2 + vy**2 ) ** 0.5
-    vx /= m
-    vy /= m
-    return vx, vy
+def unit(vec_x, vec_y):
+    """Returns the unit vector components of the vector (vec_x, vec_y)"""
+    mag = (vec_x**2 + vec_y**2 ) ** 0.5
+    vec_x /= mag
+    vec_y /= mag
+    return vec_x, vec_y
 
-def limV(vx, vy, maxV):
-    if maxV < 0:
-        raise ArithmeticError("max_magnitude can't be negative: {0}".format(maxV))
-    m = (vx**2 + vy**2 ) ** 0.5
-    if m > maxV:
-        vx, vy = unitV(vx,vy)
-        return vx*maxV, vy*maxV
-    return vx, vy
+def limit_vector(vec_x, vec_y, mag_max):
+    """Limits the magnitude of the vector to no greater than mag_max."""
+    if mag_max < 0:
+        msg = "max_magnitude can't be negative: {0}"
+        raise ArithmeticError(msg.format(mag_max))
+    mag_actual = (vec_x**2 + vec_y**2 ) ** 0.5
+    if mag_actual > mag_max:
+        vec_x, vec_y = unit(vec_x, vec_y)
+        return vec_x*mag_max, vec_y*mag_max
+    return vec_x, vec_y
 
-def angleFromVector(vx, vy):
-    return math.atan2(vy, vx)
+def angle_from_vector(vec_x, vec_y):
+    """Gets the angle (clockwise from origin in radians) of the vector."""
+    return math.atan2(vec_y, vec_x)
 
-def distance(p1, p2):
-    if len(p1) != len(p2):
+def distance(pt1, pt2):
+    """Checks the distance between two vectors pt1, pt2"""
+    if len(pt1) != len(pt2):
         raise IndexError("Unequal length vectors")
-    n = len(p1)
-    s = 0.0
-    for i in xrange(n):
-        s += (p2[i]-p1[i]) ** 2.0
-    return s ** 0.5
+    size = len(pt1)
+    sum_ = 0.0
+    for i in xrange(size):
+        sum_ += (pt2[i]-pt1[i]) ** 2.0
+    return sum_ ** 0.5
 
-def isZero(v, precision = 1E-8):
-    return abs(v) <= precision
+def is_zero(val, precision = 1E-8):
+    """Helper function for ignoring rounding errors"""
+    return abs(val) <= precision
 
 def normalize(vals):
     """No return value- takes sequences and replaces their values"""
-    n = len(vals)
-    if n == 1:
+    size = len(vals)
+    if size == 1:
         vals[0] = 1.0
-    elif n > 0:
-        m = float(min(vals))
-        M = float(max(vals))
-        if isZero(M-m):
-            for i in xrange(n):
+    elif size > 0:
+        min_ = float(min(vals))
+        max_ = float(max(vals))
+        if is_zero(max_-min_):
+            for i in xrange(size):
                 vals[i] = 1.0
         else:
-            for i in xrange(n):
-                vals[i] = (vals[i] - m) / (M - m)
+            for i in xrange(size):
+                vals[i] = (vals[i] - min_) / (max_-min_)
     else:
         pass
     

@@ -104,57 +104,57 @@ class MathTest(unittest.TestCase):
         actual = Math.rotate(ox, oy, px, py, theta)
         self.assertAlmostEqualSequence(expected, actual, 5)
     
-    def test_unitV(self):
+    def test_unit(self):
         #Test quad 1
         v = (1, 1)
         expected = (2 ** -0.5, 2 ** -0.5)
-        actual = Math.unitV(*v)
+        actual = Math.unit(*v)
         self.assertAlmostEqualSequence(expected, actual, 5)
         
         #Test quad 2
         v = (-1, 1)
         expected = (-(2 ** -0.5), 2 ** -0.5)
-        actual = Math.unitV(*v)
+        actual = Math.unit(*v)
         self.assertAlmostEqualSequence(expected, actual, 5)
         
         #Test vertical
         v = (0, 5)
         expected = (0, 1)
-        actual = Math.unitV(*v)
+        actual = Math.unit(*v)
         self.assertAlmostEqualSequence(expected, actual, 5)
         
         #Test horizontal
         v = (-4, 0)
         expected = (-1, 0)
-        actual = Math.unitV(*v)
+        actual = Math.unit(*v)
         self.assertAlmostEqualSequence(expected, actual, 5)
     
-    def test_limV(self):
+    def test_limit_vector(self):
         #Check in-range values
         v = (-4, 0, 4)
         expected = (-4, 0)
-        actual = Math.limV(*v)
+        actual = Math.limit_vector(*v)
         self.assertAlmostEqualSequence(expected, actual, 5)
         
         #Check out-of range positives, and vertical vectors
         v = (10, 0, 3.5)
         expected = (3.5, 0)
-        actual = Math.limV(*v)
+        actual = Math.limit_vector(*v)
         self.assertAlmostEqualSequence(expected, actual, 5)
         
         #Check out-of-range negatives and multi-direction
         v = (-4, -4, 1)
         expected = (-(2 ** -0.5), -(2 ** -0.5))
-        actual = Math.limV(*v)
+        actual = Math.limit_vector(*v)
         self.assertAlmostEqualSequence(expected, actual, 5)
         
         #Check negative mags raise Error
         v = (-4, 0, -3)
         expected = (-4, 0)
         with self.assertRaises(ArithmeticError):
-            actual = Math.limV(*v)
+            actual = Math.limit_vector(*v)
     
-    def test_angleFromVector(self):
+    def test_angle_from_vector(self):
         #We know that math.atan works as expected
         pass
     
@@ -187,22 +187,22 @@ class MathTest(unittest.TestCase):
         actual = Math.distance(p1, p2)
         self.assertAlmostEqual(expected, actual, 5)
         
-    def test_isZero(self):
+    def test_is_zero(self):
         #Test default precision
-        self.assertTrue(Math.isZero(0.000000009))
+        self.assertTrue(Math.is_zero(0.000000009))
         
         #Test fail default precision
-        self.assertFalse(Math.isZero(0.000000011))
+        self.assertFalse(Math.is_zero(0.000000011))
         
         #Test low-precision
-        self.assertTrue(Math.isZero(0.001, 2))
-        self.assertTrue(Math.isZero(0.01, 1))
+        self.assertTrue(Math.is_zero(0.001, 2))
+        self.assertTrue(Math.is_zero(0.01, 1))
         
         #Test negatives
-        self.assertTrue(Math.isZero(-1.5E-9))
+        self.assertTrue(Math.is_zero(-1.5E-9))
         
         #Test positives
-        self.assertTrue(Math.isZero(-1.5E-9))
+        self.assertTrue(Math.is_zero(-1.5E-9))
         
     def test_normalize(self):
         #Test on single value
@@ -229,7 +229,7 @@ class MathTest(unittest.TestCase):
         Math.normalize(actual)
         self.assertAlmostEqualSequence(expected, actual, 5)
     
-    def test_Math_trig_tables(self):
+    def test_math_trig_tables(self):
         tt = Math.trig_tables
         
         #Check at 2x resolution
