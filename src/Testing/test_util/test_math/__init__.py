@@ -2,7 +2,6 @@ import unittest
 import Util.Math as Math
 
 class MathTest(unittest.TestCase):
-    
     def assertAlmostEqualSequence(self, first, second, 
                                places = None, msg = None, delta = None):
         n = min(len(first),len(second))
