@@ -8,9 +8,9 @@ import random
 import trig_tables
 
 PI = math.pi
-TT_COS = trig_tables.cos
-TT_SIN = trig_tables.sin
-TT_SIZE = trig_tables.size
+TT_COS = trig_tables.COS
+TT_SIN = trig_tables.SIN
+TT_SIZE = trig_tables.SIZE
 
 
 def iwrap(val, max_):
@@ -40,6 +40,7 @@ def clamp(val, min_, max_):
 def rotate(o_x, o_y, p_x, p_y, theta):
     """Rotate point (px, py) around origin (ox, oy) by theta degrees."""
     index = int(0.001 + theta * TT_SIZE / (2*PI) % TT_SIZE)
+    
     
     px1 = TT_COS[index] * (p_x - o_x) - TT_SIN[index] * (p_y - o_y) + o_x
     py1 = TT_SIN[index] * (p_x - o_x) + TT_COS[index] * (p_y - o_y) + o_y
