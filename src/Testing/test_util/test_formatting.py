@@ -27,39 +27,39 @@ class FormattingTest(unittest.TestCase):
         expected = Formatting.surrounded_by_parens(s)
         self.assertFalse(expected)
         
-    def test_str2tuple(self):
+    def test_str_to_tuple(self):
         #Test int parsing with parens
         s = "(1,2,3,4,5)"
         expected = (1,2,3,4,5)
-        actual = Formatting.str2tuple(s, int, True)
+        actual = Formatting.str_to_tuple(s, int, True)
         self.assertEqual(expected, actual)
         
         #Test int parsing without parens
         s = "1,2,3,4,5"
         expected = (1,2,3,4,5)
-        actual = Formatting.str2tuple(s, int, False)
+        actual = Formatting.str_to_tuple(s, int, False)
         self.assertEqual(expected, actual)
         
         #Test passing string w/parens when specifying it doesn't have them
         s = "[1,2,3]"
         with self.assertRaises(ValueError):
-            actual = Formatting.str2tuple(s, int, False)
+            actual = Formatting.str_to_tuple(s, int, False)
             
         #Test passing string w/o parens when specifying it has them
         s = "(1,2,3}"
         with self.assertRaises(ValueError):
-            actual = Formatting.str2tuple(s, int, True)
+            actual = Formatting.str_to_tuple(s, int, True)
         
         #Test str parsing with parens
         s = "{1,2,3,4,5}"
         expected = ('1','2','3','4','5')
-        actual = Formatting.str2tuple(s, str, True)
+        actual = Formatting.str_to_tuple(s, str, True)
         self.assertEqual(expected, actual)
         
         #Test str parsing without parens
         s = "1,2,3,4,5"
         expected = ('1','2','3','4','5')
-        actual = Formatting.str2tuple(s, str, False)
+        actual = Formatting.str_to_tuple(s, str, False)
         self.assertEqual(expected, actual)
 
 def suite():

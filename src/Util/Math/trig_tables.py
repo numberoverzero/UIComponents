@@ -68,15 +68,3 @@ def check_random(n_vals):
             
     print "{0} ERRORS".format(errors)
     
-            
-if __name__ == "__main__":
-    RES = 5
-    NRAND = 10000000
-    print "Checking trig tables, {0}x resolution".format(RES)
-    check_all(RES)
-    print "Finished checking"
-    print
-    print "Checking {0} random values".format(NRAND)
-    check_random(NRAND)
-    print "Finished checking"
-    print

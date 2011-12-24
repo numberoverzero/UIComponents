@@ -35,7 +35,7 @@ class BaseComponent(object):
     __triggers_redraw = ["x", "y", "width", "height",
                          "anchor_x", "anchor_y", "parent"]
 
-    @Util.Wrappers.InjectArgs(['coords'])
+    @Util.Wrappers.inject_args(['coords'])
     def __init__(self, Parent=None, x=0, y=0, width=0, height=0,
                  anchor_x="left", anchor_y="top", coords="local",
                  Name="BaseComponent", Tooltip="Empty Tooltip",
@@ -273,9 +273,3 @@ class BaseComponent(object):
             will effectively apply that logic to the NEXT update call, not THIS call."""
         if self._Needs_Redraw:
             self._ReloadContent()
-    
-    
-    
-    
-        
-        

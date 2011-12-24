@@ -1,4 +1,4 @@
-from ctypes import CDLL, c_double, pointer, POINTER
+from ctypes import CDLL, c_double, pointer
 
 mydll = CDLL("fast_rot.dll")
 

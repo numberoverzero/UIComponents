@@ -1,22 +1,28 @@
+"""
+Useful structures such as double buffers and typechecked lists
+"""
 
-#From:
-#http://stackoverflow.com/q/1695250
 def enum(*sequential, **named):
+    """Creates a classic enumerable.  For details,
+            see http://stackoverflow.com/q/1695250""" 
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
 
 class TypeCheckedList(list):
+    """A list with a certain type that is checked
+            at append/extend so that future use can assume type.
+            Changing dtype will of course break this rule."""
     def __init__(self, dtype, items = None):
-        self.__dtype = dtype
+        self.dtype = dtype
         if items is None:
             super(TypeCheckedList, self).__init__()
         else:
             self.extend(items)
     
     def append(self, item):
-        if not isinstance(item, self.__dtype):
-            raise TypeError("Cannot append item {it}: not an instance of {lt}.".format(
-                            it=item, lt=self.__dtype))
+        if not isinstance(item, self.dtype):
+            msg = "Cannot append item {it}: not an instance of {lt}."
+            raise TypeError(msg.format(it=item, lt=self.dtype))
         else:
             super(TypeCheckedList, self).append(item)
     
@@ -27,9 +33,13 @@ class TypeCheckedList(list):
             self.pop()
     
     def extend(self, items):
-        map(self.append, items)
+        for item in items:
+            self.append(item)
     
 class TypedDoubleBuffer(object):
+    """A double buffered object with specific type.
+            Can be cleared and flipped a few ways, read the docstring
+            for details on what each mode does."""
     def __init__(self, dtype):
         self.__b1 = TypeCheckedList(dtype)
         self.__b2 = TypeCheckedList(dtype)
@@ -37,18 +47,19 @@ class TypedDoubleBuffer(object):
         self.back_buffer = self.__b2
         
     def push(self, item):
+        """Push an item onto the back buffer."""
         self.back_buffer.append(item)
     
     def pop(self):
-        """pops from the front, since new is appended to the back."""
-        self.front_buffer.pop(0)
+        """Pops an item from the front buffer."""
+        return self.front_buffer.pop(0)
     
     def clear(self, front = True, back = False):
         """Clears the front or back buffer, or both."""
         if front:
-            self.front.clear()
+            self.front_buffer.clear()
         if back:
-            self.back.clear()
+            self.back_buffer.clear()
             
     def flip(self, mode = 'transfer'):
         """Mode is one of:
@@ -118,97 +129,117 @@ class TypedDoubleBuffer(object):
             raise ValueError("Mode {m} not recognized.".format(m=mode))
         
 class TypedLockableList(TypeCheckedList):
-    """Does not protect many of the possible assignments, such as LockableList[i] =k
-        Protects most basic actions"""
+    """Does not protect many of the possible assignments, 
+            such as LockableList[i] =k 
+            Protects basic actions"""
+    
     def __init__(self, dtype, items = None):
         if items is None:
             super(TypedLockableList, self).__init__()
         else:
             super(TypedLockableList, self).__init__(items)
         self.__dtype = dtype
-        self.__canModify = True
-        self.__needsUpdate = False
-        self.__toAdd = []
-        self.__toRemove = []
-        self.__changedSinceLastCall = False
+        self._locked = False
+        self._needs_update = False
+        self._to_add = []
+        self._to_remove = []
+        self._changed_since_last_call = False
 
     def append(self, item):
         if not isinstance(item, self.__dtype):
             return
-        self.__changedSinceLastCall = True
-        if self.__canModify:
+        self._changed_since_last_call = True
+        if not self._locked:
             super(TypedLockableList, self).append(item)
         else:
-            self.__toAdd.append(item)
-            self.needsUpdate = True
+            self._to_add.append(item)
+            self._needs_update = True
 
     def extend(self, items):
         for item in items:
             if not isinstance(item, self.__dtype):
                 return
-        self.__changedSinceLastCall = True
-        if self.__canModify:
+        self._changed_since_last_call = True
+        if not self._locked:
             super(TypedLockableList, self).extend(items)
         else:
-            self.__toAdd.extend(items)
-            self.__needsUpdate = True
+            self._to_add.extend(items)
+            self._needs_update = True
             
     def remove(self, item):
-        self.__changedSinceLastCall = True
-        if self.__canModify:
+        self._changed_since_last_call = True
+        if not self._locked:
             super(TypedLockableList, self).remove(item)
         else:
-            self.__toRemove.append(item)
-            self.needsUpdate = True
+            self._to_remove.append(item)
+            self._needs_update = True
 
-    def Lock(self, setLock = None, forceUpdate = True):
-        """If setLock is not True or False, toggles lock state."""
-        if setLock is None:
-            self.__canModify = not self.__canModify
-        elif setLock:
-            self.__canModify = False
+    def lock(self, set_lock = None, force_update = True):
+        """If set_lock is not True or False, toggles lock state."""
+        if set_lock is None:
+            self._locked = not self._locked
+        elif set_lock:
+            self._locked = True
         else:
-            self.__canModify = True
+            self._locked = False
 
-        if forceUpdate:
-            self.__applyPendingChanges()
+        if force_update:
+            self._apply_pending_changes()
 
     def __call_(self):
-        self.__applyPendingChanges()
+        """Calling this object applys pending changes"""
+        self._apply_pending_changes()
 
-    def __applyPendingChanges(self):
-        if not self.__canModify:
+    def _apply_pending_changes(self):
+        """Apply changes that are pending, only if it is locked."""
+        if self._locked:
             return
 
-        for item in self.__toAdd:
+        for item in self._to_add:
             super(TypedLockableList, self).append(item)
-        self.__toAdd = []
+        self._to_add = []
 
-        for item in self.__toRemove:
+        for item in self._to_remove:
             super(TypedLockableList, self).remove(item)
-        self.__toRemove = []
+        self._to_remove = []
 
-        self.__needsUpdate = False
+        self._needs_update = False
 
     def sort(self, _cmp = None, key = None, reverse = False):
-        if not self.__canModify:
+        if self._locked:
             return
         super(TypedLockableList, self).sort(_cmp, key = key, reverse = reverse)
 
-    def __getNeedsUpdate(self):
-        return self.__needsUpdate
-    HasPendingUpdates = property(__getNeedsUpdate)
+    def __get_needs_update(self):
+        """Needs update when there are pending changes."""
+        return self._needs_update
+    HasPendingUpdates = property(__get_needs_update)
 
-    IsLocked = property(lambda self: not self.__canModify)
+    def __get_is_locked(self):
+        """Locked prevents direct append/removal, such as when looping over."""
+        return self._locked
 
-    def __gChangedSinceLastCall(self):
-        return self.__changedSinceLastCall
-    def __sChangedSinceLastCall(self, b):
-        self.__changedSinceLastCall = b
-    ChangedSinceLastCall = property(__gChangedSinceLastCall)
+    IsLocked = property(__get_is_locked)
 
-    def ClearChangeFlag(self):
-        self.__sChangedSinceLastCall(False)
+    def __g_changed_since_last_call(self):
+        """If there are pending updates 
+            (almost always same as HasPendingChanges)"""
+        return self._changed_since_last_call
+    ChangedSinceLastCall = property(__g_changed_since_last_call)
+
+    def clear_change_flag(self):
+        """Manually clear the change flag.
+            Useful when you want to ignore behavior that triggers off of
+            changes, even if changes HAVE taken place."""
+        self._changed_since_last_call = False
 
     def clear(self):
-        map(self.remove, self)      
+        if self.IsLocked:
+            raise RuntimeError("Tried to clear a locked list.")
+        else:
+            for item in self:
+                self.remove(item)
+            while len(self._to_add) > 0:
+                self._to_add.pop()
+            while len(self._to_remove) > 0:
+                self._to_remove.pop()
