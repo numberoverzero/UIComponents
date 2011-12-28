@@ -12,17 +12,18 @@ class TypeCheckedList(list):
     """A list with a certain type that is checked
             at append/extend so that future use can assume type.
             Changing dtype will of course break this rule."""
-    def __init__(self, dtype, items = None):
-        self.dtype = dtype
-        if items is None:
-            super(TypeCheckedList, self).__init__()
-        else:
+    def __init__(self, dtype, items = None, suppress_type_errors = True):
+        self.__dtype = dtype
+        self.suppress_type_errors = suppress_type_errors
+        super(TypeCheckedList, self).__init__()
+        if items is not None:
             self.extend(items)
     
     def append(self, item):
-        if not isinstance(item, self.dtype):
-            msg = "Cannot append item {it}: not an instance of {lt}."
-            raise TypeError(msg.format(it=item, lt=self.dtype))
+        if not isinstance(item, self.__dtype):
+            if not self.suppress_type_errors:
+                msg = "Cannot append item {it}: not an instance of {lt}."
+                raise TypeError(msg.format(it=item, lt=self.__dtype))
         else:
             super(TypeCheckedList, self).append(item)
     
@@ -33,8 +34,11 @@ class TypeCheckedList(list):
             self.pop()
     
     def extend(self, items):
-        for item in items:
-            self.append(item)
+        if hasattr(items, "__iter__"):
+            for item in items:
+                self.append(item)
+        else:
+            self.append(items)            
     
 class TypedDoubleBuffer(object):
     """A double buffered object with specific type.
