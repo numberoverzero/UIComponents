@@ -12,18 +12,20 @@ class TypeCheckedList(list):
     """A list with a certain type that is checked
             at append/extend so that future use can assume type.
             Changing dtype will of course break this rule."""
-    def __init__(self, dtype, items = None, suppress_type_errors = True):
-        self.__dtype = dtype
-        self.suppress_type_errors = suppress_type_errors
+    def __init__(self, dtype, items = None, suppress_type_errors = False):
         super(TypeCheckedList, self).__init__()
+        
+        self._dtype = dtype
+        self._suppress_type_errors = suppress_type_errors
+        
         if items is not None:
             self.extend(items)
     
     def append(self, item):
-        if not isinstance(item, self.__dtype):
-            if not self.suppress_type_errors:
+        if not isinstance(item, self._dtype):
+            if not self._suppress_type_errors:
                 msg = "Cannot append item {it}: not an instance of {lt}."
-                raise TypeError(msg.format(it=item, lt=self.__dtype))
+                raise TypeError(msg.format(it=item, lt=self._dtype))
         else:
             super(TypeCheckedList, self).append(item)
     
@@ -38,35 +40,43 @@ class TypeCheckedList(list):
             for item in items:
                 self.append(item)
         else:
-            self.append(items)            
+            self.append(items)           
     
 class TypedDoubleBuffer(object):
     """A double buffered object with specific type.
             Can be cleared and flipped a few ways, read the docstring
             for details on what each mode does."""
-    def __init__(self, dtype):
-        self.__b1 = TypeCheckedList(dtype)
-        self.__b2 = TypeCheckedList(dtype)
-        self.front_buffer = self.__b1
-        self.back_buffer = self.__b2
         
-    def push(self, item):
-        """Push an item onto the back buffer."""
-        self.back_buffer.append(item)
-    
-    def pop(self):
-        """Pops an item from the front buffer."""
-        return self.front_buffer.pop(0)
-    
+    def __init__(self, dtype, suppress_type_errors = False):
+        self.__bbuffer = TypeCheckedList(dtype, items = None,
+                            suppress_type_errors = suppress_type_errors)
+        self.__fbuffer = TypeCheckedList(dtype, items = None,
+                            suppress_type_errors = suppress_type_errors)
+            
     def clear(self, front = True, back = False):
         """Clears the front or back buffer, or both."""
         if front:
-            self.front_buffer.clear()
+            self.__fbuffer.clear()
         if back:
-            self.back_buffer.clear()
+            self.__bbuffer.clear()
             
-    def flip(self, mode = 'transfer'):
+    def flip(self, mode = 'exact'):
         """Mode is one of:
+            exact: any values in either buffer are preserved, and the front
+                        and back are simply flipped.
+                    
+                        --- PRESERVES ORDER, PRESERVES VALUES ---
+                        EXAMPLE:
+                            #Before flip:
+                            front = [1,2,3,4]
+                            back = [5,6,7,8]
+                            
+                            self.flip(mode = 'exact')
+                            
+                            #After flip:
+                            self.front = [5,6,7,8]
+                            self.back = [1,2,3,4]
+                            
             transfer: any values still in front buffer stay, and the values in 
                         back buffer are pushed onto the front buffer.
                         
@@ -76,7 +86,7 @@ class TypedDoubleBuffer(object):
                             front = [1,2,3,4]
                             back = [5,6,7,8]
                             
-                            self.flip()
+                            self.flip(mode = 'transfer')
                             
                             #After flip:
                             self.front = [1,2,3,4,5,6,7,8]
@@ -98,7 +108,7 @@ class TypedDoubleBuffer(object):
                             self.back = []
             
             transfer_front: same as transfer, but values are reversed- 
-                        back get popped before old front values.
+                        back get popped before "old" front values.
                         
                         --- REVERSES BUFFER ORDER, PRESERVES VALUES ---
                         EXAMPLE:
@@ -112,46 +122,64 @@ class TypedDoubleBuffer(object):
                             self.front = [5,6,7,8,1,2,3,4]
                             self.back = []
             """
-        if mode == 'transfer':
-            self.front_buffer.extend(self.back_buffer)
-            self.back_buffer.clear()
+        if mode == 'exact':
+            temp = self.__fbuffer
+            self.__fbuffer = self.__bbuffer
+            self.__bbuffer = temp
+        
+        elif mode == 'transfer':
+            self.__fbuffer.extend(self.__bbuffer)
+            self.__bbuffer.clear()
         
         elif mode == 'discard':
-            temp = self.front_buffer
-            self.front_buffer = self.back_buffer
-            self.back_buffer = temp
-            self.back_buffer.clear()
+            temp = self.__fbuffer
+            self.__fbuffer = self.__bbuffer
+            self.__bbuffer = temp
+            self.__bbuffer.clear()
         
         elif mode == 'transfer_front':
-            temp = self.front_buffer
-            self.front_buffer = self.back_buffer
-            self.back_buffer = temp
-            self.front_buffer.extend(self.back_buffer)
-            self.back_buffer.clear()
+            temp = self.__fbuffer
+            self.__fbuffer = self.__bbuffer
+            self.__bbuffer = temp
+            self.__fbuffer.extend(self.__bbuffer)
+            self.__bbuffer.clear()
         
         else:
             raise ValueError("Mode {m} not recognized.".format(m=mode))
-        
+    
+    def get_front_buffer_items(self):
+        """Returns a copy of the items in the front buffer"""
+        return self.__fbuffer[:]
+    
+    def get_back_buffer_items(self):
+        """Returns a copy of the items in the back buffer"""
+        return self.__bbuffer[:]
+    
+    def pop(self):
+        """Pops an item from the front buffer."""
+        return self.__fbuffer.pop(0)
+
+    def push(self, item):
+        """Push an item onto the back buffer."""
+        self.__bbuffer.append(item)
+
 class TypedLockableList(TypeCheckedList):
     """Does not protect many of the possible assignments, 
             such as LockableList[i] =k 
             Protects basic actions"""
     
-    def __init__(self, dtype, items = None):
-        if items is None:
-            super(TypedLockableList, self).__init__()
-        else:
-            super(TypedLockableList, self).__init__(items)
-        self.__dtype = dtype
-        self._locked = False
-        self._needs_update = False
-        self._to_add = []
-        self._to_remove = []
-        self._changed_since_last_call = False
-
+    _locked = False
+    _needs_update = False
+    _to_add = []
+    _to_remove = []
+    _changed_since_last_call = False
+    
+    def __init__(self, dtype, items = None, suppress_type_errors = False):
+        
+        super(TypedLockableList, self).__init__(dtype, items = items,
+                            suppress_type_errors = suppress_type_errors)
+        
     def append(self, item):
-        if not isinstance(item, self.__dtype):
-            return
         self._changed_since_last_call = True
         if not self._locked:
             super(TypedLockableList, self).append(item)
@@ -160,9 +188,6 @@ class TypedLockableList(TypeCheckedList):
             self._needs_update = True
 
     def extend(self, items):
-        for item in items:
-            if not isinstance(item, self.__dtype):
-                return
         self._changed_since_last_call = True
         if not self._locked:
             super(TypedLockableList, self).extend(items)
