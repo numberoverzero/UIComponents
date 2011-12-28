@@ -1,73 +1,87 @@
+"""
+Classes for reading.writing from settings files,
+and managing selection index/default index
+"""
+
 import ConfigParser
 import Util
 
 class Setting(object):
+    """A setting option, with defaults, index, list of options,
+        name, and description."""
     __no_opt_err = "Tried to set current to option not in list: {0}"
     def __init__(self, name = "", description = "",
                  default = -1, selection = -1,
-                 options = []):
+                 options = None):
 
         self._name = name
         self._description = description
         self._default = default
         self._selection = selection
-        self._options = options[:]
+        if options is None:
+            self._options = []
+        else:
+            self._options = options[:]
 
-    def __gCurrentIndex(self):
+    def __gCurrentIndex(self): # pylint: disable-msg=C0103
+        """Returns the current index of the selection"""
         return self._selection
-    def __sCurrentIndex(self, value):
-        value = value%len(self._options)
+    def __sCurrentIndex(self, value): # pylint: disable-msg=C0103
+        """Sets the current index of the selection, safely. (In range)"""
+        value %= len(self._options)
         self._selection = value
-    CurrentIndex = property(__gCurrentIndex)
+    current_index = property(__gCurrentIndex)
 
-    def __gDefault(self):
+    def __gDefault(self): # pylint: disable-msg=C0103
+        """Returns the default value for the setting"""
         return self._default
-    def __sDefault(self, value):
-        value = value%len(self._options)
+    def __sDefault(self, value): # pylint: disable-msg=C0103
+        """Set the default value for the setting, safely. (In range)"""
+        value %= len(self._options)
         self._default = value
-    Default = property(__gDefault, __sDefault)
+    default = property(__gDefault, __sDefault)
     
-    def __gDescription(self):
+    def __gDescription(self): # pylint: disable-msg=C0103
         return self._default
-    def __sDescription(self, value):
+    def __sDescription(self, value): # pylint: disable-msg=C0103
         self._description = value
-    Description = property(__gDescription, __sDescription)
+    description = property(__gDescription, __sDescription)
 
-    def __gCurrent(self):
+    def __gCurrent(self): # pylint: disable-msg=C0103
         if len(self._options) < 1:
             return None
         else:
-            return self._options[self.CurrentIndex]
+            return self._options[self.current_index]
 
-    def __sCurrent(self, value):
+    def __sCurrent(self, value): # pylint: disable-msg=C0103
         if value not in self._options:
             raise KeyError(self.__no_opt_err.format(value))
         else:
-            self.CurrentIndex = self._options.index(value)
+            self.current_index = self._options.index(value)
 
-    def __gPrevious(self):
-        index = (self.CurrentIndex-1)%len(self._options)
+    def __gPrevious(self): # pylint: disable-msg=C0103
+        index = (self.current_index-1)%len(self._options)
         return self._options[index]
-    def __gNext(self):
-        index = (self.CurrentIndex+1)%len(self._options)
+    def __gNext(self): # pylint: disable-msg=C0103
+        index = (self.current_index+1)%len(self._options)
         return self._options[index]
 
-    Current = property(__gCurrent, __sCurrent)
-    Previous = property(__gPrevious)
-    Next = property(__gNext)
+    current = property(__gCurrent, __sCurrent)
+    previous_option = property(__gPrevious)
+    next_option = property(__gNext)
 
-    def AddOption(self, value):
+    def add_option(self, value):
         self._options.append(value)
         if len(self._options) == 1:
-            self.CurrentIndex = 0
+            self.current_index = 0
 
-    def RemoveOption(self, value):
+    def remove_option(self, value):
         if self._options.count(value) > 0:
             self._options.remove(value)
-        if self.CurrentIndex > len(self._options):
-            self.CurrentIndex = len(self._options) - 1
+        if self.current_index > len(self._options):
+            self.current_index = len(self._options) - 1
     
-    def LoadUsingConfigParser(self, config, name = None):
+    def load_using_config_parser(self, config, name = None):
         if name is None:
             if self._name is None:
                 raise AttributeError("No section name specified.") 
@@ -81,17 +95,18 @@ class Setting(object):
             default = int(config.get(section, 'default'))
             selection = int(config.get(section, 'selection'))
             options_str = config.get(section, 'options')
-            options = list(Util.Formatting.str2tuple(options_str,str))
-        except:
+            options = list(Util.Formatting.str_to_tuple(options_str, str))
+        except: # pylint: disable-msg=W0702
             #This is terrible code.  I dislike I/O
             pass
         finally:
             self._options = options[:]
-            self.Description = description
-            self.Default = default
-            self.CurrentIndex = selection
+            self.description = description
+            self.default = default
+            self.current_index = selection
+    load = load_using_config_parser
     
-    def SaveUsingConfigParser(self, config, name = None):
+    def save_using_config_parser(self, config, name = None):
         if name is None:
             if self._name is None:
                 raise AttributeError("No section name specified.") 
@@ -107,6 +122,7 @@ class Setting(object):
         config.set(section, 'default', str(self._default))
         config.set(section, 'selection', str(self._selection))
         config.set(section, 'options', str(self._options))
+    save = save_using_config_parser
         
 class Settings(object):
     __no_setting_err = 'No setting with name: "{0}"'
@@ -115,7 +131,7 @@ class Settings(object):
         self.__filename = filename
         self.dict = {}
     
-    def Load(self, filename):
+    def load(self, filename):
         if filename is None:
             if self.__filename is None:
                 return
@@ -136,19 +152,19 @@ class Settings(object):
                     sections = config.sections()
                     for section in sections:
                         new_setting = Setting()
-                        new_setting.LoadUsingConfigParser(config, section)
-                        self.AddSetting(section, new_setting)
+                        new_setting.load_using_config_parser(config, section)
+                        self.add_setting(section, new_setting)
                         added_settings.append(section)
-                except:
+                except: # pylint: disable-msg=W0702
                     #If there was an exception while loading,
                         #undo all added fields
                     for section in added_settings:
-                        if self.HasSetting(section):
-                            self.RemoveSetting(section)
+                        if self.has_setting(section):
+                            self.remove_setting(section)
     
-    def Save(self, filename = None):
+    def save(self, filename = None):
         """If the settings were loaded from a file and no
-            filename is specified, saves to the same place it was loaded from."""
+               filename is specified, saves to same place it was loaded at."""
         if filename is None:
             if self.__filename is None:
                 raise AttributeError("No save location specified.")
@@ -161,7 +177,7 @@ class Settings(object):
         config.write(filename)
         sections = self.dict.keys()
         for section in sections:
-            self.dict[section].SaveUsingConfigParser(config, section)
+            self.dict[section].save_using_config_parser(config, section)
         
         
     def __getitem__(self, key):
@@ -173,7 +189,7 @@ class Settings(object):
     def __setitem__(self, key, value):
         self.dict[key] = value
 
-    def HasSetting(self, key):
+    def has_setting(self, key):
         return self.has_key(key)
     
     def has_key(self, key):
@@ -182,24 +198,24 @@ class Settings(object):
         except KeyError:
             return False
 
-    def AddSetting(self, key, setting):
+    def add_setting(self, key, setting):
         self[key] = setting
 
-    def RemoveSetting(self, key):
+    def remove_setting(self, key):
         if self.has_key(key):
             return self.dict.pop(key)
         else:
             raise KeyError(self.__no_setting_err.format(key))
 
-    def AddOption(self, key, option):
+    def add_option(self, key, option):
         if self.has_key(key):
-            self[key].AddOption(option)
+            self[key].add_option(option)
         else:
             raise KeyError(self.__no_setting_err.format(key))
 
-    def RemoveOption(self, key, option):
+    def remove_option(self, key, option):
         if self.has_key(key):
-            self[key].RemoveOption(option)
+            self[key].remove_option(option)
         else:
             raise KeyError(self.__no_setting_err.format(key))
 

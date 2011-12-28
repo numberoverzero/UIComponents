@@ -49,7 +49,7 @@ class BaseComponent(object):
             Coordinates are stored in local, and transformed to global.
         '''
         
-        self._ID = Engine.ID_Manager.NextID(self)        
+        self._ID = Engine.ID_Manager.next_id(self)        
         self._TabIndex = 0
         if Visible:
             #Make sure that content loads properly, since args may have been
