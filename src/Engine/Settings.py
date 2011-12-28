@@ -42,46 +42,65 @@ class Setting(object):
     default = property(__gDefault, __sDefault)
     
     def __gDescription(self): # pylint: disable-msg=C0103
+        """Gets the string description of the setting"""
         return self._default
     def __sDescription(self, value): # pylint: disable-msg=C0103
+        """Sets the description of the setting- no checking"""
         self._description = value
     description = property(__gDescription, __sDescription)
 
     def __gCurrent(self): # pylint: disable-msg=C0103
+        """Gets the current selection item, if there can be one.
+                If there are no items, returns None"""
         if len(self._options) < 1:
             return None
         else:
             return self._options[self.current_index]
 
     def __sCurrent(self, value): # pylint: disable-msg=C0103
+        """Only sets the current item if the requested new current
+            is one of the options.  If the specified item isn't,
+            raises KeyError"""
         if value not in self._options:
             raise KeyError(self.__no_opt_err.format(value))
         else:
             self.current_index = self._options.index(value)
 
-    def __gPrevious(self): # pylint: disable-msg=C0103
+    def __g_previous_option(self): # pylint: disable-msg=C0103
+        """Gets the previous option"""
         index = (self.current_index-1)%len(self._options)
         return self._options[index]
-    def __gNext(self): # pylint: disable-msg=C0103
+    def __g_next_option(self): # pylint: disable-msg=C0103
+        """Gets the next option"""
         index = (self.current_index+1)%len(self._options)
         return self._options[index]
 
     current = property(__gCurrent, __sCurrent)
-    previous_option = property(__gPrevious)
-    next_option = property(__gNext)
+    previous_option = property(__g_previous_option)
+    next_option = property(__g_next_option)
 
     def add_option(self, value):
+        """Adds the option to the list of options"""
         self._options.append(value)
         if len(self._options) == 1:
             self.current_index = 0
 
     def remove_option(self, value):
+        """Removes an option from the options, and
+            updates the current selection as needed."""
         if self._options.count(value) > 0:
             self._options.remove(value)
         if self.current_index > len(self._options):
             self.current_index = len(self._options) - 1
     
     def load_using_config_parser(self, config, name = None):
+        """Load a setting from a config file.
+            Name only needs to be passed when the Setting doesn't
+            have a remembered filename.  In case the setting
+            has a self._name and a name is passed, the passed name is
+            taken as more current.  self._name is NOT updated to name,
+            unless self._name is None."""
+            
         if name is None:
             if self._name is None:
                 raise AttributeError("No section name specified.") 
@@ -107,6 +126,12 @@ class Setting(object):
     load = load_using_config_parser
     
     def save_using_config_parser(self, config, name = None):
+        """Save the setting to a config file.
+            Name only needs to be passed when the Setting doesn't
+            have a remembered filename.  In case the setting
+            has a self._name and a name is passed, the passed name is
+            taken as more current.  self._name is NOT updated to name,
+            unless self._name is None."""
         if name is None:
             if self._name is None:
                 raise AttributeError("No section name specified.") 
@@ -125,13 +150,22 @@ class Setting(object):
     save = save_using_config_parser
         
 class Settings(object):
+    """Manages multiple settings, including loading and saving from/to
+        config files.  Makes building and passing 
+        around a group of settings easy."""
     __no_setting_err = 'No setting with name: "{0}"'
     def __init__(self, filename = None):
         
         self.__filename = filename
         self.dict = {}
     
-    def load(self, filename):
+    def load(self, filename = None):
+        """Load settings from a config file or dict of settings.
+            Filename only needs to be passed when the Settings doesn't
+            have a remembered filename.  In case the settings
+            has a self.__filename and a filename is passed, the passed 
+            filename is taken as more current.  self.__filename is 
+            NOT updated to name, unless self.__filename is None."""
         if filename is None:
             if self.__filename is None:
                 return
@@ -190,30 +224,41 @@ class Settings(object):
         self.dict[key] = value
 
     def has_setting(self, key):
+        """Check if the setting with name 'key' exists.
+            Alias for has_key"""
         return self.has_key(key)
     
     def has_key(self, key):
-        try:
-            return bool(self[key])
-        except KeyError:
-            return False
+        """Same as has_setting(key), passes through the has_key
+                to the underlying dict of (str(name), setting)."""
+        return self.dict.has_key(key) 
 
     def add_setting(self, key, setting):
+        """Adds a setting to the dict of settings.
+            If an entry with key = key already exists, it is replaced."""
         self[key] = setting
 
     def remove_setting(self, key):
+        """Removes the setting with key = key from the dict of settings.
+            Raises KeyError if there is no entry with that key."""
         if self.has_key(key):
             return self.dict.pop(key)
         else:
             raise KeyError(self.__no_setting_err.format(key))
 
     def add_option(self, key, option):
+        """Adds an option to a setting.  The new option is added to the end
+                of the list of options.  Raises KeyError if there is no
+                such setting in self.dict"""
         if self.has_key(key):
             self[key].add_option(option)
         else:
             raise KeyError(self.__no_setting_err.format(key))
 
     def remove_option(self, key, option):
+        """Removes an option from the specified setting.
+            Raises KeyError if there is no such setting 
+            with key = key."""
         if self.has_key(key):
             self[key].remove_option(option)
         else:

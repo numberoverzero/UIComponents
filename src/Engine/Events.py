@@ -5,7 +5,7 @@ Describes EventArgs and EventHandlers
 import Engine
 import Util
 
-class EventArgs(object):
+class EventArgs(object): #pylint: disable-msg=R0903
     """Base class for arguments of an event."""
     def __init__(self):
         self._ID = Engine.ID_Manager.next_id(self) # pylint: disable-msg=C0103
@@ -28,7 +28,7 @@ class EventArgs(object):
 #Also allows us to check against ComUtil.NoneArgs instead of using isinstance()
 NONEARGS = EventArgs()
 
-class EventHandler(object):
+class EventHandler(object): #pylint: disable-msg=R0903
     """Takes events and dispatches them to its listeners."""
     def __init__(self):
         self.listeners = []
