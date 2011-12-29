@@ -58,6 +58,9 @@ def inject_args(ignores = None):
             nargs = len(args)
 
             #Can't take args that the function doesn't want
+            #
+            #    THIS CODE MIGHT BE MAD BROKEN
+            #
             given_varnames = set(args[1:]).union(kwargs)
             if not given_varnames.issubset(fn_varnames):
                 delta_varnames = given_varnames - given_varnames.intersection(fn_varnames) # pylint: disable-msg=C0301
@@ -74,6 +77,9 @@ def inject_args(ignores = None):
             #Inject defaults into kwargs if they're not already there
             vkwargs = {}
             start_index = nargs - arg_count
+            #
+            #    THIS CONDITIONAL MIGHT BE DANGEROUS
+            #
             if start_index > 0:
                 for index in range(start_index, kw_count):
                     if kw_names[index] not in ignores:
