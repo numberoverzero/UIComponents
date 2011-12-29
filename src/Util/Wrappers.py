@@ -30,6 +30,7 @@ def inject_args(ignores = None):
         NOTE: ignores any names in the vector "ignores"
     """
     err_str = "Must pass kwargs using keyword- can't pass using position."
+    unexp_err_str = "{fn_name} got an unexpected keyword argument(s) '{arg}'"
     
     #Can't iterate on None object
     if ignores is None:
@@ -50,10 +51,18 @@ def inject_args(ignores = None):
 
         #List of kwarg var names
         kw_names = func.func_code.co_varnames[arg_count:]
+        fn_varnames = set(func.func_code.co_varnames[1:])
         
         @functools.wraps(func)
         def wrapped_call(*args, **kwargs):  # pylint: disable-msg=C0111
             nargs = len(args)
+
+            #Can't take args that the function doesn't want
+            given_varnames = set(args[1:]).union(kwargs)
+            if not given_varnames.issubset(fn_varnames):
+                delta_varnames = given_varnames - given_varnames.intersection(fn_varnames) # pylint: disable-msg=C0301
+                raise TypeError(unexp_err_str.format(fn_name = func.func_name,
+                                                     arg = given_varnames))
 
             #Kwargs have to be passed using keyword
             if nargs > arg_count:
@@ -65,9 +74,10 @@ def inject_args(ignores = None):
             #Inject defaults into kwargs if they're not already there
             vkwargs = {}
             start_index = nargs - arg_count
-            for index in range(start_index, kw_count):
-                if kw_names[index] not in ignores:
-                    vkwargs[kw_names[index]] = func.func_defaults[index]
+            if start_index > 0:
+                for index in range(start_index, kw_count):
+                    if kw_names[index] not in ignores:
+                        vkwargs[kw_names[index]] = func.func_defaults[index]
 
             #Filter only valid kwargs            
             for key in kwargs:

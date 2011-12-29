@@ -233,7 +233,7 @@ class MathTest(unittest.TestCase):
         tt = Math.trig_tables
         
         #Check at 2x resolution
-        has_errors, errors = tt.check_all(2)
+        has_errors, errors = tt.check_all(2.5)
         msg = "Errors on indices: {0}".format(str(errors))
         self.assertFalse(has_errors, msg)
         
