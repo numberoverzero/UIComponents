@@ -170,12 +170,11 @@ class TypedLockableList(TypeCheckedList):
     
     _locked = False
     _needs_update = False
-    _to_add = []
-    _to_remove = []
     _changed_since_last_call = False
     
     def __init__(self, dtype, items = None, suppress_type_errors = False):
-        
+        self._to_add = []
+        self._to_remove = []
         super(TypedLockableList, self).__init__(dtype, items = items,
                             suppress_type_errors = suppress_type_errors)
         
@@ -186,7 +185,24 @@ class TypedLockableList(TypeCheckedList):
         else:
             self._to_add.append(item)
             self._needs_update = True
-
+    
+    def clear(self):
+        if self.IsLocked:
+            raise RuntimeError("Tried to clear a locked list.")
+        else:
+            for item in self:
+                self.remove(item)
+            while len(self._to_add) > 0:
+                self._to_add.pop()
+            while len(self._to_remove) > 0:
+                self._to_remove.pop()
+    
+    def clear_change_flag(self):
+        """Manually clear the change flag.
+            Useful when you want to ignore behavior that triggers off of
+            changes, even if changes HAVE taken place."""
+        self._changed_since_last_call = False
+        
     def extend(self, items):
         self._changed_since_last_call = True
         if not self._locked:
@@ -195,16 +211,9 @@ class TypedLockableList(TypeCheckedList):
             self._to_add.extend(items)
             self._needs_update = True
             
-    def remove(self, item):
-        self._changed_since_last_call = True
-        if not self._locked:
-            super(TypedLockableList, self).remove(item)
-        else:
-            self._to_remove.append(item)
-            self._needs_update = True
-
     def lock(self, set_lock = None, force_update = True):
-        """If set_lock is not True or False, toggles lock state."""
+        """If set_lock is not True or False, toggles lock state.
+            force_update forces a call to apply_pending_changes."""
         if set_lock is None:
             self._locked = not self._locked
         elif set_lock:
@@ -215,9 +224,18 @@ class TypedLockableList(TypeCheckedList):
         if force_update:
             self._apply_pending_changes()
 
-    def __call_(self):
-        """Calling this object applys pending changes"""
-        self._apply_pending_changes()
+    def remove(self, item):
+        self._changed_since_last_call = True
+        if not self._locked:
+            super(TypedLockableList, self).remove(item)
+        else:
+            self._to_remove.append(item)
+            self._needs_update = True
+
+    def sort(self, _cmp = None, key = None, reverse = False):
+        if self._locked:
+            return
+        super(TypedLockableList, self).sort(_cmp, key = key, reverse = reverse)
 
     def _apply_pending_changes(self):
         """Apply changes that are pending, only if it is locked."""
@@ -233,11 +251,10 @@ class TypedLockableList(TypeCheckedList):
         self._to_remove = []
 
         self._needs_update = False
-
-    def sort(self, _cmp = None, key = None, reverse = False):
-        if self._locked:
-            return
-        super(TypedLockableList, self).sort(_cmp, key = key, reverse = reverse)
+    
+    def __call_(self):
+        """Calling this object applys pending changes"""
+        self._apply_pending_changes()
 
     def __get_needs_update(self):
         """Needs update when there are pending changes."""
@@ -256,19 +273,6 @@ class TypedLockableList(TypeCheckedList):
         return self._changed_since_last_call
     ChangedSinceLastCall = property(__g_changed_since_last_call)
 
-    def clear_change_flag(self):
-        """Manually clear the change flag.
-            Useful when you want to ignore behavior that triggers off of
-            changes, even if changes HAVE taken place."""
-        self._changed_since_last_call = False
 
-    def clear(self):
-        if self.IsLocked:
-            raise RuntimeError("Tried to clear a locked list.")
-        else:
-            for item in self:
-                self.remove(item)
-            while len(self._to_add) > 0:
-                self._to_add.pop()
-            while len(self._to_remove) > 0:
-                self._to_remove.pop()
+
+    

@@ -307,43 +307,81 @@ class TypedDoubleBufferTest(unittest.TestCase):
 class TypedLockableListTest(unittest.TestCase):
     def test_init(self):
         #Test empty constructor
-        empty_tcl = Structs.TypedLockableList(int, items = None,
+        empty_tll = Structs.TypedLockableList(int, items = None,
                                             suppress_type_errors = True)
-        actual = len(empty_tcl)
+        actual = len(empty_tll)
         expected = 0
         self.assertTrue(actual == expected)
         
         #Test constructor with items
         items = [1,2,3,'bob']
-        tcl = Structs.TypedLockableList(int, items = items,
+        tll = Structs.TypedLockableList(int, items = items,
                                       suppress_type_errors = True)
-        actual = len(tcl)
+        actual = len(tll)
         expected = 3
         self.assertTrue(actual == expected)
         
         #Test bad extend with no TypeError suppression
         items = [1,2,3,'bob']
         with self.assertRaises(TypeError):
-            tcl = Structs.TypedLockableList(int, items = items,
+            tll = Structs.TypedLockableList(int, items = items,
                                           suppress_type_errors = False)
             
     def test_append(self):
         #Test append on unlocked
+        tll = Structs.TypedLockableList(str, items = None, suppress_type_errors = False)
+        tll.append("Yellow")
+        actual = len(tll)
+        expected = 1
+        self.assertTrue(actual == expected)
+        
         
         #Test append of wrong type with no suppression
+        tll = Structs.TypedLockableList(str, items = None, suppress_type_errors = False)
+        with self.assertRaises(TypeError):
+            tll.append(5)
         
         #Test append on locked- check _to_add and len()
+        tll = Structs.TypedLockableList(str, items = None, suppress_type_errors = False)
+        tll.lock(set_lock = True, force_update = False)
+        tll.append("Yellow")
         
-        pass
+        actual = len(tll._to_add)
+        expected = 1
+        self.assertTrue(actual == expected)
+        
+        actual = len(tll)
+        expected = 0
+        self.assertTrue(actual == expected)
     
     def test_extend(self):
         #Test extend on unlocked
+        tll = Structs.TypedLockableList(str, items = None, suppress_type_errors = False)
+        tll.extend(["Yellow","Blue"])
+        actual = len(tll)
+        expected = 2
+        self.assertTrue(actual == expected)
         
         #Test extend of wrong type with no suppression
-        
+        tll = Structs.TypedLockableList(str, items = None, suppress_type_errors = False)
+        with self.assertRaises(TypeError):
+            tll.extend([5,"Red"])
+        actual = len(tll)
+        expected = 0
+        self.assertTrue(actual == expected)
+            
         #Test extend on locked- check _to_add and len()
+        tll = Structs.TypedLockableList(str, items = None, suppress_type_errors = False)
+        tll.lock(set_lock = True, force_update = False)
+        tll.extend(["Yellow","Red"])
         
-        pass
+        actual = len(tll._to_add)
+        expected = 2
+        self.assertTrue(actual == expected)
+        
+        actual = len(tll)
+        expected = 0
+        self.assertTrue(actual == expected)
     
     def test_remove(self):
         #Test remove on unlocked with item in set
