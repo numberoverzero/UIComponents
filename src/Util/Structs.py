@@ -12,22 +12,22 @@ class TypeCheckedList(list):
     """A list with a certain type that is checked
             at append/extend so that future use can assume type.
             Changing dtype will of course break this rule."""
-    def __init__(self, dtype, items = None, suppress_type_errors = False):
+    def __init__(self, dtype, values = None, suppress_type_errors = False):
         super(TypeCheckedList, self).__init__()
         
         self._dtype = dtype
         self._suppress_type_errors = suppress_type_errors
         
-        if items is not None:
-            self.extend(items)
+        if values is not None:
+            self.extend(values)
     
-    def append(self, item):
-        if not isinstance(item, self._dtype):
+    def append(self, value):
+        if not isinstance(value, self._dtype):
             if not self._suppress_type_errors:
-                msg = "Cannot append item {it}: not an instance of {lt}."
-                raise TypeError(msg.format(it=item, lt=self._dtype))
+                msg = "Cannot append value {it}: not an instance of {lt}."
+                raise TypeError(msg.format(it=value, lt=self._dtype))
         else:
-            super(TypeCheckedList, self).append(item)
+            super(TypeCheckedList, self).append(value)
     
     def clear(self):
         """Since we can't do TypeCheckedList = [],
@@ -35,12 +35,12 @@ class TypeCheckedList(list):
         while len(self) > 0:
             self.pop()
     
-    def extend(self, items):
-        if hasattr(items, "__iter__"):
-            for item in items:
-                self.append(item)
+    def extend(self, values):
+        if hasattr(values, "__iter__"):
+            for value in values:
+                self.append(value)
         else:
-            self.append(items)           
+            self.append(values)           
     
 class TypedDoubleBuffer(object):
     """A double buffered object with specific type.
@@ -48,9 +48,9 @@ class TypedDoubleBuffer(object):
             for details on what each mode does."""
         
     def __init__(self, dtype, suppress_type_errors = False):
-        self.__bbuffer = TypeCheckedList(dtype, items = None,
+        self.__bbuffer = TypeCheckedList(dtype, values = None,
                             suppress_type_errors = suppress_type_errors)
-        self.__fbuffer = TypeCheckedList(dtype, items = None,
+        self.__fbuffer = TypeCheckedList(dtype, values = None,
                             suppress_type_errors = suppress_type_errors)
             
     def clear(self, front = True, back = False):
@@ -148,19 +148,19 @@ class TypedDoubleBuffer(object):
             raise ValueError("Mode {m} not recognized.".format(m=mode))
     
     def get_front_buffer_items(self):
-        """Returns a copy of the items in the front buffer"""
+        """Returns a copy of the values in the front buffer"""
         return self.__fbuffer[:]
     
     def get_back_buffer_items(self):
-        """Returns a copy of the items in the back buffer"""
+        """Returns a copy of the values in the back buffer"""
         return self.__bbuffer[:]
     
     def pop(self):
-        """Pops the top item from the front buffer."""
+        """Pops the top value from the front buffer."""
         return self.__fbuffer.pop(0)
 
     def push(self, value):
-        """Push an item onto the back buffer."""
+        """Push an value onto the back buffer."""
         self._write_back_buffer(value)
     
     def _write_front_buffer(self, value):
@@ -180,30 +180,27 @@ class TypedLockableList(TypeCheckedList):
     _needs_update = False
     _changed_since_last_call = False
     
-    def __init__(self, dtype, items = None, suppress_type_errors = False):
+    def __init__(self, dtype, values = None, suppress_type_errors = False):
         self._to_add = []
         self._to_remove = []
-        super(TypedLockableList, self).__init__(dtype, items = items,
+        super(TypedLockableList, self).__init__(dtype, values = values,
                             suppress_type_errors = suppress_type_errors)
         
-    def append(self, item):
+    def append(self, value):
         self._changed_since_last_call = True
         if not self._locked:
-            super(TypedLockableList, self).append(item)
+            super(TypedLockableList, self).append(value)
         else:
-            self._to_add.append(item)
+            self._to_add.append(value)
             self._needs_update = True
     
     def clear(self):
-        if self.IsLocked:
-            raise RuntimeError("Tried to clear a locked list.")
-        else:
-            for item in self:
-                self.remove(item)
-            while len(self._to_add) > 0:
-                self._to_add.pop()
-            while len(self._to_remove) > 0:
-                self._to_remove.pop()
+        while len(self) > 0:
+            self.pop()
+        while len(self._to_add) > 0:
+            self._to_add.pop()
+        while len(self._to_remove) > 0:
+            self._to_remove.pop()
     
     def clear_change_flag(self):
         """Manually clear the change flag.
@@ -211,12 +208,12 @@ class TypedLockableList(TypeCheckedList):
             changes, even if changes HAVE taken place."""
         self._changed_since_last_call = False
         
-    def extend(self, items):
+    def extend(self, values):
         self._changed_since_last_call = True
         if not self._locked:
-            super(TypedLockableList, self).extend(items)
+            super(TypedLockableList, self).extend(values)
         else:
-            self._to_add.extend(items)
+            self._to_add.extend(values)
             self._needs_update = True
             
     def lock(self, set_lock = None, force_update = True):
@@ -232,48 +229,47 @@ class TypedLockableList(TypeCheckedList):
         if force_update:
             self._apply_pending_changes()
 
-    def remove(self, item):
+    def remove(self, value):
         self._changed_since_last_call = True
         if not self._locked:
-            super(TypedLockableList, self).remove(item)
+            super(TypedLockableList, self).remove(value)
         else:
-            self._to_remove.append(item)
+            self._to_remove.append(value)
             self._needs_update = True
 
-    def sort(self, _cmp = None, key = None, reverse = False):
-        if self._locked:
-            return
-        super(TypedLockableList, self).sort(_cmp, key = key, reverse = reverse)
+    def sort(self, cmp_ = None, key_ = None, reverse_ = False):
+        self._apply_pending_changes()
+        self._changed_since_last_call = True
+        super(TypedLockableList, self).sort(cmp_, key = key_, reverse = reverse_)
 
     def _apply_pending_changes(self):
         """Apply changes that are pending, only if it is locked."""
         if self._locked:
             return
 
-        for item in self._to_add:
-            super(TypedLockableList, self).append(item)
+        for value in self._to_add:
+            super(TypedLockableList, self).append(value)
         self._to_add = []
 
-        for item in self._to_remove:
-            super(TypedLockableList, self).remove(item)
+        for value in self._to_remove:
+            super(TypedLockableList, self).remove(value)
         self._to_remove = []
 
         self._needs_update = False
     
-    def __call_(self):
-        """Calling this object applys pending changes"""
+    def __iter__(self):
         self._apply_pending_changes()
+        return super(TypedLockableList, self).__iter__()
 
-    def __get_needs_update(self):
+    def __g_has_pending_updates(self):
         """Needs update when there are pending changes."""
         return self._needs_update
-    HasPendingUpdates = property(__get_needs_update)
+    HasPendingUpdates = property(__g_has_pending_updates)
 
-    def __get_is_locked(self):
+    def __g_is_locked(self):
         """Locked prevents direct append/removal, such as when looping over."""
         return self._locked
-
-    IsLocked = property(__get_is_locked)
+    IsLocked = property(__g_is_locked)
 
     def __g_changed_since_last_call(self):
         """If there are pending updates 
