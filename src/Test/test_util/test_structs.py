@@ -172,11 +172,10 @@ class TypedDoubleBufferTest(unittest.TestCase):
     def test_clear(self):
         #Test clear on front only
         tdb = Structs.TypedDoubleBuffer(int)
-        tdb.push(3)
-        tdb.push(4)
-        tdb.flip(mode='exact')
-        tdb.push(100)
-        tdb.push(200)
+        tdb._write_front_buffer(3)
+        tdb._write_front_buffer(4)
+        tdb._write_back_buffer(100)
+        tdb._write_back_buffer(200)
         tdb.clear(front = True, back = False)
         
         expected_front = []
@@ -188,11 +187,10 @@ class TypedDoubleBufferTest(unittest.TestCase):
         
         #Test clear on back only
         tdb = Structs.TypedDoubleBuffer(int)
-        tdb.push(3)
-        tdb.push(4)
-        tdb.flip(mode='exact')
-        tdb.push(100)
-        tdb.push(200)
+        tdb._write_front_buffer(3)
+        tdb._write_front_buffer(4)
+        tdb._write_back_buffer(100)
+        tdb._write_back_buffer(200)
         tdb.clear(front = False, back = True)
         
         expected_front = [3,4]
@@ -204,11 +202,10 @@ class TypedDoubleBufferTest(unittest.TestCase):
         
         #Test clear on both
         tdb = Structs.TypedDoubleBuffer(int)
-        tdb.push(3)
-        tdb.push(4)
-        tdb.flip(mode='exact')
-        tdb.push(100)
-        tdb.push(200)
+        tdb._write_front_buffer(3)
+        tdb._write_front_buffer(4)
+        tdb._write_back_buffer(100)
+        tdb._write_back_buffer(200)
         tdb.clear(front = True, back = True)
         
         expected_front = []
@@ -220,11 +217,10 @@ class TypedDoubleBufferTest(unittest.TestCase):
         
         #Test clear on neither
         tdb = Structs.TypedDoubleBuffer(int)
-        tdb.push(3)
-        tdb.push(4)
-        tdb.flip(mode='exact')
-        tdb.push(100)
-        tdb.push(200)
+        tdb._write_front_buffer(3)
+        tdb._write_front_buffer(4)
+        tdb._write_back_buffer(100)
+        tdb._write_back_buffer(200)
         tdb.clear(front = False, back = False)
         
         expected_front = [3,4]

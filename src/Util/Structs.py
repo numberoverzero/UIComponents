@@ -156,12 +156,20 @@ class TypedDoubleBuffer(object):
         return self.__bbuffer[:]
     
     def pop(self):
-        """Pops an item from the front buffer."""
+        """Pops the top item from the front buffer."""
         return self.__fbuffer.pop(0)
 
-    def push(self, item):
+    def push(self, value):
         """Push an item onto the back buffer."""
-        self.__bbuffer.append(item)
+        self._write_back_buffer(value)
+    
+    def _write_front_buffer(self, value):
+        """For directly appending to the front buffer"""
+        self.__fbuffer.append(value)
+    
+    def _write_back_buffer(self, value):
+        """For directly appending to the back buffer"""
+        self.__bbuffer.append(value)
 
 class TypedLockableList(TypeCheckedList):
     """Does not protect many of the possible assignments, 
