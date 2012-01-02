@@ -20,6 +20,10 @@ def on_change(var_name, flag_on_change):
         return wrapped_call
     return fn_wrapper
 
+ARG_MISSING_COUNT_ERRMSG = "{f}() takes at least {n} arguments ({x} given)"
+ARG_EXTRA_COUNT_ERRMSG = "{f}() takes at most {n} arguments ({x} given)"
+ARG_EXTRA_DEF_ERRMSG = "{f}() got mutliple values for keyword argument '{n}'"
+
 def inject_args(ignores = None):
     """DECORATOR: Injects local args into class so that there isn't a lot of:
         def foo(self, x, y, b, w, h, r):
@@ -29,86 +33,117 @@ def inject_args(ignores = None):
             self.w = w
         NOTE: ignores any names in the vector "ignores"
     """
-    err_str = "Must pass kwargs using keyword- can't pass using position."
-    unexp_err_str = "{fn_name} got an unexpected keyword argument(s) '{arg}'"
-    
-    #Can't iterate on None object
-    if ignores is None:
-        ignores = []
-    #Ensure that we wrap the object in a list if it's not already a sequence
-    if not hasattr(ignores, '__iter__'):
-        ignores = list(ignores)
         
+    if not hasattr(ignores, '__iter__'):
+        if isinstance(ignores, str):
+            ignores = [ignores]
+        else:
+            ignores = []
     def fn_wrapper(func):
         """Wraps the function that will have args injected"""
+        fname = func.func_name
         
-        #Non-kwarg count
+        #Less 1 for the self arg
+        ttl_var_count = func.func_code.co_argcount - 1
+        
         try:
             kw_count = len(func.func_defaults)
         except TypeError:
+            #func_defaults is None when the function has no kwargs
             kw_count = 0
-        arg_count = func.func_code.co_argcount - kw_count
-
-        #List of kwarg var names
-        kw_names = func.func_code.co_varnames[arg_count:]
-        fn_varnames = set(func.func_code.co_varnames[1:])
+        
+        arg_count = ttl_var_count - kw_count
+        
+        #Don't include the first arg name (self)
+        var_names = func.func_code.co_varnames[1:]
+        arg_names = var_names[:arg_count]
+        kwarg_names = var_names[arg_count:]
+        
+        #Load default kwargs
+        default_passing_kwargs = {}
+        for i in xrange(kw_count):
+            default_passing_kwargs[kwarg_names[i]] = func.func_defaults[i]
         
         @functools.wraps(func)
-        def wrapped_call(*args, **kwargs):  # pylint: disable-msg=C0111
-            nargs = len(args)
-
-            #Can't take args that the function doesn't want
-            #
-            #    THIS CODE MIGHT BE MAD BROKEN
-            #
-            given_varnames = set(args[1:]).union(kwargs)
-            if not given_varnames.issubset(fn_varnames):
-                delta_varnames = given_varnames - given_varnames.intersection(fn_varnames) # pylint: disable-msg=C0301
-                raise TypeError(unexp_err_str.format(fn_name = func.func_name,
-                                                     arg = given_varnames))
-
-            #Kwargs have to be passed using keyword
-            if nargs > arg_count:
-                raise TypeError(err_str)
-
-            #Pull out self
+        def wrapped_call(*args, **kwargs): # pylint: disable-msg=C0111
+            #Pull self off of args
             self_ = args[0]
+            args = list(args[1:])
+            
+            n_args = len(args)
+            n_kwargs = len(kwargs)
+            n_ttl_args = n_args + n_kwargs
+            
+            #Didn't provide all necessary args as args- might be in kwargs
+            if n_args < arg_count:
+                n_missing_args = arg_count - n_args
+                n_extra_kwargs = n_kwargs - kw_count
+                if n_extra_kwargs == n_missing_args:
+                    #Do stuff to load those kwargs into args
+                    for key in kwargs.keys():
+                        if key in arg_names:
+                            #Find the index of the key in arg_names
+                            arg_index = arg_names.index(key)
+                            arg_value = kwargs.pop(key)
+                            args.insert(arg_index, arg_value)
+                    
+                    #Recheck length of args
+                    n_args = len(args)
+                    n_kwargs = len(kwargs)
+                    n_ttl_args = n_args + n_kwargs
+                    
+                    if n_args != arg_count:
+                        #Didn't get all args loaded in, raise the error.
+                        raise TypeError(ARG_MISSING_COUNT_ERRMSG.format(
+                            f=fname, n=arg_count+1, x=n_args+1))
+                            #We add on 1 for self
+                else:
+                    #Not enough extra kwargs to fill all missing args
+                    raise TypeError(ARG_MISSING_COUNT_ERRMSG.format(
+                        f=fname, n=arg_count+1, x=n_args+1))
+                        #We add on 1 for self
+            
+            #Provided all args, all kwargs, and then some.
+            if n_ttl_args > ttl_var_count:
+                raise TypeError(ARG_EXTRA_COUNT_ERRMSG.format(
+                    f=fname, n=ttl_var_count+1, x=n_ttl_args+1))
+            
+            #Load kwargs into default kwargs
+            passing_kwargs = default_passing_kwargs.copy()
+            passing_kwargs.update(kwargs)
+            
+            passing_args = list(args[:arg_count])
 
-            #Inject defaults into kwargs if they're not already there
-            vkwargs = {}
-            start_index = nargs - arg_count
-            #
-            #    THIS CONDITIONAL MIGHT BE DANGEROUS
-            #
-            if start_index > 0:
-                for index in range(start_index, kw_count):
-                    if kw_names[index] not in ignores:
-                        vkwargs[kw_names[index]] = func.func_defaults[index]
-
-            #Filter only valid kwargs            
-            for key in kwargs:
+            #Load kwargs passed by position (in args)
+            n_passed_as_args = n_args-arg_count
+            if n_passed_as_args > 0:
+                start = arg_count
+                for i in xrange(n_passed_as_args):
+                    #kwarg name index
+                    kwni = i
+                    #arg value index
+                    avi = i + start
+                    
+                    passing_kwargs[kwarg_names[kwni]] = args[avi]
+            
+            #Inject args into object namespace
+            for index, value in enumerate(passing_args):
+                name = arg_names[index]
+                if name not in ignores:
+                    setattr(self_, name, value)                    
+            
+            #Inject kwargs into object namespace
+            for key in passing_kwargs.keys():
                 if key not in ignores:
-                    vkwargs[key] = kwargs[key]
+                    setattr(self_, key, passing_kwargs[key])
             
-            #Update kwargs, use setattr in case there are setters or getters
-                #Using __dict__.update bypasses set/get
-            for name in vkwargs:
-                setattr(self_, name, vkwargs[name])
+            #Re-insert self into passing args for function call
+            passing_args.insert(0, self_)
             
-            #Grab all variable names except first- that's self
-            all_names_ = func.func_code.co_varnames[1:]
-            
-            #Filter out var names that are in kwargs
-            names_ = [n for n in all_names_ if not vkwargs.has_key(n)]
-            
-            #Don't grab first, it's self
-            _values = args[1:]
-            
-            #Update using setattr, same reason as above
-            for name, value in zip(names_, _values):
-                setattr(self_, name, value)
-            
-            #Actually run the function and hand back it's return
-            return func(*args, **kwargs)
+            #Execute the wrapped function 
+            p_args = passing_args
+            p_kwargs = passing_kwargs
+            return func(*p_args, **p_kwargs) # pylint: disable-msg=W0142
         return wrapped_call
     return fn_wrapper
+
