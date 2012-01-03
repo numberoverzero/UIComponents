@@ -39,6 +39,12 @@ def inject_args(ignores = None):
             ignores = [ignores]
         else:
             ignores = []
+    else:
+        #Note: use ignores = ignores[:] to copy the list
+        #This makes the ignores list immutable.
+        #However, having a mutable ignores could be useful, so it is
+        #assumed by default.
+        pass
     def fn_wrapper(func):
         """Wraps the function that will have args injected"""
         fname = func.func_name
@@ -73,32 +79,24 @@ def inject_args(ignores = None):
             n_args = len(args)
             n_kwargs = len(kwargs)
             n_ttl_args = n_args + n_kwargs
-            
+                        
             #Didn't provide all necessary args as args- might be in kwargs
             if n_args < arg_count:
-                n_missing_args = arg_count - n_args
-                n_extra_kwargs = n_kwargs - kw_count
-                if n_extra_kwargs == n_missing_args:
-                    #Do stuff to load those kwargs into args
-                    for key in kwargs.keys():
-                        if key in arg_names:
-                            #Find the index of the key in arg_names
-                            arg_index = arg_names.index(key)
-                            arg_value = kwargs.pop(key)
-                            args.insert(arg_index, arg_value)
-                    
-                    #Recheck length of args
-                    n_args = len(args)
-                    n_kwargs = len(kwargs)
-                    n_ttl_args = n_args + n_kwargs
-                    
-                    if n_args != arg_count:
-                        #Didn't get all args loaded in, raise the error.
-                        raise TypeError(ARG_MISSING_COUNT_ERRMSG.format(
-                            f=fname, n=arg_count+1, x=n_args+1))
-                            #We add on 1 for self
-                else:
-                    #Not enough extra kwargs to fill all missing args
+                #Load missing args from kwargs
+                for key in kwargs.keys():
+                    if key in arg_names:
+                        #Find the index of the key in arg_names
+                        arg_index = arg_names.index(key)
+                        arg_value = kwargs.pop(key)
+                        args.insert(arg_index, arg_value)
+                
+                #Recheck length of args
+                n_args = len(args)
+                n_kwargs = len(kwargs)
+                n_ttl_args = n_args + n_kwargs
+                
+                if n_args != arg_count:
+                    #Didn't get all args loaded in, raise the error.
                     raise TypeError(ARG_MISSING_COUNT_ERRMSG.format(
                         f=fname, n=arg_count+1, x=n_args+1))
                         #We add on 1 for self
@@ -111,7 +109,7 @@ def inject_args(ignores = None):
             #Load kwargs into default kwargs
             passing_kwargs = default_passing_kwargs.copy()
             passing_kwargs.update(kwargs)
-            
+
             passing_args = list(args[:arg_count])
 
             #Load kwargs passed by position (in args)
