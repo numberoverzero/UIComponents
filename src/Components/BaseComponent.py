@@ -35,11 +35,11 @@ class BaseComponent(object):
     __triggers_redraw = ["x", "y", "width", "height",
                          "anchor_x", "anchor_y", "parent"]
 
-    @Util.Wrappers.inject_args(['coords'])
+    @Util.Wrappers.inject_args(['coords', 'id_manager'])
     def __init__(self, Parent=None, x=0, y=0, width=0, height=0,
                  anchor_x="left", anchor_y="top", coords="local",
                  Name="BaseComponent", Tooltip="Empty Tooltip",
-                 Visible = True, Enabled = True):
+                 Visible = True, Enabled = True, id_manager = None):
         '''
         Pass a screen as parent if this is DIRECTLY attached to the screen
         
@@ -49,7 +49,9 @@ class BaseComponent(object):
             Coordinates are stored in local, and transformed to global.
         '''
         
-        self._id = Engine.ID_Manager.next_id(self)        
+        if id_manager is None:
+            id_manager = Engine.GLOBAL_ID_MANAGER
+        self._id = id_manager.next_id(self)        
         self._TabIndex = 0
         if Visible:
             #Make sure that content loads properly, since args may have been
