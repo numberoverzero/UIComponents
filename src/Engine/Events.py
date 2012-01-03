@@ -38,15 +38,15 @@ class EventArgs(object):
 #Also allows us to check against Engine.NoneArgs instead of using isinstance()
 NONEARGS = EventArgs(custom_id = -1)
 
-class EventHandler(object): #pylint: disable-msg=R0903
+class EventHandler(object):
     """Takes events and dispatches them to its listeners."""
     def __init__(self):
-        self.listeners = []
+        self._listeners = []
     
     def add_listener(self, listener):
         """Adds the listener to those pushed on invocation."""
-        if not Util.contains(self.listeners, listener):
-            self.listeners.append(listener)                
+        if not Util.contains(self._listeners, listener):
+            self._listeners.append(listener)                
     
     def __iadd__(self, listener):
         """Add a listener"""
@@ -54,8 +54,8 @@ class EventHandler(object): #pylint: disable-msg=R0903
         
     def remove_listener(self, listener):
         """Removes the listener from those pushed on invocation."""
-        if Util.contains(self.listeners, listener):
-            self.listeners.remove(listener)
+        if Util.contains(self._listeners, listener):
+            self._listeners.remove(listener)
             
     def __isub__(self, listener):
         """Remove a listener"""
@@ -65,7 +65,7 @@ class EventHandler(object): #pylint: disable-msg=R0903
         """Invoke the handler with sender and args information.
             Default args are NONEARGS."""
         dead_listeners = []
-        for listener in self.listeners:
+        for listener in self._listeners:
             if listener is not None:
                 listener(sender, event_args)
             else:
@@ -80,4 +80,11 @@ class EventHandler(object): #pylint: disable-msg=R0903
         self.invoke(sender, event_args)
     
     def __del__(self):
-        self.listeners = None
+        self._listeners = None
+    
+    def __get_listeners(self):
+        """Return a copy of the listeners"""
+        return self._listeners[:]
+    
+    Listeners = property(__get_listeners, None, None, 
+                         "Copy of the handler's listeners")
