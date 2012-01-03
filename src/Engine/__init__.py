@@ -8,9 +8,10 @@ point to the id pool, so there are not id collisions.
 
 import Util
 
-class __id_manager(object): # pylint: disable-msg=C0103
+class id_manager(object): # pylint: disable-msg=C0103
     """Used to track and hand out ids.  Currently only supports
-            getting the next available id."""
+            getting the next available id.  Uses seperate ids for
+            different types of objects"""
     def __init__(self):
         self.__nid = {}
     
@@ -23,4 +24,4 @@ class __id_manager(object): # pylint: disable-msg=C0103
             self.__nid[otype] = 1
         return self.__nid[otype] - 1
     
-ID_Manager = __id_manager() # pylint: disable-msg=C0103
+Global_ID_Manager = id_manager() # pylint: disable-msg=C0103
