@@ -28,7 +28,7 @@ class EngineTest(unittest.TestCase):
             
         self.mk_obj = mk_obj
         
-    def test_id_manager(self):
+    def test_id_manager_instanced_version(self):
         #Make a new manager
         id_manager = Engine.id_manager()
         
@@ -54,6 +54,64 @@ class EngineTest(unittest.TestCase):
         actual = int_objs[-1]._id
         expected = 10
         self.assertEqual(actual, expected)
+        
+    def test_id_manager_global_version(self):
+        #Do a reset
+        id_manager = Engine.GLOBAL_ID_MANAGER
+        id_manager.reset()
+        
+        #Make some int objects
+        int_objs = []
+        for i in range(10):
+            int_objs.append(self.mk_obj(id_manager, self.o_int))
+        
+        #Make a str object
+        str_obj = self.mk_obj(id_manager, self.o_str)
+        
+        for i in range(10):
+            expected = i
+            actual = int_objs[i]._id
+            self.assertEqual(actual, expected)
+        
+        actual = str_obj._id
+        expected = 0
+        self.assertEqual(actual, expected)
+        
+        #Add another int
+        int_objs.append(self.mk_obj(id_manager, self.o_int))
+        actual = int_objs[-1]._id
+        expected = 10
+        self.assertEqual(actual, expected)
+        
+        #Test a reset and do it one more time
+        id_manager.reset()
+        
+        #Make some int objects
+        int_objs = []
+        for i in range(10):
+            int_objs.append(self.mk_obj(id_manager, self.o_int))
+        
+        #Make a str object
+        str_obj = self.mk_obj(id_manager, self.o_str)
+        
+        for i in range(10):
+            expected = i
+            actual = int_objs[i]._id
+            self.assertEqual(actual, expected)
+        
+        actual = str_obj._id
+        expected = 0
+        self.assertEqual(actual, expected)
+        
+        #Add another int
+        int_objs.append(self.mk_obj(id_manager, self.o_int))
+        actual = int_objs[-1]._id
+        expected = 10
+        self.assertEqual(actual, expected)
+        
+        #Clear out the global again
+        id_manager.reset()
+        
 
 def suite():
     suite1 = unittest.makeSuite(EngineTest)

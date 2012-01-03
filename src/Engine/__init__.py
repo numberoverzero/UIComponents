@@ -24,4 +24,8 @@ class id_manager(object): # pylint: disable-msg=C0103
             self.__nid[otype] = 1
         return self.__nid[otype] - 1
     
-Global_ID_Manager = id_manager() # pylint: disable-msg=C0103
+    def reset(self):
+        """Resets all counters."""
+        self.__nid = {}
+    
+GLOBAL_ID_MANAGER = id_manager()
