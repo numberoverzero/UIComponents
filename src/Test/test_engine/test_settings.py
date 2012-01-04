@@ -181,26 +181,67 @@ class SettingTest(unittest.TestCase):
         self.assertEqual(actual, expected)
     
     def test_load_using_config_parser(self):
-        pass
+        self.skipTest("Not Yet Implemented")
     
     def test_save_using_config_parser(self):
-        pass
+        self.skipTest("Not Yet Implemented")
     
 class SettingsTest(unittest.TestCase):
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        options = ["Option0", "Option1", "Option2"]
+        self.my_setting = Settings.Setting(name="MySetting",
+                                   description="A test setting",
+                                   default=0, selection=1,
+                                   options=options)
+        color_options = ["Yellow", "Red", "Blue"]
+        self.color_setting = Settings.Setting(name="ColorSetting",
+                                   description="Pick a color",
+                                   default=0, selection=0,
+                                   options=color_options)
+        
+        #New settings object
+        self.settings = Settings.Settings()
+        #Add in settings using __setitem__
+        self.settings["MySetting"] = self.my_setting
+        self.settings["ColorSetting"] = self.color_setting
+        
     def test_load(self):
-        pass
+        self.skipTest("Not Yet Implemented")
     
     def test_save(self):
-        pass
-    
-    def test_get_item(self):
-        pass
-    
+        self.skipTest("Not Yet Implemented")
+        
     def test_add_setting(self):
-        pass
+        
+        original_len = len(self.settings)
+        
+        new_setting = Settings.Setting()
+        self.settings.add_setting("Junk_Setting", new_setting)
+        
+        new_len = len(self.settings)
+        
+        expected = 1
+        actual = new_len - original_len
+        self.assertEqual(expected, actual)
+        
+        sb_new_setting = self.settings["Junk_Setting"]
+        self.assertEqual(new_setting, sb_new_setting)
     
     def test_remove_setting(self):
-        pass
+        
+        original_len = len(self.settings)
+        
+        self.settings.remove_setting("ColorSetting")
+        
+        with self.assertRaises(KeyError):
+            self.settings["ColorSetting"]
+        
+        new_len = len(self.settings)
+        
+        expected = -1
+        actual = new_len - original_len
+        self.assertEqual(expected, actual)
     
     def test_add_option(self):
         pass

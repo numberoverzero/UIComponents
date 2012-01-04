@@ -25,6 +25,9 @@ class Setting(object):
 
     def __g_current_index(self):
         """Returns the current index of the selection"""
+        if self._selection < 0:
+            if len(self._options) > 0:
+                self._selection = 0
         return self._selection
     def __s_current_index(self, value):
         """Sets the current index of the selection, safely. (In range)"""
@@ -155,6 +158,9 @@ class Setting(object):
         config.set(section, 'selection', str(self._selection))
         config.set(section, 'options', str(self._options))
     save = save_using_config_parser
+    
+    def __len__(self):
+        return len(self._options)
         
 class Settings(object):
     """Manages multiple settings, including loading and saving from/to
@@ -270,5 +276,7 @@ class Settings(object):
             self[key].remove_option(option)
         else:
             raise KeyError(self.__no_setting_err.format(key))
-
+        
+    def __len__(self):
+        return len(self.dict)
     
