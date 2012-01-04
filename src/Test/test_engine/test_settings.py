@@ -55,13 +55,79 @@ class SettingTest(unittest.TestCase):
         self.assertEqual(actual, expected)
     
     def test_current_option(self):
-        pass
+        options = ["Option0", "Option1", "Option2"]
+        setting = Settings.Setting(name="MySetting",
+                                   description="A test setting",
+                                   default=1, selection=0,
+                                   options=options)
+        
+        #Assert we assigned selection correctly
+        expected = "Option0"
+        actual = setting.current_option
+        self.assertEqual(actual, expected)
+        
+        #Change current to one in options
+        setting.current_option = "Option2"
+        
+        expected = "Option2"
+        actual = setting.current_option
+        self.assertEqual(actual, expected)
+        
+        #Change item to one not in options
+        with self.assertRaises(KeyError):
+            setting.current_option = "Not Possible Option"
     
     def test_next_option(self):
-        pass
+        options = ["Option0", "Option1", "Option2"]
+        setting = Settings.Setting(name="MySetting",
+                                   description="A test setting",
+                                   default=1, selection=0,
+                                   options=options)
+        
+        #Assert we assigned selection correctly
+        expected = "Option1"
+        actual = setting.next_option
+        self.assertEqual(actual, expected)
+        
+        #Check next
+        setting.current_index += 1
+        
+        expected = "Option2"
+        actual = setting.next_option
+        self.assertEqual(actual, expected)
+        
+        #Check next- a wrapped next
+        setting.current_index += 1
+        
+        expected = "Option0"
+        actual = setting.next_option
+        self.assertEqual(actual, expected)
     
     def test_previous_option(self):
-        pass
+        options = ["Option0", "Option1", "Option2"]
+        setting = Settings.Setting(name="MySetting",
+                                   description="A test setting",
+                                   default=1, selection=0,
+                                   options=options)
+        
+        #Assert we assigned selection correctly
+        expected = "Option2"
+        actual = setting.previous_option
+        self.assertEqual(actual, expected)
+        
+        #Check previous
+        setting.current_index += 1
+        
+        expected = "Option0"
+        actual = setting.previous_option
+        self.assertEqual(actual, expected)
+        
+        #Check previous
+        setting.current_index += 1
+        
+        expected = "Option1"
+        actual = setting.previous_option
+        self.assertEqual(actual, expected)
     
     def test_add_option(self):
         pass
