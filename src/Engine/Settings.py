@@ -28,7 +28,10 @@ class Setting(object):
         return self._selection
     def __s_current_index(self, value):
         """Sets the current index of the selection, safely. (In range)"""
-        value %= len(self._options)
+        if len(self._options) == 0:
+            value = -1
+        else:
+            value %= len(self._options)
         self._selection = value
     current_index = property(__g_current_index, __s_current_index)
 
@@ -86,10 +89,16 @@ class Setting(object):
     def remove_option(self, value):
         """Removes an option from the options, and
             updates the current selection as needed."""
-        if self._options.count(value) > 0:
+        if Util.contains(self._options, value):
             self._options.remove(value)
-        if self.current_index > len(self._options):
+        if self.current_index >= len(self._options):
             self.current_index = len(self._options) - 1
+    
+    def __g_options(self):
+        """Return a copy of the options"""
+        return self._options[:]
+    
+    options = property(__g_options)
     
     def load_using_config_parser(self, config, name = None):
         """Load a setting from a config file.

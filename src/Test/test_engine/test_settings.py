@@ -130,10 +130,55 @@ class SettingTest(unittest.TestCase):
         self.assertEqual(actual, expected)
     
     def test_add_option(self):
-        pass
+        options = []
+        setting = Settings.Setting(name="MySetting",
+                                   description="A test setting",
+                                   default=1, selection=0,
+                                   options=options)
+        
+        #Make sure we start empty
+        self.assertListEqual(options, setting.options)
+        
+        #Add an option
+        options.append("Yellow")
+        setting.add_option("Yellow")
+        
+        #Check it added
+        self.assertListEqual(options, setting.options)
+        
+        #Right now multiple of the same option can be added- check it
+        options.append("Yellow")
+        setting.add_option("Yellow")
+        
+        #Check it added
+        self.assertListEqual(options, setting.options)
     
     def test_remove_option(self):
-        pass
+        options = ["Option0", "Option1", "Option2"]
+        setting = Settings.Setting(name="MySetting",
+                                   description="A test setting",
+                                   default=1, selection=0,
+                                   options=options)
+        
+        #Make sure we start with all options
+        self.assertListEqual(options, setting.options)
+        
+        #Remove an option
+        options.remove("Option1")
+        setting.remove_option("Option1")
+        
+        #Check it removed
+        self.assertListEqual(options, setting.options)
+        
+        #Remove all items, check we're empty, check current_index
+        options.remove("Option2")
+        setting.remove_option("Option2")
+        options.remove("Option0")
+        setting.remove_option("Option0")
+        
+        expected = -1
+        actual = setting.current_index
+        self.assertEqual(actual, expected)
     
     def test_load_using_config_parser(self):
         pass
