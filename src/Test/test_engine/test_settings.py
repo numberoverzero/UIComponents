@@ -244,10 +244,29 @@ class SettingsTest(unittest.TestCase):
         self.assertEqual(expected, actual)
     
     def test_add_option(self):
-        pass
-    
+        new_color = "Brown"
+        old_len = len(self.settings["ColorSetting"])
+        self.settings.add_option("ColorSetting", new_color)
+        new_len = len(self.settings["ColorSetting"])
+        expected = 1
+        actual = new_len - old_len
+        self.assertEqual(expected, actual)
+        
+        #Test adding to a non-existant key fails
+        with self.assertRaises(KeyError):
+            self.settings.add_option("This_Key_Isnt_Real", "a monkey")
+        
     def test_remove_option(self):
-        pass
+        old_len = len(self.settings["ColorSetting"])
+        self.settings.remove_option("ColorSetting", "Red")
+        new_len = len(self.settings["ColorSetting"])
+        expected = -1
+        actual = new_len - old_len
+        self.assertEqual(expected, actual)
+        
+        #Test adding to a non-existant key fails
+        with self.assertRaises(KeyError):
+            self.settings.remove_option("This_Key_Isnt_Real", "a monkey")
 
 def suite():
     test_suite = unittest.TestSuite()
