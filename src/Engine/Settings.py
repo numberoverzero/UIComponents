@@ -16,48 +16,47 @@ class Setting(object):
 
         self._name = name
         self._description = description
-        self._default = default
+        self._default_index = default
         self._selection = selection
         if options is None:
             self._options = []
         else:
-            self._options = options[:]
+            self._options = list(options)
 
-    def __gCurrentIndex(self): # pylint: disable-msg=C0103
+    def __g_current_index(self):
         """Returns the current index of the selection"""
         return self._selection
-    def __sCurrentIndex(self, value): # pylint: disable-msg=C0103
+    def __s_current_index(self, value):
         """Sets the current index of the selection, safely. (In range)"""
         value %= len(self._options)
         self._selection = value
-    current_index = property(__gCurrentIndex)
+    current_index = property(__g_current_index, __s_current_index)
 
-    def __gDefault(self): # pylint: disable-msg=C0103
+    def __g_default_index(self):
         """Returns the default value for the setting"""
-        return self._default
-    def __sDefault(self, value): # pylint: disable-msg=C0103
+        return self._default_index
+    def __s_default_index(self, value):
         """Set the default value for the setting, safely. (In range)"""
         value %= len(self._options)
-        self._default = value
-    default = property(__gDefault, __sDefault)
+        self._default_index = value
+    default_index = property(__g_default_index, __s_default_index)
     
-    def __gDescription(self): # pylint: disable-msg=C0103
+    def __g_description(self):
         """Gets the string description of the setting"""
-        return self._default
-    def __sDescription(self, value): # pylint: disable-msg=C0103
+        return self._description
+    def __s_description(self, value):
         """Sets the description of the setting- no checking"""
         self._description = value
-    description = property(__gDescription, __sDescription)
+    description = property(__g_description, __s_description)
 
-    def __gCurrent(self): # pylint: disable-msg=C0103
+    def __g_current_option(self):
         """Gets the current selection item, if there can be one.
                 If there are no items, returns None"""
         if len(self._options) < 1:
             return None
         else:
             return self._options[self.current_index]
-
-    def __sCurrent(self, value): # pylint: disable-msg=C0103
+    def __s_current_option(self, value):
         """Only sets the current item if the requested new current
             is one of the options.  If the specified item isn't,
             raises KeyError"""
@@ -65,17 +64,16 @@ class Setting(object):
             raise KeyError(self.__no_opt_err.format(value))
         else:
             self.current_index = self._options.index(value)
-
-    def __g_previous_option(self): # pylint: disable-msg=C0103
+    current_option = property(__g_current_option, __s_current_option)
+    
+    def __g_previous_option(self):
         """Gets the previous option"""
         index = (self.current_index-1)%len(self._options)
         return self._options[index]
-    def __g_next_option(self): # pylint: disable-msg=C0103
+    def __g_next_option(self):
         """Gets the next option"""
         index = (self.current_index+1)%len(self._options)
         return self._options[index]
-
-    current = property(__gCurrent, __sCurrent)
     previous_option = property(__g_previous_option)
     next_option = property(__g_next_option)
 
@@ -111,7 +109,7 @@ class Setting(object):
             
         try:
             description = config.get(section, 'description')
-            default = int(config.get(section, 'default'))
+            default_index = int(config.get(section, 'default'))
             selection = int(config.get(section, 'selection'))
             options_str = config.get(section, 'options')
             options = list(Util.Formatting.str_to_tuple(options_str, str))
@@ -121,7 +119,7 @@ class Setting(object):
         finally:
             self._options = options[:]
             self.description = description
-            self.default = default
+            self.default_index = default_index
             self.current_index = selection
     load = load_using_config_parser
     
@@ -144,7 +142,7 @@ class Setting(object):
             config.add_section(section)
         
         config.set(section, 'description', self._description)
-        config.set(section, 'default', str(self._default))
+        config.set(section, 'default', str(self._default_index))
         config.set(section, 'selection', str(self._selection))
         config.set(section, 'options', str(self._options))
     save = save_using_config_parser

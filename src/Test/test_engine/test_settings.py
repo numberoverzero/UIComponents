@@ -2,16 +2,59 @@ import unittest
 import Engine.Settings as Settings
 
 class SettingTest(unittest.TestCase):
-    def test_constructor(self):
-        pass
+    def test_current_index(self):
+        options = ["Option0", "Option1", "Option2"]
+        setting = Settings.Setting(name="MySetting",
+                                   description="A test setting",
+                                   default=0, selection=1,
+                                   options=options)
+        
+        #Assert we assigned selection correctly
+        expected = 1
+        actual = setting.current_index
+        self.assertEqual(actual, expected)
+        
+        #Change index to one in range
+        setting.current_index += 1
+        
+        expected = 2
+        actual = setting.current_index
+        self.assertEqual(actual, expected)
+        
+        #Change index to 3, which should wrap to 0
+        setting.current_index += 1
+        
+        expected = 0
+        actual = setting.current_index
+        self.assertEqual(actual, expected)
     
-    def test_index(self):
-        pass
+    def test_default_index(self):
+        options = ["Option0", "Option1", "Option2"]
+        setting = Settings.Setting(name="MySetting",
+                                   description="A test setting",
+                                   default=1, selection=0,
+                                   options=options)
+        
+        #Assert we assigned selection correctly
+        expected = 1
+        actual = setting.default_index
+        self.assertEqual(actual, expected)
+        
+        #Change index to one in range
+        setting.default_index += 1
+        
+        expected = 2
+        actual = setting.default_index
+        self.assertEqual(actual, expected)
+        
+        #Change index to 3, which should wrap to 0
+        setting.default_index += 1
+        
+        expected = 0
+        actual = setting.default_index
+        self.assertEqual(actual, expected)
     
-    def test_default(self):
-        pass
-    
-    def test_current(self):
+    def test_current_option(self):
         pass
     
     def test_next_option(self):
