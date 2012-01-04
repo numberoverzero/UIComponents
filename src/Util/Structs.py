@@ -240,7 +240,9 @@ class TypedLockableList(TypeCheckedList):
     def sort(self, cmp_ = None, key_ = None, reverse_ = False):
         self._apply_pending_changes()
         self._changed_since_last_call = True
-        super(TypedLockableList, self).sort(cmp_, key = key_, reverse = reverse_)
+        super(TypedLockableList, self).sort(cmp_,
+                                            key = key_,
+                                            reverse = reverse_)
 
     def _apply_pending_changes(self):
         """Apply changes that are pending, only if it is locked."""

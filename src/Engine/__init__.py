@@ -29,3 +29,23 @@ class id_manager(object): # pylint: disable-msg=C0103
         self.__nid = {}
     
 GLOBAL_ID_MANAGER = id_manager()
+
+class HasID(object):
+    """An object with an id from an id_manager"""
+    def __init__(self, id_manager_ = None, custom_id = None):
+        if custom_id is not None:
+            self._id = custom_id
+            self.__id_manager = None
+        else:
+            if not isinstance(id_manager_, id_manager):
+                id_manager_ = GLOBAL_ID_MANAGER
+            self.__id_manager = id_manager_
+            self._id = self.__id_manager.next_id(self)
+    def __get_id(self):
+        """Returns the object's id"""
+        return self._id
+    def __eq__(self, other):
+        if not isinstance(other, HasID):
+            return False
+        return self.ID == other.ID
+    ID = property(__get_id, None, None, "Unique ID to reference the object")

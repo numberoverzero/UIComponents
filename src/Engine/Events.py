@@ -5,52 +5,47 @@ Describes EventArgs and EventHandlers
 import Engine
 import Util
 
-class EventArgs(object):
+class EventArgs(Engine.HasID):
     """Base class for arguments of an event.
         Default id_manager is Engine.Global_Id_Manager
         Using custom ids can break equality checks and the like."""
     def __init__(self, id_manager = None, custom_id = None):
-        if custom_id is not None:
-            self._id = custom_id
-            self.__id_manager = None
-        else:
-            if not isinstance(id_manager, Engine.id_manager):
-                id_manager = Engine.GLOBAL_ID_MANAGER
-            self.__id_manager = id_manager
-            self._id = self.__id_manager.next_id(self)
+        Engine.HasID.__init__(self, id_manager, custom_id)
     def __eq__(self, other):
         if not isinstance(other, EventArgs):
             return False
-        return self.ID == other.ID
-    def __get_id(self):
-        """Returns the event's id"""
-        return self._id
+        return Engine.HasID.__eq__(self, other)
     def __str__(self):
         return self._str()
     def _str(self):
         """Inheritable and overrideable __str__"""
         return "EventArgs(ID={}, id_manager={})".format(
             str(self.ID), str(self.__id_manager))
-    
-    ID = property(__get_id, None, None, "Unique ID to reference the EventArgs")
 
 #Allows handlers to be invoked without arguments
 #Also allows us to check against Engine.NoneArgs instead of using isinstance()
 NONEARGS = EventArgs(custom_id = -1)
 
-class EventHandler(object):
+class EventHandler(Engine.HasID):
     """Takes events and dispatches them to its listeners."""
-    def __init__(self):
+    def __init__(self, id_manager = None, custom_id = None):
+        Engine.HasID.__init__(self, id_manager, custom_id)
         self._listeners = []
     
-    def add_listener(self, listener):
-        """Adds the listener to those pushed on invocation."""
-        if not Util.contains(self._listeners, listener):
-            self._listeners.append(listener)                
+    def add_listener(self, listener_or_iter):
+        """Adds the listener to those pushed on invocation.
+            Can add iterable structures of listeners.  Uses recursion."""
+        if hasattr(listener_or_iter, '__iter__'):
+            for listener in listener_or_iter:
+                self.add_listener(listener)
+        else:
+            if not Util.contains(self._listeners, listener_or_iter):
+                self._listeners.append(listener_or_iter)                
     
-    def __iadd__(self, listener):
+    def __iadd__(self, listener_or_iter):
         """Add a listener"""
-        self.add_listener(listener)
+        self.add_listener(listener_or_iter)
+        return self
         
     def remove_listener(self, listener):
         """Removes the listener from those pushed on invocation."""
@@ -60,8 +55,9 @@ class EventHandler(object):
     def __isub__(self, listener):
         """Remove a listener"""
         self.remove_listener(listener)
+        return self
     
-    def invoke(self, sender, event_args = NONEARGS):
+    def invoke(self, sender = None, event_args = NONEARGS):
         """Invoke the handler with sender and args information.
             Default args are NONEARGS."""
         dead_listeners = []
@@ -79,12 +75,17 @@ class EventHandler(object):
             passes NONEARGS."""
         self.invoke(sender, event_args)
     
-    def __del__(self):
-        self._listeners = None
-    
     def __get_listeners(self):
         """Return a copy of the listeners"""
         return self._listeners[:]
+    
+    def __eq__(self, other):
+        if not isinstance(other, EventHandler):
+            return False
+        id_eq = Engine.HasID.__eq__(self, other)
+        #This may be a slow comparison as it requires two copies
+        list_eq = self.Listeners == other.Listeners
+        return id_eq and list_eq
     
     Listeners = property(__get_listeners, None, None, 
                          "Copy of the handler's listeners")

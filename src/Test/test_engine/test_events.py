@@ -1,3 +1,4 @@
+import functools
 import unittest
 import Engine
 import Engine.Events as Events
@@ -42,26 +43,146 @@ class EventArgsTest(unittest.TestCase):
         
 class EventHandlerTest(unittest.TestCase):
     def test_constructor(self):
-        pass
+        a = Events.EventHandler()
+        b = Events.EventHandler()
+        
+        self.assertNotEqual(a, b)
+        
+        #own id_manager
+        id_manager = Engine.id_manager()
+        c = Events.EventHandler(id_manager = id_manager)
+        d = Events.EventHandler(id_manager = id_manager)
+        
+        self.assertNotEqual(c, d)
+        
+        #Force equal
+        
+        c_ID = c.ID
+        c_copy = Events.EventHandler(custom_id = c_ID)
+        
+        self.assertEqual(c, c_copy)
     
     def test_add_handler(self):
-        pass
+        def listener(sender, eventargs):
+            pass
+        
+        a = Events.EventHandler()
+        a.add_listener(listener)
+        
+        expected = [listener]
+        actual = a.Listeners
+        self.assertListEqual(actual, expected)
+        
+        #Make sure a second identical add doesn't actually add.
+        a.add_listener(listener)
+        expected = [listener]
+        actual = a.Listeners
+        self.assertListEqual(actual, expected)
     
     def test_remove_handler(self):
-        pass
+        def listener(sender, eventargs):
+            pass
+        
+        a = Events.EventHandler()
+        
+        #Make sure a remove on empty doesn't blow things up
+        a.remove_listener(listener)
+        expected = []
+        actual = a.Listeners
+        self.assertListEqual(actual, expected)
+        
+        #Add a listener to remove
+        a.add_listener(listener)
+        
+        #Make sure we've got it before we try to remove it
+        expected = [listener]
+        actual = a.Listeners
+        self.assertListEqual(actual, expected)
+        
+        a.remove_listener(listener)
+        expected = []
+        actual = a.Listeners
+        self.assertListEqual(actual, expected)
+        
+        #Make sure a second remove doesn't mess things up
+        a.remove_listener(listener)
+        expected = []
+        actual = a.Listeners
+        self.assertListEqual(actual, expected)
     
-    def test_invoke_empty(self):
-        pass
+    def test_invoke_empty_args(self):
+        class sender_obj(object):
+            triggered = False
+        def listener(sender, eventargs):
+            sender.triggered = True
+        
+        a = Events.EventHandler()
+        a += listener
+        
+        #Obj to store results in
+        a_sender_obj = sender_obj()
+        
+        self.assertFalse(a_sender_obj.triggered)
+        a.invoke(a_sender_obj)
+        self.assertTrue(a_sender_obj.triggered)
     
-    def test_invoke_withargs(self):
-        pass
+    def test_invoke_with_args(self):
+        class sender_obj(object):
+            triggered = False
+        some_event_args = functools.partial(Events.EventArgs)
+        def listener(sender, eventargs):
+            sender.triggered = True
+            self.assertTrue(eventargs.ID == -100)
+        
+        a = Events.EventHandler()
+        a += listener
+        
+        #Obj to store results in
+        a_sender_obj = sender_obj()
+        
+        #event args to send
+        my_event_args = some_event_args(custom_id = -100)
+        
+        self.assertFalse(a_sender_obj.triggered)
+        a.invoke(a_sender_obj, my_event_args)
+        self.assertTrue(a_sender_obj.triggered)
     
     def test_invoke_on_none(self):
-        pass
+        def listener(sender, eventargs):
+            raise AssertionError
+        
+        a = Events.EventHandler()
+        a += listener
+        
+        with self.assertRaises(AssertionError):
+            a.invoke()
     
-    def test_del(self):
-        pass
-    
+    def test_invoke_with_args(self):
+        class sender_obj(object):
+            triggered = False
+        some_event_args = functools.partial(Events.EventArgs)
+        def listener(sender, eventargs):
+            sender.triggered = True
+            self.assertTrue(eventargs.ID == -100)
+        listener_2 = None
+        
+        a = Events.EventHandler()
+        a += [listener, listener_2]
+        
+        #Obj to store results in
+        a_sender_obj = sender_obj()
+        
+        #event args to send
+        my_event_args = some_event_args(custom_id = -100)
+        
+        self.assertFalse(a_sender_obj.triggered)
+        a.invoke(a_sender_obj, my_event_args)
+        self.assertTrue(a_sender_obj.triggered)
+        
+        expected = [listener]
+        actual = a.Listeners
+        self.assertListEqual(actual, expected)
+        
 def suite():
     test_suite = unittest.TestSuite()
     suite1 = unittest.makeSuite(EventArgsTest)

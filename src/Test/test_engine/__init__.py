@@ -111,7 +111,24 @@ class EngineTest(unittest.TestCase):
         
         #Clear out the global again
         id_manager.reset()
+    
+    def test_has_id(self):
+        a = Engine.HasID(custom_id = -100)
+        b = Engine.HasID(custom_id = -200)
+        c = Engine.HasID(custom_id = -100)
         
+        self.assertEqual(a, c)
+        self.assertNotEqual(a, b)
+        self.assertNotEqual(b, c)
+        
+        Engine.GLOBAL_ID_MANAGER.reset()
+        
+        d = Engine.HasID()
+        e = Engine.HasID()
+        
+        self.assertNotEqual(d, e)
+        
+        Engine.GLOBAL_ID_MANAGER.reset()
 
 def suite():
     suite1 = unittest.makeSuite(EngineTest)
