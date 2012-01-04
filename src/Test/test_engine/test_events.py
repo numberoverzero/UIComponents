@@ -3,8 +3,7 @@ import Engine
 import Engine.Events as Events
 
 class EventArgsTest(unittest.TestCase):
-    def test_ALL_the_args(self):
-        #Test custom_id
+    def test_arg_custom_ids(self):
         Event1 = Events.EventArgs(custom_id = -100)
         Event2 = Events.EventArgs(custom_id = -100)
         self.assertEqual(Event1.ID, Event2.ID)
@@ -12,29 +11,28 @@ class EventArgsTest(unittest.TestCase):
         Event1 = Events.EventArgs(custom_id = -100)
         Event2 = Events.EventArgs(custom_id = 2500)
         self.assertNotEqual(Event1.ID, Event2.ID)
-        
-        #Test global_manager
+    
+    def test_arg_global_ids(self):
         Event1 = Events.EventArgs()
         Event2 = Events.EventArgs()
         self.assertNotEqual(Event1.ID, Event2.ID)
-        
+    
+    def test_arg_global_reset_bad(self):
+        #Reset the global so we have a clean slate
         Engine.GLOBAL_ID_MANAGER.reset()
         
-        #Test that resetting a global_manager is bad
-        #===================================
         Event1 = Events.EventArgs()
         
-        #THIS IS OBVIOUSLY NOT GOOD
+        #THIS SHOULD BE OBVIOUSLY BAD
         Engine.GLOBAL_ID_MANAGER.reset()
         
         Event2 = Events.EventArgs()
         self.assertEqual(Event1.ID, Event2.ID)
-        #===================================
-        
-        
-        #Test custom_manager
+
+    def test_custom_managers(self):
         id_manager1 = Engine.id_manager()
         id_manager2 = Engine.id_manager()
+
         Event1 = Events.EventArgs(id_manager = id_manager1)
         Event2 = Events.EventArgs(id_manager = id_manager2)
         
