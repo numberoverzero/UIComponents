@@ -167,65 +167,81 @@ class Settings(object):
         config files.  Makes building and passing 
         around a group of settings easy."""
     __no_setting_err = 'No setting with name: "{0}"'
-    def __init__(self, filename = None):
-        
-        self.__filename = filename
+    def __init__(self, fp=None):
+        self.__fp = fp
         self.dict = {}
     
-    def load(self, filename = None):
-        """Load settings from a config file or dict of settings.
+    def load(self, fp=None):
+        """Load settings from a config file or file-like object.
+            The file-like object should support readline() and write().
             Filename only needs to be passed when the Settings doesn't
             have a remembered filename.  In case the settings
             has a self.__filename and a filename is passed, the passed 
             filename is taken as more current.  self.__filename is 
             NOT updated to name, unless self.__filename is None."""
-        if filename is None:
-            if self.__filename is None:
-                return
-            else:
-                filename = self.__filename
-        else:
-            if hasattr(filename, '__iter__'):
-                #Not a string pointing to the file, don't update self.__filename
-                self.dict.update(filename)
-            else:
-                self.__filename = filename
-
-                #Try loading from file (in case it supports open/close)
-                added_settings = []
-                try:
-                    config = ConfigParser.ConfigParser()
-                    config.read(filename)
-                    sections = config.sections()
-                    for section in sections:
-                        new_setting = Setting()
-                        new_setting.load_using_config_parser(config, section)
-                        self.add_setting(section, new_setting)
-                        added_settings.append(section)
-                except: # pylint: disable-msg=W0702
-                    #If there was an exception while loading,
-                        #undo all added fields
-                    for section in added_settings:
-                        if self.has_setting(section):
-                            self.remove_setting(section)
-    
-    def save(self, filename = None):
-        """If the settings were loaded from a file and no
-               filename is specified, saves to same place it was loaded at."""
-        if filename is None:
-            if self.__filename is None:
+        if fp is None:
+            if self.__fp is None:
                 raise AttributeError("No save location specified.")
             else:
-                filename = self.__filename
+                fp = self.__fp
         else:
-            filename = self.__filename
+            self.__fp = fp
+            
+        opened = True
+        #Try to open fp, if it's an openable file
+        try:
+            open_file = open(fp)
+        except IOError:
+            opened = False
+            
+        #Try loading from file (in case it supports open/close)
+        added_settings = []
+        try:
+            config = ConfigParser.ConfigParser()
+            config.readfp(fp)
+            sections = config.sections()
+            for section in sections:
+                new_setting = Setting()
+                new_setting.load_using_config_parser(config, section)
+                self.add_setting(section, new_setting)
+                added_settings.append(section)
+        except: # pylint: disable-msg=W0702
+            #If there was an exception while loading,
+                #undo all added fields
+            for section in added_settings:
+                if self.has_setting(section):
+                    self.remove_setting(section)
+        
+        if opened:
+            open_file.close()
+    
+    def save(self, fp=None):
+        """If the settings were loaded from a file and no
+               filename is specified, saves to same place it was loaded from."""
+        if fp is None:
+            if self.__fp is None:
+                raise AttributeError("No save location specified.")
+            else:
+                fp = self.__fp
+        else:
+            self.__fp = fp
         
         config = ConfigParser.ConfigParser()
-        config.write(filename)
         sections = self.dict.keys()
         for section in sections:
             self.dict[section].save_using_config_parser(config, section)
         
+        opened = True
+        #Try to open fp, if it's an openable file
+        try:
+            open_file = open(fp, 'w')
+        except IOError:
+            opened = False
+        
+        config.write(fp)
+        
+        if opened:
+            open_file.close()
         
     def __getitem__(self, key):
         if self.dict.has_key(key):
