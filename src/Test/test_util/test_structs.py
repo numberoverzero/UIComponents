@@ -10,7 +10,7 @@ class EnumTest(unittest.TestCase):
     def test_no_key(self):
         an_enum = Structs.enum("bob", "steve")
         with self.assertRaises(AttributeError):
-            actual = an_enum.jim
+            an_enum.jim
             
     def test_valid_key(self):
         an_enum = Structs.enum("bob", "steve")

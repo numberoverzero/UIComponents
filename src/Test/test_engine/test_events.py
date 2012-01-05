@@ -110,7 +110,17 @@ class EventHandlerTest(unittest.TestCase):
         actual = a.Listeners
         self.assertListEqual(actual, expected)
     
-    def test_invoke_empty_args(self):
+    def test_invoke(self):
+        def listener(sender, eventargs):
+            raise ArithmeticError
+        
+        a = Events.EventHandler()
+        a += listener
+        
+        with self.assertRaises(ArithmeticError):
+            a.invoke()
+    
+    def test_invoke_with_sender(self):
         class sender_obj(object):
             triggered = False
         def listener(sender, eventargs):
@@ -126,7 +136,7 @@ class EventHandlerTest(unittest.TestCase):
         a.invoke(a_sender_obj)
         self.assertTrue(a_sender_obj.triggered)
     
-    def test_invoke_with_args(self):
+    def test_invoke_with_sender_with_args(self):
         class sender_obj(object):
             triggered = False
         some_event_args = functools.partial(Events.EventArgs)
@@ -147,37 +157,20 @@ class EventHandlerTest(unittest.TestCase):
         a.invoke(a_sender_obj, my_event_args)
         self.assertTrue(a_sender_obj.triggered)
     
-    def test_invoke_on_none(self):
-        def listener(sender, eventargs):
-            raise AssertionError
-        
-        a = Events.EventHandler()
-        a += listener
-        
-        with self.assertRaises(AssertionError):
-            a.invoke()
-    
     def test_invoke_with_args(self):
-        class sender_obj(object):
-            triggered = False
         some_event_args = functools.partial(Events.EventArgs)
         def listener(sender, eventargs):
-            sender.triggered = True
+            self.assertTrue(sender is None)
             self.assertTrue(eventargs.ID == -100)
         listener_2 = None
         
         a = Events.EventHandler()
         a += [listener, listener_2]
-        
-        #Obj to store results in
-        a_sender_obj = sender_obj()
-        
+                
         #event args to send
         my_event_args = some_event_args(custom_id= -100)
         
-        self.assertFalse(a_sender_obj.triggered)
-        a.invoke(a_sender_obj, my_event_args)
-        self.assertTrue(a_sender_obj.triggered)
+        a.invoke(event_args = my_event_args)
         
         expected = [listener]
         actual = a.Listeners
