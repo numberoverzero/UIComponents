@@ -9,7 +9,7 @@ class EventArgs(Engine.HasID):
     """Base class for arguments of an event.
         Default id_manager is Engine.Global_Id_Manager
         Using custom ids can break equality checks and the like."""
-    def __init__(self, id_manager = None, custom_id = None):
+    def __init__(self, id_manager=None, custom_id=None):
         Engine.HasID.__init__(self, id_manager, custom_id)
     def __eq__(self, other):
         if not isinstance(other, EventArgs):
@@ -24,11 +24,11 @@ class EventArgs(Engine.HasID):
 
 #Allows handlers to be invoked without arguments
 #Also allows us to check against Engine.NoneArgs instead of using isinstance()
-NONEARGS = EventArgs(custom_id = -1)
+NONEARGS = EventArgs(custom_id= -1)
 
 class EventHandler(Engine.HasID):
     """Takes events and dispatches them to its listeners."""
-    def __init__(self, id_manager = None, custom_id = None):
+    def __init__(self, id_manager=None, custom_id=None):
         Engine.HasID.__init__(self, id_manager, custom_id)
         self._listeners = []
     
@@ -57,7 +57,7 @@ class EventHandler(Engine.HasID):
         self.remove_listener(listener)
         return self
     
-    def invoke(self, sender = None, event_args = NONEARGS):
+    def invoke(self, sender=None, event_args=NONEARGS):
         """Invoke the handler with sender and args information.
             Default args are NONEARGS."""
         dead_listeners = []
@@ -70,7 +70,7 @@ class EventHandler(Engine.HasID):
             self.remove_listener(listener)
         dead_listeners = None
     
-    def __call__(self, sender, event_args = NONEARGS):
+    def __call__(self, sender, event_args=NONEARGS):
         """Invoke the EventHandler.  If no event_args are passed,
             passes NONEARGS."""
         self.invoke(sender, event_args)
@@ -87,5 +87,5 @@ class EventHandler(Engine.HasID):
         list_eq = self.Listeners == other.Listeners
         return id_eq and list_eq
     
-    Listeners = property(__get_listeners, None, None, 
+    Listeners = property(__get_listeners, None, None,
                          "Copy of the handler's listeners")

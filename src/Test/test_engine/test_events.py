@@ -5,12 +5,12 @@ import Engine.Events as Events
 
 class EventArgsTest(unittest.TestCase):
     def test_arg_custom_ids(self):
-        Event1 = Events.EventArgs(custom_id = -100)
-        Event2 = Events.EventArgs(custom_id = -100)
+        Event1 = Events.EventArgs(custom_id= -100)
+        Event2 = Events.EventArgs(custom_id= -100)
         self.assertEqual(Event1.ID, Event2.ID)
         
-        Event1 = Events.EventArgs(custom_id = -100)
-        Event2 = Events.EventArgs(custom_id = 2500)
+        Event1 = Events.EventArgs(custom_id= -100)
+        Event2 = Events.EventArgs(custom_id=2500)
         self.assertNotEqual(Event1.ID, Event2.ID)
     
     def test_arg_global_ids(self):
@@ -34,8 +34,8 @@ class EventArgsTest(unittest.TestCase):
         id_manager1 = Engine.id_manager()
         id_manager2 = Engine.id_manager()
 
-        Event1 = Events.EventArgs(id_manager = id_manager1)
-        Event2 = Events.EventArgs(id_manager = id_manager2)
+        Event1 = Events.EventArgs(id_manager=id_manager1)
+        Event2 = Events.EventArgs(id_manager=id_manager2)
         
         #In the future, perhaps different managers will append different prefixes,
             #so as to make these unequal.
@@ -50,15 +50,15 @@ class EventHandlerTest(unittest.TestCase):
         
         #own id_manager
         id_manager = Engine.id_manager()
-        c = Events.EventHandler(id_manager = id_manager)
-        d = Events.EventHandler(id_manager = id_manager)
+        c = Events.EventHandler(id_manager=id_manager)
+        d = Events.EventHandler(id_manager=id_manager)
         
         self.assertNotEqual(c, d)
         
         #Force equal
         
         c_ID = c.ID
-        c_copy = Events.EventHandler(custom_id = c_ID)
+        c_copy = Events.EventHandler(custom_id=c_ID)
         
         self.assertEqual(c, c_copy)
     
@@ -141,7 +141,7 @@ class EventHandlerTest(unittest.TestCase):
         a_sender_obj = sender_obj()
         
         #event args to send
-        my_event_args = some_event_args(custom_id = -100)
+        my_event_args = some_event_args(custom_id= -100)
         
         self.assertFalse(a_sender_obj.triggered)
         a.invoke(a_sender_obj, my_event_args)
@@ -173,7 +173,7 @@ class EventHandlerTest(unittest.TestCase):
         a_sender_obj = sender_obj()
         
         #event args to send
-        my_event_args = some_event_args(custom_id = -100)
+        my_event_args = some_event_args(custom_id= -100)
         
         self.assertFalse(a_sender_obj.triggered)
         a.invoke(a_sender_obj, my_event_args)

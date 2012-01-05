@@ -39,7 +39,7 @@ class BaseComponent(object):
     def __init__(self, Parent=None, x=0, y=0, width=0, height=0,
                  anchor_x="left", anchor_y="top", coords="local",
                  Name="BaseComponent", Tooltip="Empty Tooltip",
-                 Visible = True, Enabled = True, id_manager = None):
+                 Visible=True, Enabled=True, id_manager=None):
         '''
         Pass a screen as parent if this is DIRECTLY attached to the screen
         
@@ -179,7 +179,7 @@ class BaseComponent(object):
     Visible = property(__get_visible, __set_visible, None, "If the Component is drawn")
     Enabled = property(__get_enabled, __set_enabled, None, "If the Component is Enabled")
     HasFocus = property(__get_has_focus, None, None, "If the Component has key focus (tab, enter)")
-    IsContentLoaded = property(__get_is_content_loaded, None, None, 
+    IsContentLoaded = property(__get_is_content_loaded, None, None,
                                "If the Component has loaded necessary drawing content")
     TabIndex = property(__get_tab_index, __set_tab_index, None, "The index for tabbing through Components")
     Tooltip = property(__get_tooltip, __set_tooltip, None, "Component tooltip for hover")

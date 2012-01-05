@@ -8,44 +8,44 @@ class EnumTest(unittest.TestCase):
         self.assertTrue(actual)
         
     def test_no_key(self):
-        an_enum = Structs.enum("bob","steve")
+        an_enum = Structs.enum("bob", "steve")
         with self.assertRaises(AttributeError):
             actual = an_enum.jim
             
     def test_valid_key(self):
-        an_enum = Structs.enum("bob","steve")
+        an_enum = Structs.enum("bob", "steve")
         actual = an_enum.steve
         expected = 1
-        self.assertTrue(actual==expected)
+        self.assertTrue(actual == expected)
 
 class TypeCheckedListTest(unittest.TestCase):
     def test_init(self):
         #Test empty constructor
-        empty_tcl = Structs.TypeCheckedList(int, values = None,
-                                            suppress_type_errors = True)
+        empty_tcl = Structs.TypeCheckedList(int, values=None,
+                                            suppress_type_errors=True)
         actual = len(empty_tcl)
         expected = 0
         self.assertTrue(actual == expected)
         
         #Test constructor with values
-        values = [1,2,3,'bob']
-        tcl = Structs.TypeCheckedList(int, values = values,
-                                      suppress_type_errors = True)
+        values = [1, 2, 3, 'bob']
+        tcl = Structs.TypeCheckedList(int, values=values,
+                                      suppress_type_errors=True)
         actual = len(tcl)
         expected = 3
         self.assertTrue(actual == expected)
         
         #Test bad extend with no TypeError suppression
-        values = [1,2,3,'bob']
+        values = [1, 2, 3, 'bob']
         with self.assertRaises(TypeError):
-            tcl = Structs.TypeCheckedList(int, values = values,
-                                          suppress_type_errors = False)
+            tcl = Structs.TypeCheckedList(int, values=values,
+                                          suppress_type_errors=False)
     
     def test_append(self):
         #Test appending good value
         values = ["bob", "steve"]
-        tcl = Structs.TypeCheckedList(str, values = values,
-                                      suppress_type_errors = True)
+        tcl = Structs.TypeCheckedList(str, values=values,
+                                      suppress_type_errors=True)
         tcl.append("jack")
         actual = len(tcl)
         expected = 3
@@ -53,8 +53,8 @@ class TypeCheckedListTest(unittest.TestCase):
         
         #Test appending bad value, suppression on
         values = ["bob", "steve"]
-        tcl = Structs.TypeCheckedList(str, values = values,
-                                      suppress_type_errors = True)
+        tcl = Structs.TypeCheckedList(str, values=values,
+                                      suppress_type_errors=True)
         tcl.append(3)
         actual = len(tcl)
         expected = 2
@@ -62,8 +62,8 @@ class TypeCheckedListTest(unittest.TestCase):
         
         #Test appending bad value, suppression off
         values = ["bob", "steve"]
-        tcl = Structs.TypeCheckedList(str, values = values,
-                                      suppress_type_errors = False)
+        tcl = Structs.TypeCheckedList(str, values=values,
+                                      suppress_type_errors=False)
         with self.assertRaises(TypeError):
             tcl.append(3)
         
@@ -71,8 +71,8 @@ class TypeCheckedListTest(unittest.TestCase):
     def test_extend(self):
         #Test extend with empty iterable
         values = ["bob", "steve"]
-        tcl = Structs.TypeCheckedList(str, values = values,
-                                      suppress_type_errors = True)
+        tcl = Structs.TypeCheckedList(str, values=values,
+                                      suppress_type_errors=True)
         tcl.extend([])
         actual = len(tcl)
         expected = 2
@@ -80,8 +80,8 @@ class TypeCheckedListTest(unittest.TestCase):
         
         #Test extend with a non-iterable
         values = ["bob", "steve"]
-        tcl = Structs.TypeCheckedList(str, values = values,
-                                      suppress_type_errors = True)
+        tcl = Structs.TypeCheckedList(str, values=values,
+                                      suppress_type_errors=True)
         tcl.extend("jack")
         actual = len(tcl)
         expected = 3
@@ -89,8 +89,8 @@ class TypeCheckedListTest(unittest.TestCase):
         
         #Test extend with all valid
         values = ["bob", "steve"]
-        tcl = Structs.TypeCheckedList(str, values = values,
-                                      suppress_type_errors = True)
+        tcl = Structs.TypeCheckedList(str, values=values,
+                                      suppress_type_errors=True)
         tcl.extend(values)
         actual = len(tcl)
         expected = 4
@@ -98,8 +98,8 @@ class TypeCheckedListTest(unittest.TestCase):
         
         #Test extend with some invalid, suppressed
         values = ["bob", "steve"]
-        tcl = Structs.TypeCheckedList(str, values = values,
-                                      suppress_type_errors = True)
+        tcl = Structs.TypeCheckedList(str, values=values,
+                                      suppress_type_errors=True)
         tcl.extend(["jack", 3])
         actual = len(tcl)
         expected = 3
@@ -107,15 +107,15 @@ class TypeCheckedListTest(unittest.TestCase):
         
         #Test extend with some invalid, not suppressed
         values = ["bob", "steve"]
-        tcl = Structs.TypeCheckedList(str, values = values,
-                                      suppress_type_errors = False)
+        tcl = Structs.TypeCheckedList(str, values=values,
+                                      suppress_type_errors=False)
         with self.assertRaises(TypeError):
-            tcl.extend(["jack",3])
+            tcl.extend(["jack", 3])
     
     def test_clear(self):
         values = ["bob", "steve"]
-        tcl = Structs.TypeCheckedList(str, values = values,
-                                      suppress_type_errors = True)
+        tcl = Structs.TypeCheckedList(str, values=values,
+                                      suppress_type_errors=True)
         tcl.append("jack")
         actual = len(tcl)
         expected = 3
@@ -161,7 +161,7 @@ class TypedDoubleBufferTest(unittest.TestCase):
                 #(should be in back buffer)
         tdb = Structs.TypedDoubleBuffer(str)
         tdb.push("Yellow")
-        tdb.flip(mode = 'exact')
+        tdb.flip(mode='exact')
         tdb.push("Red")
         expected = "Yellow"
         actual = tdb.pop()
@@ -176,12 +176,12 @@ class TypedDoubleBufferTest(unittest.TestCase):
         tdb._write_front_buffer(4)
         tdb._write_back_buffer(100)
         tdb._write_back_buffer(200)
-        tdb.clear(front = True, back = False)
+        tdb.clear(front=True, back=False)
         
         expected_front = []
         actual_front = tdb.get_front_buffer_items()
         self.assertListEqual(expected_front, actual_front)
-        expected_back = [100,200]
+        expected_back = [100, 200]
         actual_back = tdb.get_back_buffer_items()
         self.assertListEqual(expected_back, actual_back)
         
@@ -191,9 +191,9 @@ class TypedDoubleBufferTest(unittest.TestCase):
         tdb._write_front_buffer(4)
         tdb._write_back_buffer(100)
         tdb._write_back_buffer(200)
-        tdb.clear(front = False, back = True)
+        tdb.clear(front=False, back=True)
         
-        expected_front = [3,4]
+        expected_front = [3, 4]
         actual_front = tdb.get_front_buffer_items()
         self.assertListEqual(expected_front, actual_front)
         expected_back = []
@@ -206,7 +206,7 @@ class TypedDoubleBufferTest(unittest.TestCase):
         tdb._write_front_buffer(4)
         tdb._write_back_buffer(100)
         tdb._write_back_buffer(200)
-        tdb.clear(front = True, back = True)
+        tdb.clear(front=True, back=True)
         
         expected_front = []
         actual_front = tdb.get_front_buffer_items()
@@ -221,12 +221,12 @@ class TypedDoubleBufferTest(unittest.TestCase):
         tdb._write_front_buffer(4)
         tdb._write_back_buffer(100)
         tdb._write_back_buffer(200)
-        tdb.clear(front = False, back = False)
+        tdb.clear(front=False, back=False)
         
-        expected_front = [3,4]
+        expected_front = [3, 4]
         actual_front = tdb.get_front_buffer_items()
         self.assertListEqual(expected_front, actual_front)
-        expected_back = [100,200]
+        expected_back = [100, 200]
         actual_back = tdb.get_back_buffer_items()
         self.assertListEqual(expected_back, actual_back)
         
@@ -303,29 +303,29 @@ class TypedDoubleBufferTest(unittest.TestCase):
 class TypedLockableListTest(unittest.TestCase):
     def test_init(self):
         #Test empty constructor
-        empty_tll = Structs.TypedLockableList(int, values = None,
-                                            suppress_type_errors = True)
+        empty_tll = Structs.TypedLockableList(int, values=None,
+                                            suppress_type_errors=True)
         actual = len(empty_tll)
         expected = 0
         self.assertTrue(actual == expected)
         
         #Test constructor with values
-        values = [1,2,3,'bob']
-        tll = Structs.TypedLockableList(int, values = values,
-                                      suppress_type_errors = True)
+        values = [1, 2, 3, 'bob']
+        tll = Structs.TypedLockableList(int, values=values,
+                                      suppress_type_errors=True)
         actual = len(tll)
         expected = 3
         self.assertTrue(actual == expected)
         
         #Test bad extend with no TypeError suppression
-        values = [1,2,3,'bob']
+        values = [1, 2, 3, 'bob']
         with self.assertRaises(TypeError):
-            tll = Structs.TypedLockableList(int, values = values,
-                                          suppress_type_errors = False)
+            tll = Structs.TypedLockableList(int, values=values,
+                                          suppress_type_errors=False)
             
     def test_append(self):
         #Test append on unlocked
-        tll = Structs.TypedLockableList(str, values = None, suppress_type_errors = False)
+        tll = Structs.TypedLockableList(str, values=None, suppress_type_errors=False)
         tll.append("Yellow")
         actual = len(tll)
         expected = 1
@@ -333,13 +333,13 @@ class TypedLockableListTest(unittest.TestCase):
         
         
         #Test append of wrong type with no suppression
-        tll = Structs.TypedLockableList(str, values = None, suppress_type_errors = False)
+        tll = Structs.TypedLockableList(str, values=None, suppress_type_errors=False)
         with self.assertRaises(TypeError):
             tll.append(5)
         
         #Test append on locked- check _to_add and len()
-        tll = Structs.TypedLockableList(str, values = None, suppress_type_errors = False)
-        tll.lock(set_lock = True, force_update = False)
+        tll = Structs.TypedLockableList(str, values=None, suppress_type_errors=False)
+        tll.lock(set_lock=True, force_update=False)
         tll.append("Yellow")
         
         actual = len(tll._to_add)
@@ -352,24 +352,24 @@ class TypedLockableListTest(unittest.TestCase):
     
     def test_extend(self):
         #Test extend on unlocked
-        tll = Structs.TypedLockableList(str, values = None, suppress_type_errors = False)
-        tll.extend(["Yellow","Blue"])
+        tll = Structs.TypedLockableList(str, values=None, suppress_type_errors=False)
+        tll.extend(["Yellow", "Blue"])
         actual = len(tll)
         expected = 2
         self.assertTrue(actual == expected)
         
         #Test extend of wrong type with no suppression
-        tll = Structs.TypedLockableList(str, values = None, suppress_type_errors = False)
+        tll = Structs.TypedLockableList(str, values=None, suppress_type_errors=False)
         with self.assertRaises(TypeError):
-            tll.extend([5,"Red"])
+            tll.extend([5, "Red"])
         actual = len(tll)
         expected = 0
         self.assertTrue(actual == expected)
             
         #Test extend on locked- check _to_add and len()
-        tll = Structs.TypedLockableList(str, values = None, suppress_type_errors = False)
-        tll.lock(set_lock = True, force_update = False)
-        tll.extend(["Yellow","Red"])
+        tll = Structs.TypedLockableList(str, values=None, suppress_type_errors=False)
+        tll.lock(set_lock=True, force_update=False)
+        tll.extend(["Yellow", "Red"])
         
         actual = len(tll._to_add)
         expected = 2
@@ -381,24 +381,24 @@ class TypedLockableListTest(unittest.TestCase):
     
     def test_remove(self):
         #Test remove on unlocked with value in set
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
-        tll.extend([3,4,5])
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
+        tll.extend([3, 4, 5])
         tll.remove(4)
         actual = len(tll)
         expected = 2
         self.assertTrue(actual == expected)
         
         #Test remove on unlocked with value (wrong type) NOT in set
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
-        tll.extend([3,4,5])
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
+        tll.extend([3, 4, 5])
         with self.assertRaises(ValueError):
             tll.remove(100)
         
         
         #Test remove of existing value on locked- check _to_add and len()
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
-        tll.extend([3,4,5])
-        tll.lock(set_lock = True, force_update = False)
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
+        tll.extend([3, 4, 5])
+        tll.lock(set_lock=True, force_update=False)
         tll.remove(4)
         actual = len(tll)
         expected = 3
@@ -406,25 +406,25 @@ class TypedLockableListTest(unittest.TestCase):
     
     def test_lock(self):
         #Test locking an item
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
-        tll.lock(set_lock = True, force_update = False)
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
+        tll.lock(set_lock=True, force_update=False)
         self.assertTrue(tll.IsLocked)
         
         #Test unlocking an item with update
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
-        tll.extend([3,4,5])
-        tll.lock(set_lock = True, force_update = False)
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
+        tll.extend([3, 4, 5])
+        tll.lock(set_lock=True, force_update=False)
         tll.remove(4)
         actual = len(tll)
         expected = 3
         self.assertTrue(actual == expected)
-        tll.lock(set_lock = False, force_update = True)
+        tll.lock(set_lock=False, force_update=True)
         actual = len(tll)
         expected = 2
         self.assertTrue(actual == expected)
         
         #Test toggle lock
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
         self.assertTrue(not tll.IsLocked)
         tll.lock()
         self.assertTrue(tll.IsLocked)
@@ -433,81 +433,81 @@ class TypedLockableListTest(unittest.TestCase):
         
     def test_call(self):
         #Test normal behavior
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
-        tll.extend([3,4,5])
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
+        tll.extend([3, 4, 5])
         actual = []
-        expected = [3,4,5]
+        expected = [3, 4, 5]
         for value in tll:
             actual.append(value)
         self.assertListEqual(actual, expected)
         
         #Test locked behavior with pending addition
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
-        tll.extend([3,4,5])
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
+        tll.extend([3, 4, 5])
         tll.lock()
         tll.append(100)
         actual = []
-        expected = [3,4,5]
+        expected = [3, 4, 5]
         for value in tll:
             actual.append(value)
         self.assertListEqual(actual, expected)
         
         #Make sure the call is applying pending updates
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
-        tll.extend([3,4,5])
-        tll.lock(force_update = False)
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
+        tll.extend([3, 4, 5])
+        tll.lock(force_update=False)
         tll.append(100)
-        tll.lock(force_update = False)
+        tll.lock(force_update=False)
         actual = []
-        expected = [3,4,5,100]
+        expected = [3, 4, 5, 100]
         for value in tll:
             actual.append(value)
         self.assertListEqual(actual, expected)
     
     def test_sort(self):
         #Test sort for normal behavior
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
-        tll.extend([5,3,4])
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
+        tll.extend([5, 3, 4])
         tll.sort()
         actual = tll[:]
-        expected = [3,4,5]
+        expected = [3, 4, 5]
         self.assertListEqual(actual, expected)
         
         #Test sort with pending updates
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
-        tll.extend([5,3,4])
-        tll.lock(force_update = False)
-        tll.extend([0,1,2])
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
+        tll.extend([5, 3, 4])
+        tll.lock(force_update=False)
+        tll.extend([0, 1, 2])
         tll.sort()
         actual = tll[:]
-        expected = [3,4,5]
+        expected = [3, 4, 5]
         self.assertListEqual(actual, expected)
             #Then unlock and test again
-        tll.lock(force_update = False)
+        tll.lock(force_update=False)
         tll.sort()
         actual = tll[:]
-        expected = [0,1,2,3,4,5]
+        expected = [0, 1, 2, 3, 4, 5]
         self.assertListEqual(actual, expected)
     
     def test_properties(self):
         #Check HasPendingUpdates, IsLocked, ChangedSinceLastCall
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
         
-        tll.lock(set_lock = True, force_update = False)
+        tll.lock(set_lock=True, force_update=False)
         self.assertFalse(tll.HasPendingUpdates)
         self.assertTrue(tll.IsLocked)
         self.assertFalse(tll.ChangedSinceLastCall)
         
-        tll.lock(set_lock = False, force_update = False)
-        tll.extend([5,3,4])
+        tll.lock(set_lock=False, force_update=False)
+        tll.extend([5, 3, 4])
             #Extending while unlocked shouldn't queue updates
         self.assertFalse(tll.HasPendingUpdates)
         self.assertFalse(tll.IsLocked)
         self.assertTrue(tll.ChangedSinceLastCall)
         tll.clear_change_flag()
         
-        tll.lock(set_lock = True, force_update = False)
-        tll.extend([0,1,2])
+        tll.lock(set_lock=True, force_update=False)
+        tll.extend([0, 1, 2])
             #Now they should be queued
         self.assertTrue(tll.HasPendingUpdates)
         self.assertTrue(tll.IsLocked)
@@ -515,18 +515,18 @@ class TypedLockableListTest(unittest.TestCase):
     
     def test_clear(self):
         #Test normal clear, no lcoks
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
-        tll.extend([3,4,5])
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
+        tll.extend([3, 4, 5])
         tll.clear()
         self.assertFalse(tll)
         self.assertFalse(tll._to_add)
         self.assertFalse(tll._to_remove)
         
         #Test with lock and pending updates
-        tll = Structs.TypedLockableList(int, values = None, suppress_type_errors = False)
-        tll.extend([3,4,5])
+        tll = Structs.TypedLockableList(int, values=None, suppress_type_errors=False)
+        tll.extend([3, 4, 5])
         tll.lock()
-        tll.extend([100,200])
+        tll.extend([100, 200])
         tll.clear()
         self.assertFalse(tll)
         self.assertFalse(tll._to_add)

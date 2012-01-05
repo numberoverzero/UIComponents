@@ -32,7 +32,7 @@ GLOBAL_ID_MANAGER = id_manager()
 
 class HasID(object):
     """An object with an id from an id_manager"""
-    def __init__(self, id_manager_ = None, custom_id = None):
+    def __init__(self, id_manager_=None, custom_id=None):
         if custom_id is not None:
             self._id = custom_id
             self.__id_manager = None

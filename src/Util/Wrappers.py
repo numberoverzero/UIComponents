@@ -24,7 +24,7 @@ ARG_MISSING_COUNT_ERRMSG = "{f}() takes at least {n} arguments ({x} given)"
 ARG_EXTRA_COUNT_ERRMSG = "{f}() takes at most {n} arguments ({x} given)"
 ARG_EXTRA_DEF_ERRMSG = "{f}() got mutliple values for keyword argument '{n}'"
 
-def inject_args(ignores = None):
+def inject_args(ignores=None):
     """DECORATOR: Injects local args into class so that there isn't a lot of:
         def foo(self, x, y, b, w, h, r):
             self.x = x
@@ -98,13 +98,13 @@ def inject_args(ignores = None):
                 if n_args != arg_count:
                     #Didn't get all args loaded in, raise the error.
                     raise TypeError(ARG_MISSING_COUNT_ERRMSG.format(
-                        f=fname, n=arg_count+1, x=n_args+1))
+                        f=fname, n=arg_count + 1, x=n_args + 1))
                         #We add on 1 for self
             
             #Provided all args, all kwargs, and then some.
             if n_ttl_args > ttl_var_count:
                 raise TypeError(ARG_EXTRA_COUNT_ERRMSG.format(
-                    f=fname, n=ttl_var_count+1, x=n_ttl_args+1))
+                    f=fname, n=ttl_var_count + 1, x=n_ttl_args + 1))
             
             #Load kwargs into default kwargs
             passing_kwargs = default_passing_kwargs.copy()
@@ -113,7 +113,7 @@ def inject_args(ignores = None):
             passing_args = list(args[:arg_count])
 
             #Load kwargs passed by position (in args)
-            n_passed_as_args = n_args-arg_count
+            n_passed_as_args = n_args - arg_count
             if n_passed_as_args > 0:
                 start = arg_count
                 for i in xrange(n_passed_as_args):

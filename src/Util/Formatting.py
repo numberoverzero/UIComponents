@@ -8,7 +8,7 @@ def surrounded_by_parens(string):
             (matching) parens of any sort"""
     return (string[0] + string[-1]) in ['()', '{}', '[]']
 
-def str_to_tuple(string, dtype, has_parens = True):
+def str_to_tuple(string, dtype, has_parens=True):
     """Convert tuple-like strings to real tuples.
     eg '(1,2,3,4)' -> (1, 2, 3, 4)
     """

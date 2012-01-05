@@ -50,7 +50,7 @@ class InjectArgsTest(unittest.TestCase):
     def test_no_args_or_kwargs(self):
         #1) Empty ignores
         obj = self.obj()
-        @Wrappers.inject_args(ignores = None)
+        @Wrappers.inject_args(ignores=None)
         def fn_1(self):
             self.x = 'default'
         self.obj.fn_1 = fn_1
@@ -63,19 +63,19 @@ class InjectArgsTest(unittest.TestCase):
         
             #Test that a passed x value is not used
         with self.assertRaises(TypeError):
-            obj.fn_1(x = 'not_default')
+            obj.fn_1(x='not_default')
             actual = obj.x
             expected = "default"
             self.assertEqual(actual, expected)
         
             #Test that a passed y is not injected
         with self.assertRaises(TypeError):
-            obj.fn_1(y = 'this is bad')
+            obj.fn_1(y='this is bad')
             print obj.y
         
         #2) Ignores x
         obj = self.obj()
-        @Wrappers.inject_args(ignores = ['x'])
+        @Wrappers.inject_args(ignores=['x'])
         def fn_2(self):
             self.x = 'default'
         self.obj.fn_2 = fn_2
@@ -88,19 +88,19 @@ class InjectArgsTest(unittest.TestCase):
         
             #Test that a passed x value is not used
         with self.assertRaises(TypeError):
-            obj.fn_2(x = 'not_default')
+            obj.fn_2(x='not_default')
             actual = obj.x
             expected = "default"
             self.assertEqual(actual, expected)
             
             #Test that a passed y is not injected
         with self.assertRaises(TypeError):
-            obj.fn_2(y = 'this is bad')
+            obj.fn_2(y='this is bad')
             print obj.y
             
         #3) Ignores y
         obj = self.obj()
-        @Wrappers.inject_args(ignores = ['y'])
+        @Wrappers.inject_args(ignores=['y'])
         def fn_3(self):
             self.x = 'default'
         self.obj.fn_3 = fn_3
@@ -113,14 +113,14 @@ class InjectArgsTest(unittest.TestCase):
         
             #Test that a passed x value is not used
         with self.assertRaises(TypeError):
-            obj.fn_3(x = 'not_default')
+            obj.fn_3(x='not_default')
             actual = obj.x
             expected = "default"
             self.assertEqual(actual, expected)
                 
             #Test that a passed y is not injected
         with self.assertRaises(TypeError):
-            obj.fn_3(y = 'this is bad')
+            obj.fn_3(y='this is bad')
             print obj.y
             
         #Delete the functions
@@ -131,24 +131,24 @@ class InjectArgsTest(unittest.TestCase):
     def test_only_args_empty_ignores(self):
         """Position args only, nothing ignored."""
         obj = self.obj()
-        @Wrappers.inject_args(ignores = None)
+        @Wrappers.inject_args(ignores=None)
         def fn(self, x, y, n):
             self.x = 'default'
         self.obj.fn = fn
 
             #Test that x takes fn body value, y and n get picked up
-        obj.fn(x = 'not default', y = -1, n = 3)
+        obj.fn(x='not default', y= -1, n=3)
         actual = [obj.x, obj.y, obj.n]
         expected = ["default", -1, 3]
         self.assertListEqual(actual, expected)
         
             #Test that a passed z value is not injected
         with self.assertRaises(TypeError):
-            obj.fn(x = 'not default', y = -1, n = 3, z = 'not_default')
+            obj.fn(x='not default', y= -1, n=3, z='not_default')
         
             #Test that too few args raises error
         with self.assertRaises(TypeError):
-            obj.fn(x = 'not_default', y = 'this is bad')
+            obj.fn(x='not_default', y='this is bad')
             
         #Delete the function
         del(self.obj.fn)
@@ -156,13 +156,13 @@ class InjectArgsTest(unittest.TestCase):
     def test_only_args_included_ignores(self):
         """Position args only, one position arg ignores."""
         obj = self.obj()
-        @Wrappers.inject_args(ignores = ['y'])
+        @Wrappers.inject_args(ignores=['y'])
         def fn(self, x, y, n):
             self.x = 'default'
         self.obj.fn = fn
 
             #Test that x takes fn body value, n gets picked up (NOT y)
-        obj.fn(x = 'not_default', y = -1, n = 3)
+        obj.fn(x='not_default', y= -1, n=3)
         actual = [obj.x, obj.n]
         expected = ["default", 3]
         self.assertListEqual(actual, expected)
@@ -172,11 +172,11 @@ class InjectArgsTest(unittest.TestCase):
         
             #Test that a passed z value is not injected
         with self.assertRaises(TypeError):
-            obj.fn(x = 'not default', y = -1, n = 3, z = 'not_default')
+            obj.fn(x='not default', y= -1, n=3, z='not_default')
         
             #Test that too few args raises error
         with self.assertRaises(TypeError):
-            obj.fn(x = 'not default', y = 'this is bad')
+            obj.fn(x='not default', y='this is bad')
         
         #Delete the function
         del(self.obj.fn)
@@ -184,24 +184,24 @@ class InjectArgsTest(unittest.TestCase):
     def test_only_args_non_included_ignores(self):
         """Position args only, a variable not in args is ignored."""
         obj = self.obj()
-        @Wrappers.inject_args(ignores = ['z'])
+        @Wrappers.inject_args(ignores=['z'])
         def fn(self, x, y, n):
             self.x = 'default'
         self.obj.fn = fn
         
             #Test that x takes fn body value, y and n get picked up
-        obj.fn(x = 'not_default', y = -1, n = 3)
+        obj.fn(x='not_default', y= -1, n=3)
         actual = [obj.x, obj.y, obj.n]
         expected = ["default", -1, 3]
         self.assertListEqual(actual, expected)
         
             #Test that a passed z value is not injected
         with self.assertRaises(TypeError):
-            obj.fn(z = 'not_default')
+            obj.fn(z='not_default')
         
             #Test that too few args raises error
         with self.assertRaises(TypeError):
-            obj.fn(x = 'not_default', y = 'this is bad')
+            obj.fn(x='not_default', y='this is bad')
         
         #Delete the function
         del(self.obj.fn)
@@ -209,20 +209,20 @@ class InjectArgsTest(unittest.TestCase):
     def test_only_kwargs_empty_ignores(self):
         """Keyword args only, nothing ignored."""
         obj = self.obj()
-        @Wrappers.inject_args(ignores = None)
+        @Wrappers.inject_args(ignores=None)
         def fn(self, x='def_x', y='def_y', n='def_n'):
             self.x = 'default'
         self.obj.fn = fn
 
             #Test that x takes fn body value, y and n get picked up
-        obj.fn(x = 'not default', y = -1, n = 3)
+        obj.fn(x='not default', y= -1, n=3)
         actual = [obj.x, obj.y, obj.n]
         expected = ["default", -1, 3]
         self.assertListEqual(actual, expected)
         
             #Test that a passed z value is not injected
         with self.assertRaises(TypeError):
-            obj.fn(x = 'not default', y = -1, n = 3, z = 'not_default')
+            obj.fn(x='not default', y= -1, n=3, z='not_default')
         
             #Test that works with none passed
         obj.fn()
@@ -244,13 +244,13 @@ class InjectArgsTest(unittest.TestCase):
     def test_only_kwargs_included_ignores(self):
         """Keyword args only, one kwarg ignores."""
         obj = self.obj()
-        @Wrappers.inject_args(ignores = ['y'])
+        @Wrappers.inject_args(ignores=['y'])
         def fn(self, x='def_x', y='def_y', n='def_n'):
             self.x = 'default'
         self.obj.fn = fn
 
             #Test that x takes fn body value, n gets picked up (NOT y)
-        obj.fn(x = 'not_default', y = -1, n = 3)
+        obj.fn(x='not_default', y= -1, n=3)
         actual = [obj.x, obj.n]
         expected = ["default", 3]
         self.assertListEqual(actual, expected)
@@ -260,11 +260,11 @@ class InjectArgsTest(unittest.TestCase):
         
             #Test that a passed z value is not injected
         with self.assertRaises(TypeError):
-            obj.fn(x = 'not default', y = -1, n = 3, z = 'not_default')
+            obj.fn(x='not default', y= -1, n=3, z='not_default')
 
             #Test that too few VALID kwargs fails
         with self.assertRaises(TypeError):
-            obj.fn(x = 'not default', n = 3, z = 'not_default')
+            obj.fn(x='not default', n=3, z='not_default')
                     
             #Delete the function
         del(self.obj.fn)
@@ -272,20 +272,20 @@ class InjectArgsTest(unittest.TestCase):
     def test_only_kwargs_non_included_ignores(self):
         """Keyword args only, a var not in kwargs is ignored."""
         obj = self.obj()
-        @Wrappers.inject_args(ignores = ['z'])
+        @Wrappers.inject_args(ignores=['z'])
         def fn(self, x='def_x', y='def_y', n='def_n'):
             self.x = 'default'
         self.obj.fn = fn
         
             #Test that x takes fn body value, y and n get picked up
-        obj.fn(x = 'not_default', y = -1, n = 3)
+        obj.fn(x='not_default', y= -1, n=3)
         actual = [obj.x, obj.y, obj.n]
         expected = ["default", -1, 3]
         self.assertListEqual(actual, expected)
         
             #Test that a passed z value is not injected
         with self.assertRaises(TypeError):
-            obj.fn(z = 'not_default')
+            obj.fn(z='not_default')
                 
             #Delete the function
         del(self.obj.fn)
@@ -293,20 +293,20 @@ class InjectArgsTest(unittest.TestCase):
     def test_args_and_kwargs_empty_ignores(self):
         """Args and kwargs, nothing ignored."""
         obj = self.obj()
-        @Wrappers.inject_args(ignores = None)
+        @Wrappers.inject_args(ignores=None)
         def fn(self, x, y, n='def_n', m='def_m'):
             self.x = 'default'
         self.obj.fn = fn
 
             #Test that x takes fn body value, y and n get picked up
-        obj.fn(x = 'not default', y = -1, n = 3)
+        obj.fn(x='not default', y= -1, n=3)
         actual = [obj.x, obj.y, obj.n, obj.m]
         expected = ["default", -1, 3, 'def_m']
         self.assertListEqual(actual, expected)
         
             #Test that a passed z value is not injected
         with self.assertRaises(TypeError):
-            obj.fn(x = 'not default', y = -1, n = 3, z = 'not_default')
+            obj.fn(x='not default', y= -1, n=3, z='not_default')
         
             #Test that too few args raises error
         with self.assertRaises(TypeError):
@@ -330,7 +330,7 @@ class InjectArgsTest(unittest.TestCase):
     def test_args_and_kwargs_included_ignores(self):
         """Args and kwargs, one kwarg ignores."""
         obj = self.obj()
-        @Wrappers.inject_args(ignores = 'y')
+        @Wrappers.inject_args(ignores='y')
         def fn(self, x, y, n='def_n', m='def_m'):
             self.x = 'default'
         self.obj.fn = fn
@@ -339,14 +339,14 @@ class InjectArgsTest(unittest.TestCase):
             obj.y
             
             #Test that x takes fn body value, y and n get picked up
-        obj.fn(x = 'not default', y = -1, n = 3)
+        obj.fn(x='not default', y= -1, n=3)
         actual = [obj.x, obj.n, obj.m]
         expected = ["default", 3, 'def_m']
         self.assertListEqual(actual, expected)
         
             #Test that a passed z value is not injected
         with self.assertRaises(TypeError):
-            obj.fn(x = 'not default', y = -1, n = 3, z = 'not_default')
+            obj.fn(x='not default', y= -1, n=3, z='not_default')
         
             #Test that too few args raises error
         with self.assertRaises(TypeError):
@@ -370,7 +370,7 @@ class InjectArgsTest(unittest.TestCase):
     def test_args_and_kwargs_non_included_ignores(self):
         """Args and kwargs, a var not in kwargs is ignored."""
         obj = self.obj()
-        @Wrappers.inject_args(ignores = 'z')
+        @Wrappers.inject_args(ignores='z')
         def fn(self, x, y, n='def_n', m='def_m'):
             self.x = 'default'
         self.obj.fn = fn
@@ -379,14 +379,14 @@ class InjectArgsTest(unittest.TestCase):
             obj.y
             
             #Test that x takes fn body value, y and n get picked up
-        obj.fn(x = 'not default', y = -1, n = 3)
+        obj.fn(x='not default', y= -1, n=3)
         actual = [obj.x, obj.y, obj.n, obj.m]
         expected = ["default", -1, 3, 'def_m']
         self.assertListEqual(actual, expected)
         
             #Test that a passed z value is not injected
         with self.assertRaises(TypeError):
-            obj.fn(x = 'not default', y = -1, n = 3, z = 'not_default')
+            obj.fn(x='not default', y= -1, n=3, z='not_default')
         
             #Test that too few args raises error
         with self.assertRaises(TypeError):

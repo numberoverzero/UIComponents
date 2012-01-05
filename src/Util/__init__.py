@@ -25,7 +25,7 @@ def ensure_type(iterable, dtype):
     """Attempts to convert each item in iterable to type dtype."""
     return [dtype(item) for item in iterable]
 
-def profile(str_to_execute, max_results = -1):
+def profile(str_to_execute, max_results= -1):
     """Runs a quick profile on the str_to_execute, and 
             outputs max_results of function details for calls and time."""
     

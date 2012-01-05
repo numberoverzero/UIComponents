@@ -113,9 +113,9 @@ class EngineTest(unittest.TestCase):
         id_manager.reset()
     
     def test_has_id(self):
-        a = Engine.HasID(custom_id = -100)
-        b = Engine.HasID(custom_id = -200)
-        c = Engine.HasID(custom_id = -100)
+        a = Engine.HasID(custom_id= -100)
+        b = Engine.HasID(custom_id= -200)
+        c = Engine.HasID(custom_id= -100)
         
         self.assertEqual(a, c)
         self.assertNotEqual(a, b)

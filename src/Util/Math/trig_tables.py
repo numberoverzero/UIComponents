@@ -21,10 +21,10 @@ print "Loaded Trig Tables."
 
 def index(theta):
     """Returns the index of the angle theta for cos and sin calculations."""
-    ind = int(0.001 + theta * SIZE / (2*math.pi))
+    ind = int(0.001 + theta * SIZE / (2 * math.pi))
     return ind % SIZE
 
-def is_correct(theta, print_ = False):
+def is_correct(theta, print_=False):
     """Determines if the difference between the computed
             and the actual values of cos(theta) are within
             "acceptable" limits.  If print_, prints
@@ -32,7 +32,7 @@ def is_correct(theta, print_ = False):
     
     expected = math.cos(theta)
     actual = COS[index(theta)]
-    diff = abs(expected-actual)
+    diff = abs(expected - actual)
     if print_:
         print "==============="
         print "Checking: {0}".format(theta)
@@ -47,12 +47,12 @@ def is_correct(theta, print_ = False):
 def check_all(n_vals):
     """Checks each value on [0, 2PI] at resolution n * SIZE."""
     errors = []
-    for val in xrange(int(SIZE*n_vals)):
+    for val in xrange(int(SIZE * n_vals)):
         pct = float(val) / SIZE
-        theta = 2*math.pi * pct
+        theta = 2 * math.pi * pct
         if not is_correct(theta):
             errors.append(val)
-    return (len(errors)>0, errors)
+    return (len(errors) > 0, errors)
     
 
 def check_random(n_vals):

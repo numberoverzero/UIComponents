@@ -2,9 +2,9 @@ import unittest
 import Util.Math as Math
 
 class MathTest(unittest.TestCase):
-    def assertAlmostEqualSequence(self, first, second, 
-                               places = None, msg = None, delta = None):
-        n = min(len(first),len(second))
+    def assertAlmostEqualSequence(self, first, second,
+                               places=None, msg=None, delta=None):
+        n = min(len(first), len(second))
         for i in xrange(n):
             self.assertAlmostEqual(first[i], second[i], places, msg, delta)
     
@@ -13,21 +13,21 @@ class MathTest(unittest.TestCase):
         x = -1
         M = 10
         expected = 9
-        actual = Math.iwrap(x,M)
+        actual = Math.iwrap(x, M)
         self.assertEqual(expected, actual)
         
         #Test Positive wrapping
         x = 12
         M = 10
         expected = 2
-        actual = Math.iwrap(x,M)
+        actual = Math.iwrap(x, M)
         self.assertEqual(expected, actual)
         
         #Test in-range wrapping
         x = 3
         M = 10
         expected = 3
-        actual = Math.iwrap(x,M)
+        actual = Math.iwrap(x, M)
         self.assertEqual(expected, actual)
     
     def test_fwrap(self):
@@ -36,7 +36,7 @@ class MathTest(unittest.TestCase):
         m = 4.0
         M = 8.0
         expected = 6.0
-        actual = Math.fwrap(x,m,M)
+        actual = Math.fwrap(x, m, M)
         self.assertAlmostEqual(expected, actual, 3)
         
         #Test pos val, below min wrapping
@@ -44,7 +44,7 @@ class MathTest(unittest.TestCase):
         m = 5.0
         M = 8.0
         expected = 6.5
-        actual = Math.fwrap(x,m,M)
+        actual = Math.fwrap(x, m, M)
         self.assertAlmostEqual(expected, actual, 3)
         
         #Test neg val above max wrapping
@@ -52,7 +52,7 @@ class MathTest(unittest.TestCase):
         m = -4.0
         M = -7.0
         expected = -5.5
-        actual = Math.fwrap(x,m,M)
+        actual = Math.fwrap(x, m, M)
         self.assertAlmostEqual(expected, actual, 3)
         
         #Test pos val above max wrapping (all floats) eps = 1E-3
@@ -60,7 +60,7 @@ class MathTest(unittest.TestCase):
         m = 4.0
         M = 8.0
         expected = 4.5
-        actual = Math.fwrap(x,m,M)
+        actual = Math.fwrap(x, m, M)
         self.assertAlmostEqual(expected, actual, 3)
         
         #Test in-range wrapping (all floats) eps = 1E-3
@@ -68,7 +68,7 @@ class MathTest(unittest.TestCase):
         m = 2.15
         M = 8.35
         expected = 3.75
-        actual = Math.fwrap(x,m,M)
+        actual = Math.fwrap(x, m, M)
         self.assertAlmostEqual(expected, actual, 3)
         
     def test_clamp(self):
@@ -160,29 +160,29 @@ class MathTest(unittest.TestCase):
     
     def test_distance(self):
         #Test that zeros work
-        p1 = [1,1,1]
-        p2 = [0,0,0]
+        p1 = [1, 1, 1]
+        p2 = [0, 0, 0]
         expected = 3 ** 0.5
         actual = Math.distance(p1, p2)
         self.assertAlmostEqual(expected, actual, 5)
         
         #Test that unequal size vectors fail
-        p1 = [1,1,1]
-        p2 = [0,0]
+        p1 = [1, 1, 1]
+        p2 = [0, 0]
         expected = 2 ** 0.5
         with self.assertRaises(IndexError):
             actual = Math.distance(p1, p2)
         
         #Test positive/negative mixing
-        p1 = [0,5.5]
-        p2 = [0,-7.5]
+        p1 = [0, 5.5]
+        p2 = [0, -7.5]
         expected = 13.0
         actual = Math.distance(p1, p2)
         self.assertAlmostEqual(expected, actual, 5)
         
         #Test orthogonal vectors (not that this should matter tbh)
-        p1 = [0,1]
-        p2 = [1,0]
+        p1 = [0, 1]
+        p2 = [1, 0]
         expected = 2 ** 0.5
         actual = Math.distance(p1, p2)
         self.assertAlmostEqual(expected, actual, 5)

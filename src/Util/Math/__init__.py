@@ -15,12 +15,12 @@ TT_SIZE = trig_tables.SIZE
 
 def iwrap(val, max_):
     """Returns the wrapped integer on [0,max_]"""
-    return int(val%max_)
+    return int(val % max_)
 
 def fwrap(val, min_, max_):
     """Returns the wrapped float on [min_, max_]"""
     nmin = -min_
-    return ( (val + nmin) % (max_ + nmin) ) - nmin
+    return ((val + nmin) % (max_ + nmin)) - nmin
 
 def mk_wrap_fn(min_, max_):
     """Returns a function that wraps a value on min_, max_"""
@@ -39,7 +39,7 @@ def clamp(val, min_, max_):
 
 def rotate(o_x, o_y, p_x, p_y, theta):
     """Rotate point (px, py) around origin (ox, oy) by theta degrees."""
-    index = int(0.001 + theta * TT_SIZE / (2*PI) % TT_SIZE)
+    index = int(0.001 + theta * TT_SIZE / (2 * PI) % TT_SIZE)
     
     
     px1 = TT_COS[index] * (p_x - o_x) - TT_SIN[index] * (p_y - o_y) + o_x
@@ -59,7 +59,7 @@ def randint(min_, max_):
 
 def rand(min_, max_):
     """Returns a random float on [min_, max_)"""
-    return (max_-min_) * random.random() + min_
+    return (max_ - min_) * random.random() + min_
 
 def mk_rand_fn(min_, max_):
     """Returns a function that gives random floats on [min_, max_)"""
@@ -72,9 +72,9 @@ def rand_with_gap(min_, max_):
     """Returns a random value on [-max_,-min_] or [min_,max_]"""
     r_pct = random.random()
     if r_pct <= 0.5:
-        return -( (max_-min_) * 2 * r_pct + min_ )
+        return -((max_ - min_) * 2 * r_pct + min_)
     else:
-        return (max_-min_) * (2*r_pct - 1) + min_
+        return (max_ - min_) * (2 * r_pct - 1) + min_
 
 def mk_rnd_with_gap_fn(min_, max_):
     """Returns a function that creates random values on 
@@ -86,7 +86,7 @@ def mk_rnd_with_gap_fn(min_, max_):
 
 def unit(vec_x, vec_y):
     """Returns the unit vector components of the vector (vec_x, vec_y)"""
-    mag = (vec_x**2 + vec_y**2 ) ** 0.5
+    mag = (vec_x ** 2 + vec_y ** 2) ** 0.5
     vec_x /= mag
     vec_y /= mag
     return vec_x, vec_y
@@ -96,10 +96,10 @@ def limit_vector(vec_x, vec_y, mag_max):
     if mag_max < 0:
         msg = "max_magnitude can't be negative: {0}"
         raise ArithmeticError(msg.format(mag_max))
-    mag_actual = (vec_x**2 + vec_y**2 ) ** 0.5
+    mag_actual = (vec_x ** 2 + vec_y ** 2) ** 0.5
     if mag_actual > mag_max:
         vec_x, vec_y = unit(vec_x, vec_y)
-        return vec_x*mag_max, vec_y*mag_max
+        return vec_x * mag_max, vec_y * mag_max
     return vec_x, vec_y
 
 def angle_from_vector(vec_x, vec_y):
@@ -113,10 +113,10 @@ def distance(pt1, pt2):
     size = len(pt1)
     sum_ = 0.0
     for i in xrange(size):
-        sum_ += (pt2[i]-pt1[i]) ** 2.0
+        sum_ += (pt2[i] - pt1[i]) ** 2.0
     return sum_ ** 0.5
 
-def is_zero(val, precision = 1E-8):
+def is_zero(val, precision=1E-8):
     """Helper function for ignoring rounding errors"""
     return abs(val) <= precision
 
@@ -128,12 +128,12 @@ def normalize(vals):
     elif size > 0:
         min_ = float(min(vals))
         max_ = float(max(vals))
-        if is_zero(max_-min_):
+        if is_zero(max_ - min_):
             for i in xrange(size):
                 vals[i] = 1.0
         else:
             for i in xrange(size):
-                vals[i] = (vals[i] - min_) / (max_-min_)
+                vals[i] = (vals[i] - min_) / (max_ - min_)
     else:
         pass
     

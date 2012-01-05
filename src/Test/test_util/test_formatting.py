@@ -5,7 +5,7 @@ class FormattingTest(unittest.TestCase):
 
     def test_surrounded_by_parens(self):
         #Test each of the parens types
-        parens = ['()','{}','[]']
+        parens = ['()', '{}', '[]']
         msg = "This contains parens.  "
         for paren in parens:
             s = paren[0] + msg + paren[1]
@@ -30,13 +30,13 @@ class FormattingTest(unittest.TestCase):
     def test_str_to_tuple(self):
         #Test int parsing with parens
         s = "(1,2,3,4,5)"
-        expected = (1,2,3,4,5)
+        expected = (1, 2, 3, 4, 5)
         actual = Formatting.str_to_tuple(s, int, True)
         self.assertEqual(expected, actual)
         
         #Test int parsing without parens
         s = "1,2,3,4,5"
-        expected = (1,2,3,4,5)
+        expected = (1, 2, 3, 4, 5)
         actual = Formatting.str_to_tuple(s, int, False)
         self.assertEqual(expected, actual)
         
@@ -52,13 +52,13 @@ class FormattingTest(unittest.TestCase):
         
         #Test str parsing with parens
         s = "{1,2,3,4,5}"
-        expected = ('1','2','3','4','5')
+        expected = ('1', '2', '3', '4', '5')
         actual = Formatting.str_to_tuple(s, str, True)
         self.assertEqual(expected, actual)
         
         #Test str parsing without parens
         s = "1,2,3,4,5"
-        expected = ('1','2','3','4','5')
+        expected = ('1', '2', '3', '4', '5')
         actual = Formatting.str_to_tuple(s, str, False)
         self.assertEqual(expected, actual)
 

@@ -10,9 +10,9 @@ class Setting(object):
     """A setting option, with defaults, index, list of options,
         name, and description."""
     __no_opt_err = "Tried to set current to option not in list: {0}"
-    def __init__(self, name = "", description = "",
-                 default = -1, selection = -1,
-                 options = None):
+    def __init__(self, name="", description="",
+                 default= -1, selection= -1,
+                 options=None):
 
         self._name = name
         self._description = description
@@ -74,11 +74,11 @@ class Setting(object):
     
     def __g_previous_option(self):
         """Gets the previous option"""
-        index = (self.current_index-1)%len(self._options)
+        index = (self.current_index - 1) % len(self._options)
         return self._options[index]
     def __g_next_option(self):
         """Gets the next option"""
-        index = (self.current_index+1)%len(self._options)
+        index = (self.current_index + 1) % len(self._options)
         return self._options[index]
     previous_option = property(__g_previous_option)
     next_option = property(__g_next_option)
@@ -103,7 +103,7 @@ class Setting(object):
     
     options = property(__g_options)
     
-    def load_using_config_parser(self, config, name = None):
+    def load_using_config_parser(self, config, name=None):
         """Load a setting from a config file.
             Name only needs to be passed when the Setting doesn't
             have a remembered filename.  In case the setting
@@ -135,7 +135,7 @@ class Setting(object):
             self.current_index = selection
     load = load_using_config_parser
     
-    def save_using_config_parser(self, config, name = None):
+    def save_using_config_parser(self, config, name=None):
         """Save the setting to a config file.
             Name only needs to be passed when the Setting doesn't
             have a remembered filename.  In case the setting
@@ -167,11 +167,11 @@ class Settings(object):
         config files.  Makes building and passing 
         around a group of settings easy."""
     __no_setting_err = 'No setting with name: "{0}"'
-    def __init__(self, fp=None):
+    def __init__(self, fp=None): # pylint: disable-msg=C0103
         self.__fp = fp
         self.dict = {}
     
-    def load(self, fp=None):
+    def load(self, fp=None): # pylint: disable-msg=C0103
         """Load settings from a config file or file-like object.
             The file-like object should support readline() and write().
             Filename only needs to be passed when the Settings doesn't
@@ -183,7 +183,7 @@ class Settings(object):
             if self.__fp is None:
                 raise AttributeError("No save location specified.")
             else:
-                fp = self.__fp
+                fp = self.__fp # pylint: disable-msg=C0103
         else:
             self.__fp = fp
             
@@ -215,14 +215,14 @@ class Settings(object):
         if opened:
             open_file.close()
     
-    def save(self, fp=None):
+    def save(self, fp=None): # pylint: disable-msg=C0103
         """If the settings were loaded from a file and no
                filename is specified, saves to same place it was loaded from."""
         if fp is None:
             if self.__fp is None:
                 raise AttributeError("No save location specified.")
             else:
-                fp = self.__fp
+                fp = self.__fp # pylint: disable-msg=C0103
         else:
             self.__fp = fp
         

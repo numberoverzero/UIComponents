@@ -12,7 +12,7 @@ class TypeCheckedList(list):
     """A list with a certain type that is checked
             at append/extend so that future use can assume type.
             Changing dtype will of course break this rule."""
-    def __init__(self, dtype, values = None, suppress_type_errors = False):
+    def __init__(self, dtype, values=None, suppress_type_errors=False):
         super(TypeCheckedList, self).__init__()
         
         self._dtype = dtype
@@ -47,20 +47,20 @@ class TypedDoubleBuffer(object):
             Can be cleared and flipped a few ways, read the docstring
             for details on what each mode does."""
         
-    def __init__(self, dtype, suppress_type_errors = False):
-        self.__bbuffer = TypeCheckedList(dtype, values = None,
-                            suppress_type_errors = suppress_type_errors)
-        self.__fbuffer = TypeCheckedList(dtype, values = None,
-                            suppress_type_errors = suppress_type_errors)
+    def __init__(self, dtype, suppress_type_errors=False):
+        self.__bbuffer = TypeCheckedList(dtype, values=None,
+                            suppress_type_errors=suppress_type_errors)
+        self.__fbuffer = TypeCheckedList(dtype, values=None,
+                            suppress_type_errors=suppress_type_errors)
             
-    def clear(self, front = True, back = False):
+    def clear(self, front=True, back=False):
         """Clears the front or back buffer, or both."""
         if front:
             self.__fbuffer.clear()
         if back:
             self.__bbuffer.clear()
             
-    def flip(self, mode = 'exact'):
+    def flip(self, mode='exact'):
         """Mode is one of:
             exact: any values in either buffer are preserved, and the front
                         and back are simply flipped.
@@ -180,11 +180,11 @@ class TypedLockableList(TypeCheckedList):
     _needs_update = False
     _changed_since_last_call = False
     
-    def __init__(self, dtype, values = None, suppress_type_errors = False):
+    def __init__(self, dtype, values=None, suppress_type_errors=False):
         self._to_add = []
         self._to_remove = []
-        super(TypedLockableList, self).__init__(dtype, values = values,
-                            suppress_type_errors = suppress_type_errors)
+        super(TypedLockableList, self).__init__(dtype, values=values,
+                            suppress_type_errors=suppress_type_errors)
         
     def append(self, value):
         self._changed_since_last_call = True
@@ -216,7 +216,7 @@ class TypedLockableList(TypeCheckedList):
             self._to_add.extend(values)
             self._needs_update = True
             
-    def lock(self, set_lock = None, force_update = True):
+    def lock(self, set_lock=None, force_update=True):
         """If set_lock is not True or False, toggles lock state.
             force_update forces a call to apply_pending_changes."""
         if set_lock is None:
@@ -237,12 +237,12 @@ class TypedLockableList(TypeCheckedList):
             self._to_remove.append(value)
             self._needs_update = True
 
-    def sort(self, cmp_ = None, key_ = None, reverse_ = False):
+    def sort(self, cmp_=None, key_=None, reverse_=False):
         self._apply_pending_changes()
         self._changed_since_last_call = True
         super(TypedLockableList, self).sort(cmp_,
-                                            key = key_,
-                                            reverse = reverse_)
+                                            key=key_,
+                                            reverse=reverse_)
 
     def _apply_pending_changes(self):
         """Apply changes that are pending, only if it is locked."""
