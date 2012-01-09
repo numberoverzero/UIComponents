@@ -34,11 +34,11 @@ class BaseComponent(Engine.HasID):
                          "anchor_x", "anchor_y", "parent"]
 
     @Util.Wrappers.inject_args(['coords', 'id_manager','custom_id'])
-    def __init__(self, Parent=None, x=0, y=0, width=0, height=0, # pylint: disable-msg=C0103,W0613,C0301
-                 anchor_x="left", anchor_y="top", coords="local", # pylint: disable-msg=C0103,W0613,C0301
-                 Name="BaseComponent", Tooltip="Empty Tooltip", # pylint: disable-msg=C0103,W0613,C0301
-                 Visible=True, Enabled=True, id_manager=None, # pylint: disable-msg=C0103,W0613,C0301
-                 custom_id=None): # pylint: disable-msg=C0103,W0613,C0301
+    def __init__(self, Parent=None, x=0, y=0, width=0, height=0, #pylint:disable-msg=C0103,W0613,C0301
+                 anchor_x="left", anchor_y="top", coords="local", #pylint:disable-msg=C0103,W0613,C0301
+                 Name="BaseComponent", Tooltip="Empty Tooltip", #pylint:disable-msg=C0103,W0613,C0301
+                 Visible=True, Enabled=True, id_manager=None, #pylint:disable-msg=C0103,W0613,C0301
+                 custom_id=None): #pylint:disable-msg=C0103,W0613,C0301
         """
         Pass a screen as parent if this is DIRECTLY attached to the screen
         
@@ -54,7 +54,7 @@ class BaseComponent(Engine.HasID):
         if Visible:
             #Make sure that content loads properly, since args may have been
                 #injected out of order
-            self._LoadContent()
+            self._load_content()
         
     def __setattr__(self, name, value):
         if name in BaseComponent.__triggers_redraw:
@@ -113,7 +113,7 @@ class BaseComponent(Engine.HasID):
             or shifting focus between two panes"""
         return self._tab_index
     def __get_tooltip(self):
-        """Tooltip for the component"""
+        """Get the tooltip for the component"""
         return self._tooltip
     
     def __get_x(self):
@@ -167,7 +167,7 @@ class BaseComponent(Engine.HasID):
         #Disabling Visible
             #only undraw if drawn
         if not value and self.IsContentLoaded:
-            self._UnloadContent()
+            self._unload_content()
     def __set_enabled(self, value):
         """Set the component's enabled state"""
         self._enabled = value
@@ -175,31 +175,56 @@ class BaseComponent(Engine.HasID):
         """Set the component's tab index"""
         self._tab_index = value
     def __set_tooltip(self, value):
+        """Set the tooltip for the component"""
         self._tooltip = value
-    
     def __set_x(self, value):
-        self._x = value
+        """Set x coordinate.  Not sure if local or global..."""
+        self._x = value #pylint:disable-msg=C0103
     def __set_y(self, value):
-        self._y = value
+        """Set y coordinate.  Not sure if local or global..."""
+        self._y = value #pylint:disable-msg=C0103
     def __set_width(self, value):
+        """Set the width of the component"""
         self._width = value
     def __set_height(self, value):
+        """Set the height of the component"""
         self._height = value
     def __set_anchor_x(self, value):
+        """Set the horizontal anchor of the component
+            (where it attaches to parent or screen)"""
         self._anchor_x = value.lower()
     def __set_anchor_y(self, value):
+        """Set the vertical anchor of the component
+            (where it attaches to parent or screen)"""
         self._anchor_y = value.lower()
     
-    def _LoadContent(self):
-        """Protected method for loading graphical content when Visible set to True (from False)"""
+    def _load_content(self, recursive=True):
+        """Protected method for loading graphical content when 
+            Visible set to True (from False)
+            If recursive, calls on child components"""
+        if recursive:
+            for child in self._children:
+                child._load_content(recursive) #pylint:disable-msg=W0212
         self.__is_content_loaded = True
         self._needs_redraw = False
-    def _UnloadContent(self):
-        """Protected method for unloading graphical content when Visible set to False (from True)"""
+        
+    def _unload_content(self, recursive=True):
+        """Protected method for unloading graphical content
+            when Visible set to False (from True)
+            If recursive, calls on child components"""
+        if recursive:
+            for child in self._children:
+                child._unload_content(recursive) #pylint:disable-msg=W0212
         self.__is_content_loaded = False
         self._needs_redraw = False
-    def _ReloadContent(self):
-        """Protected method for reloading graphical content.  Called when x, y, width, height, anchor_x, anchor_y change."""
+        
+    def _reload_content(self, recursive=True):
+        """Protected method for reloading graphical content.  
+            Called when x, y, width, height, anchor_x, anchor_y change.
+            If recursive, calls on child components"""
+        if recursive:
+            for child in self._children:
+                child._reload_content(recursive) #pylint:disable-msg=W0212
         self.__is_content_loaded = True
         self._needs_redraw = False        
 
@@ -281,9 +306,9 @@ class BaseComponent(Engine.HasID):
             child.exit_component()
             
         self._needs_redraw = False
-        self.Enabled = False
-        self.Visible = False
-        self.Parent = None
+        self.Enabled = False #pylint:disable-msg=C0103
+        self.Visible = False #pylint:disable-msg=C0103
+        self.Parent = None #pylint:disable-msg=C0103
         
     def handle_input(self, input_buffer):
         """Should pop each event in the input_buffer, look at it, and then
@@ -301,11 +326,14 @@ class BaseComponent(Engine.HasID):
         if Util.contains(self._children, child):
             self._children.remove(child)
     
-    def update(self, dt):
+    def update(self, dt): #pylint:disable-msg=C0103
         """Derived classes should call this method AFTER their implementation,
             so that changes made to critical values (x, y, etc) are reflected
             in the frame of their change.  Calling base before overriding
             method logic will effectively apply that logic to the NEXT update
             call, not THIS call."""
+        for child in self._children:
+            child.update(dt)
         if self._needs_redraw:
-            self._ReloadContent()
+            self._reload_content()
+        
