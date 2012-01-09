@@ -1,1 +1,3 @@
-from BaseComponent import *
+"""
+Screen components
+"""

@@ -1,8 +1,7 @@
-'''
-Created on Dec 8, 2011
+"""
+Base component, handles layering management, position, selection, etc.
+"""
 
-@author: Joe Laptop
-'''
 import Util
 import Engine
 
@@ -36,10 +35,10 @@ class BaseComponent(object):
                          "anchor_x", "anchor_y", "parent"]
 
     @Util.Wrappers.inject_args(['coords', 'id_manager'])
-    def __init__(self, Parent=None, x=0, y=0, width=0, height=0,
-                 anchor_x="left", anchor_y="top", coords="local",
-                 Name="BaseComponent", Tooltip="Empty Tooltip",
-                 Visible=True, Enabled=True, id_manager=None):
+    def __init__(self, Parent=None, x=0, y=0, width=0, height=0, # pylint: disable-msg=C0103,W0613,C0301
+                 anchor_x="left", anchor_y="top", coords="local", # pylint: disable-msg=C0103,W0613,C0301
+                 Name="BaseComponent", Tooltip="Empty Tooltip", # pylint: disable-msg=C0103,W0613,C0301
+                 Visible=True, Enabled=True, id_manager=None): # pylint: disable-msg=C0103,W0613,C0301
         '''
         Pass a screen as parent if this is DIRECTLY attached to the screen
         
@@ -52,7 +51,7 @@ class BaseComponent(object):
         if id_manager is None:
             id_manager = Engine.GLOBAL_ID_MANAGER
         self._id = id_manager.next_id(self)        
-        self._TabIndex = 0
+        self._tab_index = 0
         if Visible:
             #Make sure that content loads properly, since args may have been
                 #injected out of order
@@ -80,11 +79,14 @@ class BaseComponent(object):
         #Otherwise self._Parent IS the screen
         return self.Parent
     def __get_parent(self):
-        #This is expecting an actual BaseComponent- don't return true unless we
-            #ACTUALLY have a Component for a parent.
+        """Returns the parent component.
+            This is expecting an actual BaseComponent- 
+            don't return true unless we 
+            ACTUALLY have a Component for a parent."""
         if isinstance(self._Parent, BaseComponent):
             return self._Parent
         return None
+    
     def __get_children(self):
         return self._Children[:]
     def __get_name(self):
@@ -100,7 +102,7 @@ class BaseComponent(object):
     def __get_is_content_loaded(self):
         return self.__IsContentLoaded
     def __get_tab_index(self):
-        return self._TabIndex
+        return self._tab_index
     def __get_tooltip(self):
         return self._Tooltip
     
@@ -119,9 +121,9 @@ class BaseComponent(object):
     
     def __set_parent(self, parent):
         if self.Parent is not None:
-            self.Parent.RemoveChild(self)
+            self.Parent.remove_child(self)
         if parent is not None:
-            parent.AddChild(self)
+            parent.add_child(self)
         else:
             self.Visible = False
         self._Parent = parent
@@ -140,7 +142,7 @@ class BaseComponent(object):
     def __set_enabled(self, value):
         self._Enabled = value
     def __set_tab_index(self, value):
-        self._TabIndex = value
+        self._tab_index = value
     def __set_tooltip(self, value):
         self._Tooltip = value
     
@@ -170,40 +172,41 @@ class BaseComponent(object):
         self.__IsContentLoaded = True
         self._Needs_Redraw = False        
 
-    Settings = property(__get_settings, None, None, "The Settings inherited from Screen")
-    Screen = property(__get_screen, None, None, "The screen which this is contained in")
-    Parent = property(__get_parent, __set_parent, None, "The Component this is contained in")
-    Children = property(__get_children, None, None, "Copy of the Component's child Components")
-    Name = property(__get_name, __set_name, None, "Sting used to describe the Component")
-    ID = property(__get_id, None, None, "Unique ID to reference the Component")
-    Visible = property(__get_visible, __set_visible, None, "If the Component is drawn")
-    Enabled = property(__get_enabled, __set_enabled, None, "If the Component is Enabled")
-    HasFocus = property(__get_has_focus, None, None, "If the Component has key focus (tab, enter)")
-    IsContentLoaded = property(__get_is_content_loaded, None, None,
-                               "If the Component has loaded necessary drawing content")
-    TabIndex = property(__get_tab_index, __set_tab_index, None, "The index for tabbing through Components")
-    Tooltip = property(__get_tooltip, __set_tooltip, None, "Component tooltip for hover")
+    Settings = property(__get_settings)
+    Screen = property(__get_screen)
+    Parent = property(__get_parent, __set_parent)
+    Children = property(__get_children)
+    Name = property(__get_name, __set_name)
+    ID = property(__get_id)
+    Visible = property(__get_visible, __set_visible)
+    Enabled = property(__get_enabled, __set_enabled)
+    HasFocus = property(__get_has_focus)
+    IsContentLoaded = property(__get_is_content_loaded)
+    Tab_Index = property(__get_tab_index, __set_tab_index)
+    Tooltip = property(__get_tooltip, __set_tooltip)
     
-    x = property(__get_x, __set_x, None, "Global x position")
-    y = property(__get_y, __set_y, None, "Global y position")
-    width = property(__get_width, __set_width, None, "Width of the Component")
-    height = property(__get_height, __set_height, None, "Height of the Component")
-    anchor_x = property(__get_anchor_x, __set_anchor_x, None, "Where the Component is connected to its x value. [left, center, right]")
-    anchor_y = property(__get_anchor_y, __set_anchor_y, None, "Where the Component is connected to its y value. [top, center, bottom]")
+    x = property(__get_x, __set_x)
+    y = property(__get_y, __set_y)
+    width = property(__get_width, __set_width)
+    height = property(__get_height, __set_height)
+    anchor_x = property(__get_anchor_x, __set_anchor_x)
+    anchor_y = property(__get_anchor_y, __set_anchor_y)
     
-    def AddChild(self, child):
+    def add_child(self, child):
         """Adds the Component to Children, as long as the Component
             isn't already considered a child."""
         if not Util.contains(self._Children, child):
             self._Children.append(child)
             
-    def Contains(self, x, y):
+    def contains(self, x, y): # pylint: disable-msg=C0103
         """Returns the Component that contains (x, y)- this allows parent
             Components to pass the contain check to their most appropriate
-            child Component if they have one)."""
+            child Component if they have one).
+            Trys to return the most specific (child-first) container.
+            Returns None if not containing the point x,y"""
         for child in self._Children:
             #Containing component
-            ccomponent = child.Contains(x, y)
+            ccomponent = child.contains(x, y)
             if ccomponent is not None:
                 return ccomponent
         
@@ -234,7 +237,7 @@ class BaseComponent(object):
         #Not within this or any child Component
         return None 
     
-    def ExitComponent(self):
+    def exit_component(self):
         """Recursively exits the Component and all child Components.
             Exits components children-first so that they have reference
             to Screen while exiting."""
@@ -245,33 +248,34 @@ class BaseComponent(object):
             #otherwise we'd be doing list.remove during a list iteration
         while len(self._Children) > 0:
             child = self._Children.pop()
-            child.ExitComponent()
+            child.exit_component()
             
         self._Needs_Redraw = False
         self.Enabled = False
         self.Visible = False
         self.Parent = None
         
-    def HandleInput(self, InputBuffer):
-        """Should pop each event in the InputBuffer, look at it, and then
-            either push it back on the InputBuffer or not.  Any events "pushed back"
+    def handle_input(self, input_buffer):
+        """Should pop each event in the input_buffer, look at it, and then
+            either push it back on the input_buffer or not.  Any events "pushed back"
             are considered "unused" and will be seen by the next object to 
-            inspect the InputBuffer.  Pushed events are not available until the InputBuffer
+            inspect the input_buffer.  Pushed events are not available until the input_buffer
             is flipped again."""
-        while InputBuffer.HasEvents:
-            InputBuffer.Push(InputBuffer.Pop())
-        InputBuffer.Flip()
+        while input_buffer.HasEvents:
+            input_buffer.Push(input_buffer.Pop())
+        input_buffer.Flip()
     
-    def RemoveChild(self, child):
+    def remove_child(self, child):
         """Removes the Component from Children, as long as the Component
             is actually considered a child."""
         if Util.contains(self._Children, child):
             self._Children.remove(child)
     
-    def Update(self, dt):
+    def update(self, dt):
         """Derived classes should call this method AFTER their implementation,
-            so that changes made to critical values (x, y, etc) are reflected in
-            the frame of their change.  Calling base before overriding method logic
-            will effectively apply that logic to the NEXT update call, not THIS call."""
+            so that changes made to critical values (x, y, etc) are reflected
+            in the frame of their change.  Calling base before overriding
+            method logic will effectively apply that logic to the NEXT update
+            call, not THIS call."""
         if self._Needs_Redraw:
             self._ReloadContent()
