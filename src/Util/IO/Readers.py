@@ -6,7 +6,8 @@ import os.path
 
 class FullBufferedRead(object):
     """Reads an entire file into memory,
-        allowing line-indexed searching."""
+        allowing line-indexed searching.
+        First index is 0, NOT 1"""
     def __init__(self, filename):
         self._lines = []
         self._is_loaded = False
