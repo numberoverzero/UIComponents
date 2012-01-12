@@ -29,10 +29,10 @@ class OnChangeTest(unittest.TestCase):
         self.assertTrue(bob.flag)
         
     def test_flag_auto_clear(self):
-        """The flag should never be set to false by the wrapper-
-            it must be explicitly dealt with by the class.
-            This test should show that the flag remains true even when
-            given the same value."""
+        #The flag should never be set to false by the wrapper-
+            #it must be explicitly dealt with by the class.
+            #This test should show that the flag remains true even when
+            #given the same value.
         bob = self.tst_cls()
         self.assertFalse(bob.flag)
         bob.x = 1
@@ -129,7 +129,7 @@ class InjectArgsTest(unittest.TestCase):
         del(self.obj.fn_3)
         
     def test_only_args_empty_ignores(self):
-        """Position args only, nothing ignored."""
+        #Position args only, nothing ignored.
         obj = self.obj()
         @Wrappers.inject_args(ignores=None)
         def fn(self, x, y, n):
@@ -154,7 +154,7 @@ class InjectArgsTest(unittest.TestCase):
         del(self.obj.fn)
 
     def test_only_args_included_ignores(self):
-        """Position args only, one position arg ignores."""
+        #Position args only, one position arg ignores.
         obj = self.obj()
         @Wrappers.inject_args(ignores=['y'])
         def fn(self, x, y, n):
@@ -182,7 +182,7 @@ class InjectArgsTest(unittest.TestCase):
         del(self.obj.fn)
 
     def test_only_args_non_included_ignores(self):
-        """Position args only, a variable not in args is ignored."""
+        #Position args only, a variable not in args is ignored.
         obj = self.obj()
         @Wrappers.inject_args(ignores=['z'])
         def fn(self, x, y, n):
@@ -207,7 +207,7 @@ class InjectArgsTest(unittest.TestCase):
         del(self.obj.fn)
         
     def test_only_kwargs_empty_ignores(self):
-        """Keyword args only, nothing ignored."""
+        #Keyword args only, nothing ignored.
         obj = self.obj()
         @Wrappers.inject_args(ignores=None)
         def fn(self, x='def_x', y='def_y', n='def_n'):
@@ -242,7 +242,7 @@ class InjectArgsTest(unittest.TestCase):
         del(self.obj.fn)
     
     def test_only_kwargs_included_ignores(self):
-        """Keyword args only, one kwarg ignores."""
+        #Keyword args only, one kwarg ignores.
         obj = self.obj()
         @Wrappers.inject_args(ignores=['y'])
         def fn(self, x='def_x', y='def_y', n='def_n'):
@@ -270,7 +270,7 @@ class InjectArgsTest(unittest.TestCase):
         del(self.obj.fn)
     
     def test_only_kwargs_non_included_ignores(self):
-        """Keyword args only, a var not in kwargs is ignored."""
+        #Keyword args only, a var not in kwargs is ignored.
         obj = self.obj()
         @Wrappers.inject_args(ignores=['z'])
         def fn(self, x='def_x', y='def_y', n='def_n'):
@@ -291,7 +291,7 @@ class InjectArgsTest(unittest.TestCase):
         del(self.obj.fn)
     
     def test_args_and_kwargs_empty_ignores(self):
-        """Args and kwargs, nothing ignored."""
+        #Args and kwargs, nothing ignored.
         obj = self.obj()
         @Wrappers.inject_args(ignores=None)
         def fn(self, x, y, n='def_n', m='def_m'):
@@ -328,7 +328,7 @@ class InjectArgsTest(unittest.TestCase):
         del(self.obj.fn)
     
     def test_args_and_kwargs_included_ignores(self):
-        """Args and kwargs, one kwarg ignores."""
+        #Args and kwargs, one kwarg ignores.
         obj = self.obj()
         @Wrappers.inject_args(ignores='y')
         def fn(self, x, y, n='def_n', m='def_m'):
@@ -368,7 +368,7 @@ class InjectArgsTest(unittest.TestCase):
         del(self.obj.fn)
     
     def test_args_and_kwargs_non_included_ignores(self):
-        """Args and kwargs, a var not in kwargs is ignored."""
+        #Args and kwargs, a var not in kwargs is ignored.
         obj = self.obj()
         @Wrappers.inject_args(ignores='z')
         def fn(self, x, y, n='def_n', m='def_m'):

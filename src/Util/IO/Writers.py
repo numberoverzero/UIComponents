@@ -65,6 +65,10 @@ class BufferedWriter(object):
         """Set buffer size"""
         self._buffer_size = value
         self._check_buffer()
+        
+    def __len__(self):
+        """Same as current_buffer_size"""
+        return len(self._data)
     
     buffer_size = property(_g_buffer_size, _s_buffer_size)
     current_buffer_size = property(_g_c_buffer_size)
