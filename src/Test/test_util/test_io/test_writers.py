@@ -18,7 +18,7 @@ class BufferedWriteTest(unittest.TestCase):
             pass
 
 def suite():
-    suite1 = unittest.makeSuite(FullBufferedReadTest)
+    suite1 = unittest.makeSuite(BufferedWriteTest)
     return unittest.TestSuite(suite1)
     
 def load_tests():
