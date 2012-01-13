@@ -22,6 +22,25 @@ class Setting(object):
             self._options = []
         else:
             self._options = list(options)
+    
+    def _get_index(self, value):
+        """Returns the index of the value in options. 
+            Raises key error when value not in options."""
+        err = None
+        index = -1
+        
+        if not self._options:
+            err = "No values loaded in options."
+        elif Util.contains(self._options, value):
+            index = self._options.index(value)
+        else:
+            err = "Could not find value in self.options"
+        
+        if err:
+            raise KeyError(err)
+        else:
+            return index
+                 
 
     def __g_current_index(self):
         """Returns the current index of the selection"""
@@ -119,21 +138,22 @@ class Setting(object):
         else:
             section = name
             
-        try:
-            description = config.get(section, 'description')
-            default_index = int(config.get(section, 'default'))
-            selection = int(config.get(section, 'selection'))
-            options_str = config.get(section, 'options')
-            options = list(Util.Formatting.str_to_tuple(options_str, str))
-        except: # pylint: disable-msg=W0702
-            #This is terrible code.  I dislike I/O
-            pass
-        finally:
-            self._options = options[:]
-            self.description = description
-            self.default_index = default_index
-            self.current_index = selection
-    load = load_using_config_parser
+        description = config.get(section, 'description')
+        default_value = config.get(section, 'default_value')
+        current_value = config.get(section, 'current_value')
+        options_str = config.get(section, 'options')
+        options_lst = list(Util.Formatting.str_to_struct(options_str, str))
+        
+        self._options = options_lst[:]
+        self.description = description
+        
+        
+        self.default_index = self._get_index(default_value)
+        self.current_index = self._get_index(current_value)
+    
+    def load(self, config, name = None):
+        """Alias of load_using_config_parser"""
+        self.load_using_config_parser(config, name)
     
     def save_using_config_parser(self, config, name=None):
         """Save the setting to a config file.

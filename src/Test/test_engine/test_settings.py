@@ -1,5 +1,7 @@
 import unittest
+import ConfigParser
 import Engine.Settings as Settings
+import Util.Formatting
 
 class SettingTest(unittest.TestCase):
     def test_current_index(self):
@@ -181,7 +183,27 @@ class SettingTest(unittest.TestCase):
         self.assertEqual(actual, expected)
     
     def test_load_using_config_parser(self):
-        self.skipTest("Not Yet Implemented")
+        config = ConfigParser.ConfigParser()
+        name = "Color"
+        data = {
+                         'description': 'Pick a color',
+                         'default_value': 'Blue',
+                         'current_value': 'Green',
+                         'options': "[Red,Blue,Green,Black]",
+                         }
+        options_lst = Util.Formatting.str_to_struct(data['options'], str)
+        
+        config.add_section(name)
+        for option in data.keys():
+            config.set(name, option, data[option])
+        
+        a_setting = Settings.Setting()
+        a_setting.load(config, name)
+        
+        self.assertEqual(data['description'], a_setting.description)
+        self.assertEqual(data['default_value'], a_setting.options[a_setting.default_index])
+        self.assertEqual(data['current_value'], a_setting.current_option)
+        self.assertEqual(options_lst, a_setting.options)
     
     def test_save_using_config_parser(self):
         self.skipTest("Not Yet Implemented")

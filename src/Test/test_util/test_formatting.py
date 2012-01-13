@@ -31,35 +31,35 @@ class FormattingTest(unittest.TestCase):
         #Test int parsing with parens
         s = "(1,2,3,4,5)"
         expected = (1, 2, 3, 4, 5)
-        actual = Formatting.str_to_tuple(s, int, True)
+        actual = Formatting.str_to_struct(s, int, True)
         self.assertEqual(expected, actual)
         
         #Test int parsing without parens
         s = "1,2,3,4,5"
         expected = (1, 2, 3, 4, 5)
-        actual = Formatting.str_to_tuple(s, int, False)
+        actual = Formatting.str_to_struct(s, int, False)
         self.assertEqual(expected, actual)
         
         #Test passing string w/parens when specifying it doesn't have them
         s = "[1,2,3]"
         with self.assertRaises(ValueError):
-            actual = Formatting.str_to_tuple(s, int, False)
+            actual = Formatting.str_to_struct(s, int, False)
             
         #Test passing string w/o parens when specifying it has them
         s = "(1,2,3}"
         with self.assertRaises(ValueError):
-            actual = Formatting.str_to_tuple(s, int, True)
+            actual = Formatting.str_to_struct(s, int, True)
         
         #Test str parsing with parens
         s = "{1,2,3,4,5}"
         expected = ('1', '2', '3', '4', '5')
-        actual = Formatting.str_to_tuple(s, str, True)
+        actual = Formatting.str_to_struct(s, str, True)
         self.assertEqual(expected, actual)
         
         #Test str parsing without parens
         s = "1,2,3,4,5"
         expected = ('1', '2', '3', '4', '5')
-        actual = Formatting.str_to_tuple(s, str, False)
+        actual = Formatting.str_to_struct(s, str, False)
         self.assertEqual(expected, actual)
 
 def suite():
