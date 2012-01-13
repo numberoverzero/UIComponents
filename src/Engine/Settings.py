@@ -122,6 +122,19 @@ class Setting(object):
     
     options = property(__g_options)
     
+    def _resolve_name(self, name):
+        """Updates (if needed) the setting's name,
+            and returns the proper name to use.
+            raises AttributeError if neither name is good"""
+        if name:
+            self._name = name
+        else:
+            if self._name:
+                name = self._name
+            else:
+                raise AttributeError("No name specified.")
+        return name
+    
     def load_using_config_parser(self, config, name=None):
         """Load a setting from a config file.
             Name only needs to be passed when the Setting doesn't
@@ -129,14 +142,7 @@ class Setting(object):
             has a self._name and a name is passed, the passed name is
             taken as more current.  self._name is NOT updated to name,
             unless self._name is None."""
-            
-        if name is None:
-            if self._name is None:
-                raise AttributeError("No section name specified.") 
-            else:
-                section = self._name
-        else:
-            section = name
+        section = self._resolve_name(name)
             
         description = config.get(section, 'description')
         default_value = config.get(section, 'default_value')
@@ -162,22 +168,20 @@ class Setting(object):
             has a self._name and a name is passed, the passed name is
             taken as more current.  self._name is NOT updated to name,
             unless self._name is None."""
-        if name is None:
-            if self._name is None:
-                raise AttributeError("No section name specified.") 
-            else:
-                section = self._name
-        else:
-            section = name
+        section = self._resolve_name(name)
             
         if not config.has_section(section):
             config.add_section(section)
         
         config.set(section, 'description', self._description)
-        config.set(section, 'default', str(self._default_index))
-        config.set(section, 'selection', str(self._selection))
-        config.set(section, 'options', str(self._options))
-    save = save_using_config_parser
+        config.set(section, 'default_value', str(self._default_index))
+        config.set(section, 'current_value', str(self._selection))
+        options_str = Util.Formatting.struct_to_str(self._options)
+        config.set(section, 'options', options_str)
+    
+    def save(self, config, name = None):
+        """Alias of save_using_config_parser"""
+        self.save_using_config_parser(config, name)
     
     def __len__(self):
         return len(self._options)

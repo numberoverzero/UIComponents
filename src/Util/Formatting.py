@@ -39,3 +39,18 @@ def str_to_struct(string, dtype, has_parens=True):
     struct = paren_type_func(string)
     
     return struct(dtype(item.strip()) for item in items)
+
+def struct_to_str(struct):
+    """Converts a struct of strings to a string that can be properly
+        parsed back using str_to_struct.  This function is necessary because
+        list -> str will make "['hello','bob']" which when converted
+        back gives ["'hello'","'bob'"] which preserves the unnecessary
+        inner single quotes.  This function would instead return
+        "[hello,bob]" which when str_to_struct'd, gives ["hello","bob"]"""
+    if type(struct) is list:
+        p="[]"
+    else:
+        p="()"
+    inner = ",".join(struct)
+    
+    return p[0]+inner+p[1]

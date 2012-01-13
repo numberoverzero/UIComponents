@@ -206,7 +206,30 @@ class SettingTest(unittest.TestCase):
         self.assertEqual(options_lst, a_setting.options)
     
     def test_save_using_config_parser(self):
-        self.skipTest("Not Yet Implemented")
+        config = ConfigParser.ConfigParser()
+        
+        name = "Color"
+        data = {
+                         'description': 'Pick a color',
+                         'default_value': 'Blue',
+                         'current_value': 'Green',
+                         'options': "[Red,Blue,Green,Black]",
+                         }
+        options_lst = Util.Formatting.str_to_struct(data['options'], str)
+        
+        a_setting = Settings.Setting(name=name, description=data['description'],
+                                     default=data['default_value'],
+                                     selection=data['current_value'],
+                                     options=options_lst)
+        
+        a_setting.save(config, name)
+        
+        self.assertEqual(data['description'], config.get(name, 'description'))
+        self.assertEqual(data['default_value'], config.get(name, 'default_value'))
+        self.assertEqual(data['current_value'], config.get(name, 'current_value'))
+        config_opts = config.get(name, 'options')
+        setting_opts = Util.Formatting.str_to_struct(config_opts, str)
+        self.assertEqual(options_lst, setting_opts)
     
 class SettingsTest(unittest.TestCase):
     def setUp(self):
