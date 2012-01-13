@@ -252,8 +252,70 @@ class SettingsTest(unittest.TestCase):
         self.settings["ColorSetting"] = self.color_setting
         
     def test_load(self):
-        self.skipTest("Not Yet Implemented")
-    
+        filename = "test_load_settings.ini"
+        write_file = open(filename, 'w')
+        write_file.write("")
+        write_file.close()
+        
+        def write(line):
+            write_file = open(filename, 'a')
+            write_file.write(line+"\n")
+            write_file.close()
+        
+        sections = ['Color','Resolution','Food']
+        data_color = {
+                         'description': 'Pick a color',
+                         'default_value': 'Blue',
+                         'current_value': 'Green',
+                         'options': "[Red,Blue,Green,Black]",
+                         }
+        data_res = {
+                         'description': 'Screen resolution',
+                         'default_value': '600x400',
+                         'current_value': '1920x1080',
+                         'options': "[600x400,1024x768,1920x1080,1920x1200]",
+                         }
+        data_food = {
+                         'description': 'Favorite food',
+                         'default_value': 'Broccoli',
+                         'current_value': 'Ice Cream',
+                         'options': "[Pizza, Steak, Ice Cream, Broccoli]",
+                         }
+        datas = [data_color, data_res, data_food]
+        
+        nopts = len(sections)
+        for i in xrange(nopts):
+            section = sections[i]
+            data = datas[i]
+            #Write section header
+            write("["+section+"]")
+            
+            #Write the options
+            for option in data.keys():
+                write(option+": "+data[option])
+            
+            #Single space between settings
+            write("")
+        
+        settings = Settings.Settings(filename)
+        settings.load()
+        
+        for i in xrange(nopts):
+            setting_name = sections[i]
+            setting = settings[setting_name]
+            data = datas[i]
+            self.assertEqual(data['description'], setting.description)
+            self.assertEqual(data['default_value'], setting.default_value)
+            self.assertEqual(data['current_value'], setting.current_option)
+            opts = Util.Formatting.str_to_struct(data['options'], str)
+            self.assertEqual(opts, setting.options)
+            
+        import os
+        try:
+            os.remove(filename)
+        except WindowsError:
+            pass
+                
     def test_save(self):
         self.skipTest("Not Yet Implemented")
         

@@ -66,6 +66,11 @@ class Setting(object):
         self._default_index = value
     default_index = property(__g_default_index, __s_default_index)
     
+    def __g_default_value(self):
+        """returns the default value of the setting"""
+        return self._options[self.default_index]
+    default_value = property(__g_default_value)
+        
     def __g_description(self):
         """Gets the string description of the setting"""
         return self._description
@@ -191,11 +196,11 @@ class Settings(object):
         config files.  Makes building and passing 
         around a group of settings easy."""
     __no_setting_err = 'No setting with name: "{0}"'
-    def __init__(self, fp=None): # pylint: disable-msg=C0103
+    def __init__(self, fp=None): #pylint:disable-msg=C0103
         self.__fp = fp
         self.dict = {}
     
-    def load(self, fp=None): # pylint: disable-msg=C0103
+    def load(self, fp=None): #pylint:disable-msg=C0103
         """Load settings from a config file or file-like object.
             The file-like object should support readline() and write().
             Filename only needs to be passed when the Settings doesn't
@@ -207,7 +212,7 @@ class Settings(object):
             if self.__fp is None:
                 raise AttributeError("No save location specified.")
             else:
-                fp = self.__fp # pylint: disable-msg=C0103
+                fp = self.__fp #pylint:disable-msg=C0103
         else:
             self.__fp = fp
             
@@ -217,27 +222,19 @@ class Settings(object):
             open_file = open(fp)
         except IOError:
             opened = False
-            
-        #Try loading from file (in case it supports open/close)
-        added_settings = []
-        try:
-            config = ConfigParser.ConfigParser()
-            config.readfp(fp)
-            sections = config.sections()
-            for section in sections:
-                new_setting = Setting()
-                new_setting.load_using_config_parser(config, section)
-                self.add_setting(section, new_setting)
-                added_settings.append(section)
-        except: # pylint: disable-msg=W0702
-            #If there was an exception while loading,
-                #undo all added fields
-            for section in added_settings:
-                if self.has_setting(section):
-                    self.remove_setting(section)
+        else:
+            fp = open_file  #pylint:disable-msg=C0103
         
+        config = ConfigParser.ConfigParser()
+        config.readfp(fp)
+        sections = config.sections()
+        for section in sections:
+            new_setting = Setting()
+            new_setting.load_using_config_parser(config, section)
+            self.add_setting(section, new_setting)
+                
         if opened:
-            open_file.close()
+            fp.close()
     
     def save(self, fp=None): # pylint: disable-msg=C0103
         """If the settings were loaded from a file and no
