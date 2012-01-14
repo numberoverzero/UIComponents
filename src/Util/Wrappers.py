@@ -35,7 +35,7 @@ def inject_args(ignores=None):
     """
         
     if not hasattr(ignores, '__iter__'):
-        if isinstance(ignores, str):
+        if isinstance(ignores, basestring):
             ignores = [ignores]
         else:
             ignores = []

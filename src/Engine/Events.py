@@ -12,9 +12,10 @@ class EventArgs(Engine.HasID):
     def __init__(self, id_manager=None, custom_id=None):
         Engine.HasID.__init__(self, id_manager, custom_id)
     def __eq__(self, other):
-        if not isinstance(other, EventArgs):
+        try:
+            return Engine.HasID.__eq__(self, other)
+        except AttributeError:
             return False
-        return Engine.HasID.__eq__(self, other)
     def __str__(self):
         return self._str()
     def _str(self):
@@ -22,8 +23,6 @@ class EventArgs(Engine.HasID):
         return "EventArgs(ID={}, id_manager={})".format(
             str(self.ID), str(self.__id_manager))
 
-#Allows handlers to be invoked without arguments
-#Also allows us to check against Engine.NoneArgs instead of using isinstance()
 NONEARGS = EventArgs(custom_id= -1)
 
 class EventHandler(Engine.HasID):
@@ -80,12 +79,12 @@ class EventHandler(Engine.HasID):
         return self._listeners[:]
     
     def __eq__(self, other):
-        if not isinstance(other, EventHandler):
+        try:
+            id_eq = Engine.HasID.__eq__(self, other)
+            #This may be a slow comparison as it requires two copies
+            list_eq = self.Listeners == other.Listeners
+            return id_eq and list_eq
+        except AttributeError:
             return False
-        id_eq = Engine.HasID.__eq__(self, other)
-        #This may be a slow comparison as it requires two copies
-        list_eq = self.Listeners == other.Listeners
-        return id_eq and list_eq
-    
     Listeners = property(__get_listeners, None, None,
                          "Copy of the handler's listeners")

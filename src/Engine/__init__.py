@@ -37,7 +37,7 @@ class HasID(object):
             self._id = custom_id
             self.__id_manager = None
         else:
-            if not isinstance(id_manager_, id_manager):
+            if not hasattr(id_manager_, "next_id"):
                 id_manager_ = GLOBAL_ID_MANAGER
             self.__id_manager = id_manager_
             self._id = self.__id_manager.next_id(self)
@@ -45,7 +45,8 @@ class HasID(object):
         """Returns the object's id"""
         return self._id
     def __eq__(self, other):
-        if not isinstance(other, HasID):
+        try:
+            return self.ID == other.ID
+        except AttributeError:
             return False
-        return self.ID == other.ID
     ID = property(__get_id, None, None, "Unique ID to reference the object")

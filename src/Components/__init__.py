@@ -1,3 +1,5 @@
 """
 Screen components
 """
+
+import BaseComponent
