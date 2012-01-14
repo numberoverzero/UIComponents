@@ -179,27 +179,35 @@ class LockableList(list):
     _changed_since_last_call = False
     
     def __init__(self, values=None):
-        self._to_add = []
-        self._to_remove = []
+        self._to_change = {}
         if values is None:
             values = []
         super(LockableList, self).__init__(values)
-        
+    
+    def _apply_change_diff(self, value, amt):
+        """Checks self._to_change and if there is an existing value, 
+            increments by value. 
+            
+            Otherwise, sets self._to_change[value] = amt"""
+        if self._to_change.has_key(value):
+            self._to_change[value] += amt
+        else:
+            self._to_change[value] = amt
+    
     def append(self, value):
         self._changed_since_last_call = True
         if not self._locked:
             super(LockableList, self).append(value)
         else:
-            self._to_add.append(value)
+            self._apply_change_diff(value, 1)
             self._needs_update = True
     
     def clear(self):
+        """Clear all values from the list and pending changes.
+        Does not check lock status. This might need to be changed..."""
         while len(self) > 0:
             self.pop()
-        while len(self._to_add) > 0:
-            self._to_add.pop()
-        while len(self._to_remove) > 0:
-            self._to_remove.pop()
+        self._to_change = {}
     
     def clear_change_flag(self):
         """Manually clear the change flag.
@@ -212,7 +220,8 @@ class LockableList(list):
         if not self._locked:
             super(LockableList, self).extend(values)
         else:
-            self._to_add.extend(values)
+            for value in values:
+                self._apply_change_diff(value, 1)
             self._needs_update = True
             
     def lock(self, set_lock=None, force_update=True):
@@ -233,7 +242,7 @@ class LockableList(list):
         if not self._locked:
             super(LockableList, self).remove(value)
         else:
-            self._to_remove.append(value)
+            self._apply_change_diff(value, -1)
             self._needs_update = True
 
     def sort(self, cmp_=None, key_=None, reverse_=False):
@@ -244,18 +253,16 @@ class LockableList(list):
                                             reverse=reverse_)
 
     def _apply_pending_changes(self):
-        """Apply changes that are pending, only if it is locked."""
+        """Apply changes that are pending, only if unlocked."""
         if self._locked:
             return
 
-        for value in self._to_add:
-            super(LockableList, self).append(value)
-        self._to_add = []
-
-        for value in self._to_remove:
-            super(LockableList, self).remove(value)
-        self._to_remove = []
-
+        for key in self._to_change:
+            if self._to_change[key] > 0:
+                super(LockableList, self).append(key)
+            else:
+                super(LockableList, self).remove(key)
+        
         self._needs_update = False
     
     def __iter__(self):
@@ -277,6 +284,26 @@ class LockableList(list):
             (almost always same as HasPendingChanges)"""
         return self._changed_since_last_call
     ChangedSinceLastCall = property(__g_changed_since_last_call)
+    
+    
+    def __g_pending_additions(self):
+        """Returns a list of all values to be added when next unlocked"""
+        #self._apply_change_diff(value,1
+        additions = []
+        for key in self._to_change:
+            if self._to_change[key] > 0:
+                additions.append(key)
+        return additions
+    PendingAdditions = property(__g_pending_additions)
+    
+    def __g_pending_removals(self):
+        """Returns a list of all values to be removed when next unlocked"""
+        removals = []
+        for key in self._to_change:
+            if self._to_change[key] <= 0:
+                removals.append(key)
+        return removals
+    PendingRemovals = property(__g_pending_removals)
 
 
 

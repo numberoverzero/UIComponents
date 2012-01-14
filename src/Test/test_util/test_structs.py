@@ -327,7 +327,7 @@ class LockableListTest(unittest.TestCase):
         tll.lock(set_lock=True, force_update=False)
         tll.append("Yellow")
         
-        actual = len(tll._to_add)
+        actual = len(tll.PendingAdditions)
         expected = 1
         self.assertTrue(actual == expected)
         
@@ -348,7 +348,7 @@ class LockableListTest(unittest.TestCase):
         tll.lock(set_lock=True, force_update=False)
         tll.extend(["Yellow", "Red"])
         
-        actual = len(tll._to_add)
+        actual = len(tll.PendingAdditions)
         expected = 2
         self.assertTrue(actual == expected)
         
@@ -496,8 +496,8 @@ class LockableListTest(unittest.TestCase):
         tll.extend([3, 4, 5])
         tll.clear()
         self.assertFalse(tll)
-        self.assertFalse(tll._to_add)
-        self.assertFalse(tll._to_remove)
+        self.assertFalse(tll.PendingAdditions)
+        self.assertFalse(tll.PendingRemovals)
         
         #Test with lock and pending updates
         tll = Structs.LockableList(values=None)
@@ -506,8 +506,8 @@ class LockableListTest(unittest.TestCase):
         tll.extend([100, 200])
         tll.clear()
         self.assertFalse(tll)
-        self.assertFalse(tll._to_add)
-        self.assertFalse(tll._to_remove)
+        self.assertFalse(tll.PendingAdditions)
+        self.assertFalse(tll.PendingRemovals)
         
 
 def suite():
