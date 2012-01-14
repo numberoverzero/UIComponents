@@ -30,13 +30,13 @@ def str_to_struct(string, dtype, has_parens=True):
     elif surrounded_by_parens(string) and not has_parens:
         msg = "Badly formatted string (has brackets, said it did not)."
         raise ValueError(msg)
+    
     if has_parens:
         items = string[1:-1].split(',')
+        struct = paren_type_func(string)
     else:
         items = string.split(',')
-    
-    #Default to mutable struct
-    struct = paren_type_func(string)
+        struct = tuple
     
     return struct(dtype(item.strip()) for item in items)
 
@@ -48,9 +48,9 @@ def struct_to_str(struct):
         inner single quotes.  This function would instead return
         "[hello,bob]" which when str_to_struct'd, gives ["hello","bob"]"""
     if type(struct) is list:
-        p="[]"
+        parens = "[]"
     else:
-        p="()"
+        parens = "()"
     inner = ",".join(struct)
     
-    return p[0]+inner+p[1]
+    return parens[0]+inner+parens[1]

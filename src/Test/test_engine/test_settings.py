@@ -8,7 +8,7 @@ class SettingTest(unittest.TestCase):
         options = ["Option0", "Option1", "Option2"]
         setting = Settings.Setting(name="MySetting",
                                    description="A test setting",
-                                   default=0, selection=1,
+                                   default_index=0, current_index=1,
                                    options=options)
         
         #Assert we assigned selection correctly
@@ -34,7 +34,7 @@ class SettingTest(unittest.TestCase):
         options = ["Option0", "Option1", "Option2"]
         setting = Settings.Setting(name="MySetting",
                                    description="A test setting",
-                                   default=1, selection=0,
+                                   default_index=1, current_index=0,
                                    options=options)
         
         #Assert we assigned selection correctly
@@ -60,7 +60,7 @@ class SettingTest(unittest.TestCase):
         options = ["Option0", "Option1", "Option2"]
         setting = Settings.Setting(name="MySetting",
                                    description="A test setting",
-                                   default=1, selection=0,
+                                   default_index=1, current_index=0,
                                    options=options)
         
         #Assert we assigned selection correctly
@@ -83,7 +83,7 @@ class SettingTest(unittest.TestCase):
         options = ["Option0", "Option1", "Option2"]
         setting = Settings.Setting(name="MySetting",
                                    description="A test setting",
-                                   default=1, selection=0,
+                                   default_index=1, current_index=0,
                                    options=options)
         
         #Assert we assigned selection correctly
@@ -109,7 +109,7 @@ class SettingTest(unittest.TestCase):
         options = ["Option0", "Option1", "Option2"]
         setting = Settings.Setting(name="MySetting",
                                    description="A test setting",
-                                   default=1, selection=0,
+                                   default_index=1, current_index=0,
                                    options=options)
         
         #Assert we assigned selection correctly
@@ -135,7 +135,7 @@ class SettingTest(unittest.TestCase):
         options = []
         setting = Settings.Setting(name="MySetting",
                                    description="A test setting",
-                                   default=1, selection=0,
+                                   default_index=1, current_index=0,
                                    options=options)
         
         #Make sure we start empty
@@ -159,7 +159,7 @@ class SettingTest(unittest.TestCase):
         options = ["Option0", "Option1", "Option2"]
         setting = Settings.Setting(name="MySetting",
                                    description="A test setting",
-                                   default=1, selection=0,
+                                   default_index=1, current_index=0,
                                    options=options)
         
         #Make sure we start with all options
@@ -187,8 +187,8 @@ class SettingTest(unittest.TestCase):
         name = "Color"
         data = {
                          'description': 'Pick a color',
-                         'default_value': 'Blue',
-                         'current_value': 'Green',
+                         'default_option': 'Blue',
+                         'current_option': 'Green',
                          'options': "[Red,Blue,Green,Black]",
                          }
         options_lst = Util.Formatting.str_to_struct(data['options'], str)
@@ -201,8 +201,8 @@ class SettingTest(unittest.TestCase):
         a_setting.load(config, name)
         
         self.assertEqual(data['description'], a_setting.description)
-        self.assertEqual(data['default_value'], a_setting.options[a_setting.default_index])
-        self.assertEqual(data['current_value'], a_setting.current_option)
+        self.assertEqual(data['default_option'], a_setting.options[a_setting.default_index])
+        self.assertEqual(data['current_option'], a_setting.current_option)
         self.assertEqual(options_lst, a_setting.options)
     
     def test_save_using_config_parser(self):
@@ -211,22 +211,22 @@ class SettingTest(unittest.TestCase):
         name = "Color"
         data = {
                          'description': 'Pick a color',
-                         'default_value': 'Blue',
-                         'current_value': 'Green',
+                         'default_option': 'Blue',
+                         'current_option': 'Green',
                          'options': "[Red,Blue,Green,Black]",
                          }
         options_lst = Util.Formatting.str_to_struct(data['options'], str)
         
         a_setting = Settings.Setting(name=name, description=data['description'],
-                                     default=data['default_value'],
-                                     selection=data['current_value'],
+                                     default_index=data['default_option'],
+                                     current_index=data['current_option'],
                                      options=options_lst)
         
         a_setting.save(config, name)
         
         self.assertEqual(data['description'], config.get(name, 'description'))
-        self.assertEqual(data['default_value'], config.get(name, 'default_value'))
-        self.assertEqual(data['current_value'], config.get(name, 'current_value'))
+        self.assertEqual(data['default_option'], config.get(name, 'default_option'))
+        self.assertEqual(data['current_option'], config.get(name, 'current_option'))
         config_opts = config.get(name, 'options')
         setting_opts = Util.Formatting.str_to_struct(config_opts, str)
         self.assertEqual(options_lst, setting_opts)
@@ -237,12 +237,12 @@ class SettingsTest(unittest.TestCase):
         options = ["Option0", "Option1", "Option2"]
         self.my_setting = Settings.Setting(name="MySetting",
                                    description="A test setting",
-                                   default=0, selection=1,
+                                   default_index=0, current_index=1,
                                    options=options)
         color_options = ["Yellow", "Red", "Blue"]
         self.color_setting = Settings.Setting(name="ColorSetting",
                                    description="Pick a color",
-                                   default=0, selection=0,
+                                   default_index=0, current_index=0,
                                    options=color_options)
         
         #New settings object
@@ -265,20 +265,20 @@ class SettingsTest(unittest.TestCase):
         sections = ['Color','Resolution','Food']
         data_color = {
                          'description': 'Pick a color',
-                         'default_value': 'Blue',
-                         'current_value': 'Green',
+                         'default_option': 'Blue',
+                         'current_option': 'Green',
                          'options': "[Red,Blue,Green,Black]",
                          }
         data_res = {
                          'description': 'Screen resolution',
-                         'default_value': '600x400',
-                         'current_value': '1920x1080',
+                         'default_option': '600x400',
+                         'current_option': '1920x1080',
                          'options': "[600x400,1024x768,1920x1080,1920x1200]",
                          }
         data_food = {
                          'description': 'Favorite food',
-                         'default_value': 'Broccoli',
-                         'current_value': 'Ice Cream',
+                         'default_option': 'Broccoli',
+                         'current_option': 'Ice Cream',
                          'options': "[Pizza, Steak, Ice Cream, Broccoli]",
                          }
         datas = [data_color, data_res, data_food]
@@ -305,8 +305,8 @@ class SettingsTest(unittest.TestCase):
             setting = settings[setting_name]
             data = datas[i]
             self.assertEqual(data['description'], setting.description)
-            self.assertEqual(data['default_value'], setting.default_value)
-            self.assertEqual(data['current_value'], setting.current_option)
+            self.assertEqual(data['default_option'], setting.default_option)
+            self.assertEqual(data['current_option'], setting.current_option)
             opts = Util.Formatting.str_to_struct(data['options'], str)
             self.assertEqual(opts, setting.options)
             
@@ -352,9 +352,9 @@ class SettingsTest(unittest.TestCase):
     
     def test_add_option(self):
         new_color = "Brown"
-        old_len = len(self.settings["ColorSetting"])
+        old_len = self.settings["ColorSetting"].nopts
         self.settings.add_option("ColorSetting", new_color)
-        new_len = len(self.settings["ColorSetting"])
+        new_len = self.settings["ColorSetting"].nopts
         expected = 1
         actual = new_len - old_len
         self.assertEqual(expected, actual)
@@ -364,9 +364,9 @@ class SettingsTest(unittest.TestCase):
             self.settings.add_option("This_Key_Isnt_Real", "a monkey")
         
     def test_remove_option(self):
-        old_len = len(self.settings["ColorSetting"])
+        old_len = self.settings["ColorSetting"].nopts
         self.settings.remove_option("ColorSetting", "Red")
-        new_len = len(self.settings["ColorSetting"])
+        new_len = self.settings["ColorSetting"].nopts
         expected = -1
         actual = new_len - old_len
         self.assertEqual(expected, actual)

@@ -11,13 +11,13 @@ class Setting(object):
         name, and description."""
     __no_opt_err = "Tried to set current to option not in list: {0}"
     def __init__(self, name="", description="",
-                 default= -1, selection= -1,
+                 default_index= -1, current_index= -1,
                  options=None):
 
         self._name = name
         self._description = description
-        self._default_index = default
-        self._selection = selection
+        self._default_index = default_index
+        self._current_index = current_index
         if options is None:
             self._options = []
         else:
@@ -34,98 +34,12 @@ class Setting(object):
         elif Util.contains(self._options, value):
             index = self._options.index(value)
         else:
-            err = "Could not find value in self.options"
+            err = "Could not find option in self.options"
         
         if err:
             raise KeyError(err)
         else:
             return index
-                 
-
-    def __g_current_index(self):
-        """Returns the current index of the selection"""
-        if self._selection < 0:
-            if len(self._options) > 0:
-                self._selection = 0
-        return self._selection
-    def __s_current_index(self, value):
-        """Sets the current index of the selection, safely. (In range)"""
-        if len(self._options) == 0:
-            value = -1
-        else:
-            value %= len(self._options)
-        self._selection = value
-    current_index = property(__g_current_index, __s_current_index)
-
-    def __g_default_index(self):
-        """Returns the default value for the setting"""
-        return self._default_index
-    def __s_default_index(self, value):
-        """Set the default value for the setting, safely. (In range)"""
-        value %= len(self._options)
-        self._default_index = value
-    default_index = property(__g_default_index, __s_default_index)
-    
-    def __g_default_value(self):
-        """returns the default value of the setting"""
-        return self._options[self.default_index]
-    default_value = property(__g_default_value)
-        
-    def __g_description(self):
-        """Gets the string description of the setting"""
-        return self._description
-    def __s_description(self, value):
-        """Sets the description of the setting- no checking"""
-        self._description = value
-    description = property(__g_description, __s_description)
-
-    def __g_current_option(self):
-        """Gets the current selection item, if there can be one.
-                If there are no items, returns None"""
-        if len(self._options) < 1:
-            return None
-        else:
-            return self._options[self.current_index]
-    def __s_current_option(self, value):
-        """Only sets the current item if the requested new current
-            is one of the options.  If the specified item isn't,
-            raises KeyError"""
-        if value not in self._options:
-            raise KeyError(self.__no_opt_err.format(value))
-        else:
-            self.current_index = self._options.index(value)
-    current_option = property(__g_current_option, __s_current_option)
-    
-    def __g_previous_option(self):
-        """Gets the previous option"""
-        index = (self.current_index - 1) % len(self._options)
-        return self._options[index]
-    def __g_next_option(self):
-        """Gets the next option"""
-        index = (self.current_index + 1) % len(self._options)
-        return self._options[index]
-    previous_option = property(__g_previous_option)
-    next_option = property(__g_next_option)
-
-    def add_option(self, value):
-        """Adds the option to the list of options"""
-        self._options.append(value)
-        if len(self._options) == 1:
-            self.current_index = 0
-
-    def remove_option(self, value):
-        """Removes an option from the options, and
-            updates the current selection as needed."""
-        if Util.contains(self._options, value):
-            self._options.remove(value)
-        if self.current_index >= len(self._options):
-            self.current_index = len(self._options) - 1
-    
-    def __g_options(self):
-        """Return a copy of the options"""
-        return self._options[:]
-    
-    options = property(__g_options)
     
     def _resolve_name(self, name):
         """Updates (if needed) the setting's name,
@@ -140,7 +54,72 @@ class Setting(object):
                 raise AttributeError("No name specified.")
         return name
     
-    def load_using_config_parser(self, config, name=None):
+    def add_option(self, value):
+        """Adds the option to the list of options"""
+        self._options.append(value)
+        if len(self._options) == 1:
+            self.current_index = 0
+    
+    def __g_current_index(self):
+        """Returns the index of the current option"""
+        if self._current_index < 0:
+            if len(self._options) > 0:
+                self._current_index = 0
+        return self._current_index
+    def __s_current_index(self, value):
+        """Sets the index of the current option, safely. (In range)"""
+        if len(self._options) == 0:
+            value = -1
+        else:
+            value %= len(self._options)
+        self._current_index = value
+    current_index = property(__g_current_index, __s_current_index)
+    
+    def __g_current_option(self):
+        """Returns the current option of the setting"""
+        return self._options[self.current_index]
+    def __s_current_option(self, value):
+        """Sets the current option of the setting.
+            If option is not a valid option, does not make a change"""
+        if Util.contains(self._options, value):
+            self._current_index = self._options.index(value)
+        else:
+            raise KeyError(self.__no_opt_err.format(value))            
+    current_option = property(__g_current_option, __s_current_option)
+    
+    def __g_default_index(self):
+        """Returns the index of the default option for the setting"""
+        return self._default_index
+    def __s_default_index(self, value):
+        """Set the index of the default option for the setting, 
+                safely. (In range)"""
+        if len(self._options) == 0:
+            value = -1
+        value %= len(self._options)
+        self._default_index = value
+    default_index = property(__g_default_index, __s_default_index)
+    
+    def __g_default_option(self):
+        """Returns the default option of the setting"""
+        return self._options[self.default_index]
+    def __s_default_option(self, value):
+        """Sets the default option of the setting.
+            If value is not a valid option, does not make a change"""
+        if Util.contains(self._options, value):
+            self._default_index = self._options.index(value)
+        else:
+            raise KeyError(self.__no_opt_err.format(value))            
+    default_option = property(__g_default_option, __s_default_option)
+    
+    def __g_description(self):
+        """Gets the string description of the setting"""
+        return self._description
+    def __s_description(self, value):
+        """Sets the description of the setting- no checking"""
+        self._description = value
+    description = property(__g_description, __s_description)
+    
+    def load(self, config, name = None):
         """Load a setting from a config file.
             Name only needs to be passed when the Setting doesn't
             have a remembered filename.  In case the setting
@@ -150,8 +129,8 @@ class Setting(object):
         section = self._resolve_name(name)
             
         description = config.get(section, 'description')
-        default_value = config.get(section, 'default_value')
-        current_value = config.get(section, 'current_value')
+        default_value = config.get(section, 'default_option')
+        current_value = config.get(section, 'current_option')
         options_str = config.get(section, 'options')
         options_lst = list(Util.Formatting.str_to_struct(options_str, str))
         
@@ -161,12 +140,47 @@ class Setting(object):
         
         self.default_index = self._get_index(default_value)
         self.current_index = self._get_index(current_value)
+
+    def __g_name(self):
+        """The name of the setting"""
+        return self._name
+    def __s_name(self, value):
+        """Set the setting's name"""
+        self._name = value
+    name = property(__g_name, __s_name)
     
-    def load(self, config, name = None):
-        """Alias of load_using_config_parser"""
-        self.load_using_config_parser(config, name)
+    def __g_next_option(self):
+        """Gets the next option"""
+        index = (self.current_index + 1) % len(self._options)
+        return self._options[index]
+    next_option = property(__g_next_option)
+               
+    def __g_nopts(self):
+        """The number of options the setting has"""
+        return len(self._options)
+    nopts = property(__g_nopts)
+
+    def __g_options(self):
+        """A copy of the setting's options"""
+        return self._options[:]
+    options = property(__g_options)
     
-    def save_using_config_parser(self, config, name=None):
+    def __g_previous_option(self):
+        """Gets the previous option"""
+        index = (self.current_index - 1) % len(self._options)
+        return self._options[index]
+    
+    previous_option = property(__g_previous_option)
+
+    def remove_option(self, value):
+        """Removes an option from the options, and
+            updates the current selection as needed."""
+        if Util.contains(self._options, value):
+            self._options.remove(value)
+        if self.current_index >= len(self._options):
+            self.current_index = len(self._options) - 1
+    
+    def save(self, config, name = None):
         """Save the setting to a config file.
             Name only needs to be passed when the Setting doesn't
             have a remembered filename.  In case the setting
@@ -179,26 +193,50 @@ class Setting(object):
             config.add_section(section)
         
         config.set(section, 'description', self._description)
-        config.set(section, 'default_value', str(self._default_index))
-        config.set(section, 'current_value', str(self._selection))
+        config.set(section, 'default_option', str(self._default_index))
+        config.set(section, 'current_option', str(self._current_index))
         options_str = Util.Formatting.struct_to_str(self._options)
         config.set(section, 'options', options_str)
-    
-    def save(self, config, name = None):
-        """Alias of save_using_config_parser"""
-        self.save_using_config_parser(config, name)
-    
-    def __len__(self):
-        return len(self._options)
-        
+            
 class Settings(object):
     """Manages multiple settings, including loading and saving from/to
         config files.  Makes building and passing 
         around a group of settings easy."""
     __no_setting_err = 'No setting with name: "{0}"'
+    
     def __init__(self, fp=None): #pylint:disable-msg=C0103
         self.__fp = fp
         self.dict = {}
+        
+    def __getitem__(self, key):
+        if self.has_setting(key):
+            return self.dict[key]
+        else:
+            raise KeyError(self.__no_setting_err.format(key))
+        
+    def __len__(self):
+        return len(self.dict)
+    
+    def __setitem__(self, key, value):
+        self.dict[key] = value
+
+    def add_option(self, key, option):
+        """Adds an option to a setting.  The new option is added to the end
+                of the list of options.  Raises KeyError if there is no
+                such setting in self.dict"""
+        if self.has_setting(key):
+            self[key].add_option(option)
+        else:
+            raise KeyError(self.__no_setting_err.format(key))
+
+    def add_setting(self, key, setting):
+        """Adds a setting to the dict of settings.
+            If an entry with key = key already exists, it is replaced."""
+        self[key] = setting
+    
+    def has_setting(self, key):
+        """Check if the setting with name 'key' exists."""
+        return self.dict.has_key(key)
     
     def load(self, fp=None): #pylint:disable-msg=C0103
         """Load settings from a config file or file-like object.
@@ -230,11 +268,28 @@ class Settings(object):
         sections = config.sections()
         for section in sections:
             new_setting = Setting()
-            new_setting.load_using_config_parser(config, section)
+            new_setting.load(config, section)
             self.add_setting(section, new_setting)
                 
         if opened:
             fp.close()
+    
+    def remove_option(self, key, option):
+        """Removes an option from the specified setting.
+            Raises KeyError if there is no such setting 
+            with key = key."""
+        if self.has_setting(key):
+            self[key].remove_option(option)
+        else:
+            raise KeyError(self.__no_setting_err.format(key))
+    
+    def remove_setting(self, key):
+        """Removes the setting with key = key from the dict of settings.
+            Raises KeyError if there is no entry with that key."""
+        if self.has_setting(key):
+            return self.dict.pop(key)
+        else:
+            raise KeyError(self.__no_setting_err.format(key))
     
     def save(self, fp=None): # pylint: disable-msg=C0103
         """If the settings were loaded from a file and no
@@ -250,7 +305,7 @@ class Settings(object):
         config = ConfigParser.ConfigParser()
         sections = self.dict.keys()
         for section in sections:
-            self.dict[section].save_using_config_parser(config, section)
+            self.dict[section].save(config, section)
         
         opened = True
         #Try to open fp, if it's an openable file
@@ -263,57 +318,5 @@ class Settings(object):
         
         if opened:
             open_file.close()
-        
-    def __getitem__(self, key):
-        if self.dict.has_key(key):
-            return self.dict[key]
-        else:
-            raise KeyError(self.__no_setting_err.format(key))
-        
-    def __setitem__(self, key, value):
-        self.dict[key] = value
-
-    def has_setting(self, key):
-        """Check if the setting with name 'key' exists.
-            Alias for has_key"""
-        return self.has_key(key)
     
-    def has_key(self, key):
-        """Same as has_setting(key), passes through the has_key
-                to the underlying dict of (str(name), setting)."""
-        return self.dict.has_key(key) 
-
-    def add_setting(self, key, setting):
-        """Adds a setting to the dict of settings.
-            If an entry with key = key already exists, it is replaced."""
-        self[key] = setting
-
-    def remove_setting(self, key):
-        """Removes the setting with key = key from the dict of settings.
-            Raises KeyError if there is no entry with that key."""
-        if self.has_key(key):
-            return self.dict.pop(key)
-        else:
-            raise KeyError(self.__no_setting_err.format(key))
-
-    def add_option(self, key, option):
-        """Adds an option to a setting.  The new option is added to the end
-                of the list of options.  Raises KeyError if there is no
-                such setting in self.dict"""
-        if self.has_key(key):
-            self[key].add_option(option)
-        else:
-            raise KeyError(self.__no_setting_err.format(key))
-
-    def remove_option(self, key, option):
-        """Removes an option from the specified setting.
-            Raises KeyError if there is no such setting 
-            with key = key."""
-        if self.has_key(key):
-            self[key].remove_option(option)
-        else:
-            raise KeyError(self.__no_setting_err.format(key))
-        
-    def __len__(self):
-        return len(self.dict)
     

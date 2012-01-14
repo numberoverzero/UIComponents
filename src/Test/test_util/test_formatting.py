@@ -50,11 +50,12 @@ class FormattingTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             actual = Formatting.str_to_struct(s, int, True)
         
-        #Test str parsing with parens
+        #Test str parsing with braces
         s = "{1,2,3,4,5}"
         expected = ('1', '2', '3', '4', '5')
+        gen_actual = Formatting.str_to_struct(s, str, True)
+        actual = tuple(gen_actual)
         actual = Formatting.str_to_struct(s, str, True)
-        self.assertEqual(expected, actual)
         
         #Test str parsing without parens
         s = "1,2,3,4,5"
