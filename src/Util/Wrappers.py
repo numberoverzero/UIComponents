@@ -7,19 +7,6 @@ ignore variables (so that they aren't loaded into the namespace.
 
 import functools
 
-def on_change(var_name, flag_on_change):
-    """DECORATOR: If self.var_name != new_value, self.flagOnChange = True"""
-    def fn_wrapper(func):
-        """Wraps the function that will have its var_name checked for change"""
-        @functools.wraps(func)
-        def wrapped_call(self, new_value):  # pylint: disable-msg=C0111
-            old_value = getattr(self, var_name)
-            func(self, new_value)
-            if new_value != old_value:
-                setattr(self, flag_on_change, True)
-        return wrapped_call
-    return fn_wrapper
-
 ARG_MISSING_COUNT_ERRMSG = "{f}() takes at least {n} arguments ({x} given)"
 ARG_EXTRA_COUNT_ERRMSG = "{f}() takes at most {n} arguments ({x} given)"
 ARG_EXTRA_DEF_ERRMSG = "{f}() got mutliple values for keyword argument '{n}'"
@@ -145,3 +132,15 @@ def inject_args(ignores=None):
         return wrapped_call
     return fn_wrapper
 
+def on_change(var_name, flag_on_change):
+    """DECORATOR: If self.var_name != new_value, self.flagOnChange = True"""
+    def fn_wrapper(func):
+        """Wraps the function that will have its var_name checked for change"""
+        @functools.wraps(func)
+        def wrapped_call(self, new_value):  # pylint: disable-msg=C0111
+            old_value = getattr(self, var_name)
+            func(self, new_value)
+            if new_value != old_value:
+                setattr(self, flag_on_change, True)
+        return wrapped_call
+    return fn_wrapper

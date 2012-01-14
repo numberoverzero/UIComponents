@@ -14,6 +14,11 @@ class FullBufferedRead(object):
         self._filename = filename
         self.reload_file()
     
+    def clear(self):
+        """Clear the file from memory"""
+        self._lines = None
+        self._is_loaded = False
+        
     def __getitem__(self, key):
         """Returns the line at the specified index"""
         if not self._is_loaded:
@@ -41,12 +46,7 @@ class FullBufferedRead(object):
                 self._lines.append(line)
         
         self._is_loaded = True
-    
-    def clear(self):
-        """Clear the file from memory"""
-        self._lines = None
-        self._is_loaded = False
-    
+        
     def reload_file(self):
         """Reload the file into memory."""
         err_msg = None

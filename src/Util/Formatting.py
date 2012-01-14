@@ -16,11 +16,6 @@ def paren_type_func(string):
     
     return type_func
 
-def surrounded_by_parens(string):
-    """Determines if the string is surrounded in 
-            (matching) parens of any sort"""
-    return (string[0] + string[-1]) in ['()', '{}', '[]']
-
 def str_to_struct(string, dtype, has_parens=True):
     """Convert tuple-like strings to real tuples.
     eg '(1,2,3,4)' -> (1, 2, 3, 4)
@@ -54,3 +49,8 @@ def struct_to_str(struct):
     inner = ",".join(struct)
     
     return parens[0]+inner+parens[1]
+
+def surrounded_by_parens(string):
+    """Determines if the string is surrounded in 
+            (matching) parens of any sort"""
+    return (string[0] + string[-1]) in ['()', '{}', '[]']

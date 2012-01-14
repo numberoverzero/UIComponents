@@ -5,9 +5,31 @@ the engine has been imported.  This provides a single access
 point to the id pool, so there are not id collisions.
 """
 
-
 import Util
 
+class HasID(object):
+    """An object with an id from an id_manager"""
+    def __init__(self, id_manager_=None, custom_id=None):
+        if custom_id is not None:
+            self._id = custom_id
+            self.__id_manager = None
+        else:
+            if not hasattr(id_manager_, "next_id"):
+                id_manager_ = GLOBAL_ID_MANAGER
+            self.__id_manager = id_manager_
+            self._id = self.__id_manager.next_id(self)
+    
+    def __eq__(self, other):
+        try:
+            return self.ID == other.ID
+        except AttributeError:
+            return False
+    
+    def __get_id(self):
+        """Returns the object's id"""
+        return self._id
+    ID = property(__get_id)
+    
 class id_manager(object): # pylint: disable-msg=C0103
     """Used to track and hand out ids.  Currently only supports
             getting the next available id.  Uses seperate ids for
@@ -29,24 +51,3 @@ class id_manager(object): # pylint: disable-msg=C0103
         self.__nid = {}
     
 GLOBAL_ID_MANAGER = id_manager()
-
-class HasID(object):
-    """An object with an id from an id_manager"""
-    def __init__(self, id_manager_=None, custom_id=None):
-        if custom_id is not None:
-            self._id = custom_id
-            self.__id_manager = None
-        else:
-            if not hasattr(id_manager_, "next_id"):
-                id_manager_ = GLOBAL_ID_MANAGER
-            self.__id_manager = id_manager_
-            self._id = self.__id_manager.next_id(self)
-    def __get_id(self):
-        """Returns the object's id"""
-        return self._id
-    def __eq__(self, other):
-        try:
-            return self.ID == other.ID
-        except AttributeError:
-            return False
-    ID = property(__get_id, None, None, "Unique ID to reference the object")

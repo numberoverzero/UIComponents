@@ -23,43 +23,12 @@ class Setting(object):
         else:
             self._options = list(options)
     
-    def _get_index(self, value):
-        """Returns the index of the value in options. 
-            Raises key error when value not in options."""
-        err = None
-        index = -1
-        
-        if not self._options:
-            err = "No values loaded in options."
-        elif Util.contains(self._options, value):
-            index = self._options.index(value)
-        else:
-            err = "Could not find option in self.options"
-        
-        if err:
-            raise KeyError(err)
-        else:
-            return index
-    
-    def _resolve_name(self, name):
-        """Updates (if needed) the setting's name,
-            and returns the proper name to use.
-            raises AttributeError if neither name is good"""
-        if name:
-            self._name = name
-        else:
-            if self._name:
-                name = self._name
-            else:
-                raise AttributeError("No name specified.")
-        return name
-    
     def add_option(self, value):
         """Adds the option to the list of options"""
         self._options.append(value)
         if len(self._options) == 1:
             self.current_index = 0
-    
+            
     def __g_current_index(self):
         """Returns the index of the current option"""
         if self._current_index < 0:
@@ -119,6 +88,24 @@ class Setting(object):
         self._description = value
     description = property(__g_description, __s_description)
     
+    def _get_index(self, value):
+        """Returns the index of the value in options. 
+            Raises key error when value not in options."""
+        err = None
+        index = -1
+        
+        if not self._options:
+            err = "No values loaded in options."
+        elif Util.contains(self._options, value):
+            index = self._options.index(value)
+        else:
+            err = "Could not find option in self.options"
+        
+        if err:
+            raise KeyError(err)
+        else:
+            return index
+    
     def load(self, config, name = None):
         """Load a setting from a config file.
             Name only needs to be passed when the Setting doesn't
@@ -140,7 +127,7 @@ class Setting(object):
         
         self.default_index = self._get_index(default_value)
         self.current_index = self._get_index(current_value)
-
+    
     def __g_name(self):
         """The name of the setting"""
         return self._name
@@ -169,8 +156,20 @@ class Setting(object):
         """Gets the previous option"""
         index = (self.current_index - 1) % len(self._options)
         return self._options[index]
-    
     previous_option = property(__g_previous_option)
+    
+    def _resolve_name(self, name):
+        """Updates (if needed) the setting's name,
+            and returns the proper name to use.
+            raises AttributeError if neither name is good"""
+        if name:
+            self._name = name
+        else:
+            if self._name:
+                name = self._name
+            else:
+                raise AttributeError("No name specified.")
+        return name
 
     def remove_option(self, value):
         """Removes an option from the options, and
@@ -207,18 +206,6 @@ class Settings(object):
     def __init__(self, fp=None): #pylint:disable-msg=C0103
         self.__fp = fp
         self.dict = {}
-        
-    def __getitem__(self, key):
-        if self.has_setting(key):
-            return self.dict[key]
-        else:
-            raise KeyError(self.__no_setting_err.format(key))
-        
-    def __len__(self):
-        return len(self.dict)
-    
-    def __setitem__(self, key, value):
-        self.dict[key] = value
 
     def add_option(self, key, option):
         """Adds an option to a setting.  The new option is added to the end
@@ -234,9 +221,18 @@ class Settings(object):
             If an entry with key = key already exists, it is replaced."""
         self[key] = setting
     
+    def __getitem__(self, key):
+        if self.has_setting(key):
+            return self.dict[key]
+        else:
+            raise KeyError(self.__no_setting_err.format(key))
+        
     def has_setting(self, key):
         """Check if the setting with name 'key' exists."""
         return self.dict.has_key(key)
+    
+    def __len__(self):
+        return len(self.dict)
     
     def load(self, fp=None): #pylint:disable-msg=C0103
         """Load settings from a config file or file-like object.
@@ -319,4 +315,6 @@ class Settings(object):
         if opened:
             open_file.close()
     
+    def __setitem__(self, key, value):
+        self.dict[key] = value
     
