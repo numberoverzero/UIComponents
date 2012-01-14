@@ -42,23 +42,21 @@ class TypeCheckedList(list):
         else:
             self.append(values)           
     
-class TypedDoubleBuffer(object):
-    """A double buffered object with specific type.
-            Can be cleared and flipped a few ways, read the docstring
-            for details on what each mode does."""
+class DoubleBuffer(object):
+    """A double buffered object.
+        Can be cleared and flipped a few ways, read the docstring
+        for details on what each mode does."""
         
-    def __init__(self, dtype, suppress_type_errors=False):
-        self.__bbuffer = TypeCheckedList(dtype, values=None,
-                            suppress_type_errors=suppress_type_errors)
-        self.__fbuffer = TypeCheckedList(dtype, values=None,
-                            suppress_type_errors=suppress_type_errors)
+    def __init__(self):
+        self.__bbuffer = []
+        self.__fbuffer = []
             
     def clear(self, front=True, back=False):
         """Clears the front or back buffer, or both."""
         if front:
-            self.__fbuffer.clear()
+            self.__fbuffer = []
         if back:
-            self.__bbuffer.clear()
+            self.__bbuffer = []
             
     def flip(self, mode='exact'):
         """Mode is one of:
@@ -129,20 +127,20 @@ class TypedDoubleBuffer(object):
         
         elif mode == 'transfer':
             self.__fbuffer.extend(self.__bbuffer)
-            self.__bbuffer.clear()
+            self.__bbuffer = []
         
         elif mode == 'discard':
             temp = self.__fbuffer
             self.__fbuffer = self.__bbuffer
             self.__bbuffer = temp
-            self.__bbuffer.clear()
+            self.__bbuffer = []
         
         elif mode == 'transfer_front':
             temp = self.__fbuffer
             self.__fbuffer = self.__bbuffer
             self.__bbuffer = temp
             self.__fbuffer.extend(self.__bbuffer)
-            self.__bbuffer.clear()
+            self.__bbuffer = []
         
         else:
             raise ValueError("Mode {m} not recognized.".format(m=mode))
@@ -171,7 +169,7 @@ class TypedDoubleBuffer(object):
         """For directly appending to the back buffer"""
         self.__bbuffer.append(value)
 
-class TypedLockableList(TypeCheckedList):
+class LockableList(list):
     """Does not protect many of the possible assignments, 
             such as LockableList[i] =k 
             Protects basic actions"""
@@ -180,16 +178,17 @@ class TypedLockableList(TypeCheckedList):
     _needs_update = False
     _changed_since_last_call = False
     
-    def __init__(self, dtype, values=None, suppress_type_errors=False):
+    def __init__(self, values=None):
         self._to_add = []
         self._to_remove = []
-        super(TypedLockableList, self).__init__(dtype, values=values,
-                            suppress_type_errors=suppress_type_errors)
+        if values is None:
+            values = []
+        super(LockableList, self).__init__(values)
         
     def append(self, value):
         self._changed_since_last_call = True
         if not self._locked:
-            super(TypedLockableList, self).append(value)
+            super(LockableList, self).append(value)
         else:
             self._to_add.append(value)
             self._needs_update = True
@@ -211,7 +210,7 @@ class TypedLockableList(TypeCheckedList):
     def extend(self, values):
         self._changed_since_last_call = True
         if not self._locked:
-            super(TypedLockableList, self).extend(values)
+            super(LockableList, self).extend(values)
         else:
             self._to_add.extend(values)
             self._needs_update = True
@@ -232,7 +231,7 @@ class TypedLockableList(TypeCheckedList):
     def remove(self, value):
         self._changed_since_last_call = True
         if not self._locked:
-            super(TypedLockableList, self).remove(value)
+            super(LockableList, self).remove(value)
         else:
             self._to_remove.append(value)
             self._needs_update = True
@@ -240,7 +239,7 @@ class TypedLockableList(TypeCheckedList):
     def sort(self, cmp_=None, key_=None, reverse_=False):
         self._apply_pending_changes()
         self._changed_since_last_call = True
-        super(TypedLockableList, self).sort(cmp_,
+        super(LockableList, self).sort(cmp_,
                                             key=key_,
                                             reverse=reverse_)
 
@@ -250,18 +249,18 @@ class TypedLockableList(TypeCheckedList):
             return
 
         for value in self._to_add:
-            super(TypedLockableList, self).append(value)
+            super(LockableList, self).append(value)
         self._to_add = []
 
         for value in self._to_remove:
-            super(TypedLockableList, self).remove(value)
+            super(LockableList, self).remove(value)
         self._to_remove = []
 
         self._needs_update = False
     
     def __iter__(self):
         self._apply_pending_changes()
-        return super(TypedLockableList, self).__iter__()
+        return super(LockableList, self).__iter__()
 
     def __g_has_pending_updates(self):
         """Needs update when there are pending changes."""
