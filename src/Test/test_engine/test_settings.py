@@ -218,8 +218,8 @@ class SettingTest(unittest.TestCase):
         options_lst = Util.Formatting.str_to_struct(data['options'], str)
         
         a_setting = Settings.Setting(name=name, description=data['description'],
-                                     default_index=data['default_option'],
-                                     current_index=data['current_option'],
+                                     default_index=1,
+                                     current_index=2,
                                      options=options_lst)
         
         a_setting.save(config, name)
@@ -262,7 +262,7 @@ class SettingsTest(unittest.TestCase):
             write_file.write(line+"\n")
             write_file.close()
         
-        sections = ['Color','Resolution','Food']
+        sections = ['Color', 'Resolution', 'Food']
         data_color = {
                          'description': 'Pick a color',
                          'default_option': 'Blue',
@@ -317,7 +317,64 @@ class SettingsTest(unittest.TestCase):
             pass
                 
     def test_save(self):
-        self.skipTest("Not Yet Implemented")
+        filename = "test_load_settings.ini"
+        
+        sections = ['Color', 'Resolution', 'Food']
+        data_color = {
+                         'description': 'Pick a color',
+                         'default_option': 'Blue',
+                         'current_option': 'Green',
+                         'options': "[Red,Blue,Green,Black]",
+                         }
+        data_res = {
+                         'description': 'Screen resolution',
+                         'default_option': '600x400',
+                         'current_option': '1920x1080',
+                         'options': "[600x400,1024x768,1920x1080,1920x1200]",
+                         }
+        data_food = {
+                         'description': 'Favorite food',
+                         'default_option': 'Broccoli',
+                         'current_option': 'Ice Cream',
+                         'options': "[Pizza, Steak, Ice Cream, Broccoli]",
+                         }
+        datas = [data_color, data_res, data_food]
+        
+        nopts = len(sections)
+        
+        settings = Settings.Settings(filename)
+        for i in xrange(nopts):
+            setting_name = sections[i]
+            data = datas[i]
+            opts = Util.Formatting.str_to_struct(data['options'], str)
+            di = opts.index(data['default_option'])
+            ci = opts.index(data['current_option'])
+            setting = Settings.Setting(name=setting_name, description=data['description'],
+                                       default_index=di, current_index=ci, options=opts)
+            settings.add_setting(setting_name, setting)
+        
+        settings.save()
+        
+        #Relying on load working here, but we test that above, so it's cool?
+        same_settings = Settings.Settings(filename)
+        same_settings.load()
+        
+        opts1 = settings.settings
+        opts2 = same_settings.settings
+        for i in xrange(nopts):
+            opt1 = opts1[i]
+            opt2 = opts2[i]
+            self.assertEqual(opt1.description, opt2.description)
+            self.assertEqual(opt1.default_option, opt2.default_option)
+            self.assertEqual(opt1.current_option, opt2.current_option)
+            self.assertEqual(opt1.name, opt2.name)
+            self.assertEqual(opt1.options, opt2.options)
+        
+        import os
+        try:
+            os.remove(filename)
+        except WindowsError:
+            pass
         
     def test_add_setting(self):
         

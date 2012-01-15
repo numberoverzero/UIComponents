@@ -99,7 +99,7 @@ class Setting(object):
         elif Util.contains(self._options, value):
             index = self._options.index(value)
         else:
-            err = "Could not find option in self.options"
+            err = "Could not find option {} in self.options".format(value)
         
         if err:
             raise KeyError(err)
@@ -192,8 +192,8 @@ class Setting(object):
             config.add_section(section)
         
         config.set(section, 'description', self._description)
-        config.set(section, 'default_option', str(self._default_index))
-        config.set(section, 'current_option', str(self._current_index))
+        config.set(section, 'default_option', str(self.default_option))
+        config.set(section, 'current_option', str(self.current_option))
         options_str = Util.Formatting.struct_to_str(self._options)
         config.set(section, 'options', options_str)
             
@@ -309,6 +309,8 @@ class Settings(object):
             open_file = open(fp, 'w')
         except IOError:
             opened = False
+        else:
+            fp = open_file  #pylint:disable-msg=C0103
         
         config.write(fp)
         
@@ -317,4 +319,9 @@ class Settings(object):
     
     def __setitem__(self, key, value):
         self.dict[key] = value
+        
+    def __g_settings(self):
+        """Returns a list of the contained settings."""
+        return self.dict.values()
+    settings = property(__g_settings)
     
