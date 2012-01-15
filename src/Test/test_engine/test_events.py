@@ -7,39 +7,28 @@ class EventArgsTest(unittest.TestCase):
     def test_arg_custom_ids(self):
         Event1 = Events.EventArgs(custom_id= -100)
         Event2 = Events.EventArgs(custom_id= -100)
-        self.assertEqual(Event1.ID, Event2.ID)
+        self.assertEqual(Event1.eid, Event2.eid)
         
         Event1 = Events.EventArgs(custom_id= -100)
         Event2 = Events.EventArgs(custom_id=2500)
-        self.assertNotEqual(Event1.ID, Event2.ID)
+        self.assertNotEqual(Event1.eid, Event2.eid)
     
     def test_arg_global_ids(self):
         Event1 = Events.EventArgs()
         Event2 = Events.EventArgs()
-        self.assertNotEqual(Event1.ID, Event2.ID)
+        self.assertNotEqual(Event1.eid, Event2.eid)
     
     def test_arg_global_reset_bad(self):
         #Reset the global so we have a clean slate
-        Engine.GLOBAL_ID_MANAGER.reset()
+        Engine.ID.GLOBAL_ID_MANAGER.reset()
         
         Event1 = Events.EventArgs()
         
         #THIS SHOULD BE OBVIOUSLY BAD
-        Engine.GLOBAL_ID_MANAGER.reset()
+        Engine.ID.GLOBAL_ID_MANAGER.reset()
         
         Event2 = Events.EventArgs()
-        self.assertEqual(Event1.ID, Event2.ID)
-
-    def test_custom_managers(self):
-        id_manager1 = Engine.id_manager()
-        id_manager2 = Engine.id_manager()
-
-        Event1 = Events.EventArgs(id_manager=id_manager1)
-        Event2 = Events.EventArgs(id_manager=id_manager2)
-        
-        #In the future, perhaps different managers will append different prefixes,
-            #so as to make these unequal.
-        self.assertEqual(Event1.ID, Event2.ID)
+        self.assertEqual(Event1.eid, Event2.eid)
         
 class EventHandlerTest(unittest.TestCase):
     def test_constructor(self):
@@ -48,17 +37,10 @@ class EventHandlerTest(unittest.TestCase):
         
         self.assertNotEqual(a, b)
         
-        #own id_manager
-        id_manager = Engine.id_manager()
-        c = Events.EventHandler(id_manager=id_manager)
-        d = Events.EventHandler(id_manager=id_manager)
-        
-        self.assertNotEqual(c, d)
-        
         #Force equal
-        
-        c_ID = c.ID
-        c_copy = Events.EventHandler(custom_id=c_ID)
+        c_id = 1234
+        c = Events.EventHandler(custom_id = c_id)        
+        c_copy = Events.EventHandler(custom_id=c_id)
         
         self.assertEqual(c, c_copy)
     
@@ -142,7 +124,7 @@ class EventHandlerTest(unittest.TestCase):
         some_event_args = functools.partial(Events.EventArgs)
         def listener(sender, eventargs):
             sender.triggered = True
-            self.assertTrue(eventargs.ID == -100)
+            self.assertTrue(eventargs.eid.Value == -100)
         
         a = Events.EventHandler()
         a += listener
@@ -161,7 +143,7 @@ class EventHandlerTest(unittest.TestCase):
         some_event_args = functools.partial(Events.EventArgs)
         def listener(sender, eventargs):
             self.assertTrue(sender is None)
-            self.assertTrue(eventargs.ID == -100)
+            self.assertEqual(eventargs.eid.Value, -100)
         listener_2 = None
         
         a = Events.EventHandler()

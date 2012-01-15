@@ -9,16 +9,20 @@ that are useful for general coding
 import cProfile
 import pstats
 
-import Wrappers
+import IO
 import Math
 import Formatting
 import Structs
+import Wrappers
 
-__all__ = ['Math', 'Formatting', 'Structs', 'Wrappers']
+#__all__ = ['Math', 'Formatting', 'Structs', 'Wrappers']
 
+def class_name(obj):
+    """Returns the class name of an object."""
+    return ".".join(str(obj.__class__).split("'")[1].split(".")[1:])
 
 def contains(list_, item):
-    """Tets that the list contains at least one occurance of item."""
+    """Tests that the list contains at least one occurance of item."""
     return list_.count(item) > 0
 
 def ensure_type(iterable, dtype):

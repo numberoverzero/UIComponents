@@ -2,36 +2,29 @@
 Describes EventArgs and EventHandlers
 """
 
-import Engine
+import ID
 import Util
 
-class EventArgs(Engine.HasID):
-    """Base class for arguments of an event.
-        Default id_manager is Engine.Global_Id_Manager
-        Using custom ids can break equality checks and the like."""
-    def __init__(self, id_manager=None, custom_id=None):
-        Engine.HasID.__init__(self, id_manager, custom_id)
+class EventArgs(object):
+    """Base class for arguments of an event."""
+    def __init__(self, custom_id = None):
+        self.eid = ID.get_id(self, custom_id = custom_id)
     
     def __eq__(self, other):
         try:
-            return Engine.HasID.__eq__(self, other)
+            return self.eid == other.eid
         except AttributeError:
             return False
     
-    def _str(self):
-        """Inheritable and overrideable __str__"""
-        return "EventArgs(ID={}, id_manager={})".format(
-            str(self.ID), str(self.__id_manager))
-        
     def __str__(self):
-        return self._str()
+        return "EventArgs(ID={})".format(self.eid)
+        
+NONEARGS = EventArgs(custom_id = -1)
 
-NONEARGS = EventArgs(custom_id= -1)
-
-class EventHandler(Engine.HasID):
+class EventHandler(object):
     """Takes events and dispatches them to its listeners."""
-    def __init__(self, id_manager=None, custom_id=None):
-        Engine.HasID.__init__(self, id_manager, custom_id)
+    def __init__(self, custom_id=None):
+        self.id = ID.get_id(self, custom_id = custom_id) #pylint:disable-msg=C0103,C0301
         self._listeners = []
     
     def add_listener(self, listener_or_iter):
@@ -51,8 +44,7 @@ class EventHandler(Engine.HasID):
     
     def __eq__(self, other):
         try:
-            id_eq = Engine.HasID.__eq__(self, other)
-            #This may be a slow comparison as it requires two copies
+            id_eq = self.id == other.id
             list_eq = self.Listeners == other.Listeners
             return id_eq and list_eq
         except AttributeError:

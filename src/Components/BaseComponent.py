@@ -3,9 +3,9 @@ Base component, handles layering management, position, selection, etc.
 """
 
 import Util
-import Engine
+import Engine.ID
 
-class BaseComponent(Engine.HasID):
+class BaseComponent(object):
     """
     Base Component from which all components (combo/check boxes, list selection boxes)
     are derived.
@@ -37,8 +37,7 @@ class BaseComponent(Engine.HasID):
     def __init__(self, Parent=None, x=0, y=0, width=0, height=0, #pylint:disable-msg=C0103,W0613,C0301
                  anchor_x="left", anchor_y="top", coords="local", #pylint:disable-msg=C0103,W0613,C0301
                  Name="BaseComponent", Tooltip="Empty Tooltip", #pylint:disable-msg=C0103,W0613,C0301
-                 Visible=True, Enabled=True, id_manager=None, #pylint:disable-msg=C0103,W0613,C0301
-                 custom_id=None): #pylint:disable-msg=C0103,W0613,C0301
+                 Visible=True, Enabled=True, custom_id=None): #pylint:disable-msg=C0103,W0613,C0301
         """
         Pass a screen as parent if this is DIRECTLY attached to the screen
         
@@ -48,7 +47,7 @@ class BaseComponent(Engine.HasID):
             Coordinates are stored in local, and transformed to global.
         """
         
-        Engine.HasID.__init__(self, id_manager, custom_id)
+        self.id = Engine.ID.get_id(self, custom_id = custom_id)
         
         self._tab_index = 0
         if Visible:
