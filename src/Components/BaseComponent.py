@@ -47,7 +47,7 @@ class BaseComponent(object):
             Coordinates are stored in local, and transformed to global.
         """
         
-        self.id = Engine.ID.get_id(self, custom_id = custom_id)
+        self.cid = Engine.ID.get_id(self, custom_id = custom_id)
         
         self._tab_index = 0
         if Visible:
