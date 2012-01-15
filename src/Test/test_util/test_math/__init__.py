@@ -96,6 +96,30 @@ class MathTest(unittest.TestCase):
         actual = Math.clamp(v, vmin, vmax)
         self.assertAlmostEqual(expected, actual, 3)
     
+    def test_gcd(self):
+        def check(a, b, r):
+            self.assertEqual(Math.gcd(a, b), r)
+        #Test 1, 0
+        check(1, 0, 1)
+        with self.assertRaises(TypeError):
+            check(0, 0, 1)
+        check(1, 100, 1)
+        check(1, -100, 1)
+        
+        #Test same number
+        check(100, 100, 100)
+        check(-10, -10, 10)
+        
+        #Test primes
+        check(7, 48, 1)
+        check(11, 7, 1)
+        check(7, 49, 7)
+        check(13, -26, 13)
+        
+        #Test regular
+        check(250, 100, 50)
+        check(64, 1024, 64)
+    
     def test_rotate(self):
         ox = oy = py = 0
         px = 1

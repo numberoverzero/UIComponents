@@ -39,6 +39,41 @@ def fwrap(val, min_, max_):
     nmin = -min_
     return ((val + nmin) % (max_ + nmin)) - nmin
 
+def _gcd(a, b): #pylint:disable-msg=C0103
+    """Returns [d,s,t] s.t. gcd(a,b) = d = a*s + b*t
+        Credit Prof. Adam Hausknecht, ahausknecht@umassd.edu"""
+
+    if a == 0 and b == 0:
+        return None
+    elif a == 0: 
+        return [b, 0, 1]
+    elif b == 0: 
+        return [a, 1, 0]
+    elif a < 0:
+        results = _gcd(-a, b)
+        results[1] = -results[1]
+        return results
+    elif b < 0:
+        results = _gcd(a, -b)
+        results[2] = -results[2]
+        return results
+    elif b < a:
+        r = a % b #pylint:disable-msg=C0103
+        q = a / b #pylint:disable-msg=C0103
+        results = _gcd(r, b)
+        results[2] -= q * results[1]
+        return results
+    else:
+        r = b % a #pylint:disable-msg=C0103
+        q = b / a #pylint:disable-msg=C0103
+        results = _gcd(a, r)
+        results[1] -= q * results[2]
+        return results
+
+def gcd(a, b): #pylint:disable-msg=C0103
+    """Returns the gcd of a and b"""
+    return _gcd(a, b)[0]
+
 def is_zero(val, precision=1E-8):
     """Helper function for ignoring rounding errors"""
     return abs(val) <= precision

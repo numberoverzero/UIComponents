@@ -58,7 +58,7 @@ def inject_args(ignores=None):
             default_passing_kwargs[kwarg_names[i]] = func.func_defaults[i]
         
         @functools.wraps(func)
-        def wrapped_call(*args, **kwargs): # pylint: disable-msg=C0111
+        def wrapped_call(*args, **kwargs): #pylint:disable-msg=C0111
             #Pull self off of args
             self_ = args[0]
             args = list(args[1:])

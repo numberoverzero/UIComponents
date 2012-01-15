@@ -1,40 +1,42 @@
 """
 Input/Output utility classes and functions
 """
-
-import time
+import os
+import os.path
 import Readers
 import Writers
 
-FMT_DATE = "%Y_%d_%m"
-FMT_DATETIME = "%Y_%d_%m__%H_%M_%S"
-FMT_TIME = "%H_%M_%S"
+def bufcount(filename):
+    """Counts the number of lines in a file quickly.
+    
+        Code from (with minor change):
+        http://stackoverflow.com/
+        questions/845058/how-to-get-line-count-cheaply-in-python
+    """
+    
+    with open(filename) as fname:                  
+        lines = 0
+        buf_size = 1024 * 1024
+        read_f = fname.read # loop optimization
+    
+        buf = read_f(buf_size)
+        while buf:
+            lines += buf.count('\n')
+            buf = read_f(buf_size)
+    return lines
 
-def _file_fmt(fmt, value):
-    """Applies current time if no time provided,
-        uses fmt as formatting string"""
-    if not value: 
-        value = time.localtime()
-    return time.strftime(fmt, value)
+def ensdir(path):
+    """Ensures that the folder exists.  
+        If the folder does not, trys to create it.
+        Raises IOError if the folder can't be created."""
+    if not os.path.exists(path):
+        os.mkdir(path)
 
-def file_fmt_date(date_ = None):
-    """Returns the date in MM_DD_YYYY format.
-        Uses localtime if called without args.
-        Make sure the passed arg has a strformat method."""
-    fmt = FMT_DATE
-    return _file_fmt(fmt, date_)
-
-def file_fmt_datetime(datetime_ = None):
-    """Returns the date and time in MM_DD_YYYY__HH_MM_SS format.
-        Uses localtime if called without args.
-        Make sure the passed arg has a strformat method."""
-    fmt = FMT_DATETIME
-    return _file_fmt(fmt, datetime_)
-
-def file_fmt_time(time_ = None):
-    """Returns the time in HH_MM_SS format.
-        Uses localtime if called without args.
-        Make sure the passed arg has a strformat method."""
-    fmt = FMT_TIME
-    return _file_fmt(fmt, time_)
-
+def ensfile(filename):
+    """Ensures that the file exists.
+        If the file does not, trys to create it.
+        Raises IOError if the file can't be created."""
+    path = os.path.split(filename)[0]
+    ensdir(path)
+    if not os.path.exists(filename):
+        open(filename, 'w').close()
