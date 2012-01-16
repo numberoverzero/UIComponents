@@ -12,20 +12,20 @@ class OnChangeTest(unittest.TestCase):
             @Wrappers.on_change('x', 'flag')
             def _s_x(self, value):
                 self._x = value
-            x = property(_g_x, _s_x)
+            X = property(_g_x, _s_x)
             
         self.tst_cls = tst_class
     
     def test_no_change(self):
         bob = self.tst_cls()
         self.assertFalse(bob.flag)
-        bob.x = 0
+        bob.X = 0
         self.assertFalse(bob.flag)
     
     def test_change(self):
         bob = self.tst_cls()
         self.assertFalse(bob.flag)
-        bob.x = 1
+        bob.X = 1
         self.assertTrue(bob.flag)
         
     def test_flag_auto_clear(self):
@@ -35,9 +35,9 @@ class OnChangeTest(unittest.TestCase):
             #given the same value.
         bob = self.tst_cls()
         self.assertFalse(bob.flag)
-        bob.x = 1
+        bob.X = 1
         self.assertTrue(bob.flag)
-        bob.x = 1
+        bob.X = 1
         self.assertTrue(bob.flag)
 
 class InjectArgsTest(unittest.TestCase):
@@ -52,76 +52,76 @@ class InjectArgsTest(unittest.TestCase):
         obj = self.obj()
         @Wrappers.inject_args(ignores=None)
         def fn_1(self):
-            self.x = 'default'
+            self.X = 'default'
         self.obj.fn_1 = fn_1
 
             #Test that x is found
         obj.fn_1()
-        actual = obj.x
+        actual = obj.X
         expected = "default"
         self.assertEqual(actual, expected)    
         
             #Test that a passed x value is not used
         with self.assertRaises(TypeError):
             obj.fn_1(x='not_default')
-            actual = obj.x
+            actual = obj.X
             expected = "default"
             self.assertEqual(actual, expected)
         
             #Test that a passed y is not injected
         with self.assertRaises(TypeError):
             obj.fn_1(y='this is bad')
-            print obj.y
+            print obj.Y
         
         #2) Ignores x
         obj = self.obj()
         @Wrappers.inject_args(ignores=['x'])
         def fn_2(self):
-            self.x = 'default'
+            self.X = 'default'
         self.obj.fn_2 = fn_2
 
             #Test that x is found
         obj.fn_2()
-        actual = obj.x
+        actual = obj.X
         expected = "default"
         self.assertEqual(actual, expected)    
         
             #Test that a passed x value is not used
         with self.assertRaises(TypeError):
             obj.fn_2(x='not_default')
-            actual = obj.x
+            actual = obj.X
             expected = "default"
             self.assertEqual(actual, expected)
             
             #Test that a passed y is not injected
         with self.assertRaises(TypeError):
             obj.fn_2(y='this is bad')
-            print obj.y
+            print obj.Y
             
         #3) Ignores y
         obj = self.obj()
         @Wrappers.inject_args(ignores=['y'])
         def fn_3(self):
-            self.x = 'default'
+            self.X = 'default'
         self.obj.fn_3 = fn_3
         
             #Test that x is found
         obj.fn_3()
-        actual = obj.x
+        actual = obj.X
         expected = "default"
         self.assertEqual(actual, expected)    
         
             #Test that a passed x value is not used
         with self.assertRaises(TypeError):
             obj.fn_3(x='not_default')
-            actual = obj.x
+            actual = obj.X
             expected = "default"
             self.assertEqual(actual, expected)
                 
             #Test that a passed y is not injected
         with self.assertRaises(TypeError):
             obj.fn_3(y='this is bad')
-            print obj.y
+            print obj.Y
             
         #Delete the functions
         del(self.obj.fn_1)
@@ -133,12 +133,12 @@ class InjectArgsTest(unittest.TestCase):
         obj = self.obj()
         @Wrappers.inject_args(ignores=None)
         def fn(self, x, y, n):
-            self.x = 'default'
+            self.X = 'default'
         self.obj.fn = fn
 
             #Test that x takes fn body value, y and n get picked up
         obj.fn(x='not default', y= -1, n=3)
-        actual = [obj.x, obj.y, obj.n]
+        actual = [obj.X, obj.Y, obj.n]
         expected = ["default", -1, 3]
         self.assertListEqual(actual, expected)
         
@@ -158,17 +158,17 @@ class InjectArgsTest(unittest.TestCase):
         obj = self.obj()
         @Wrappers.inject_args(ignores=['y'])
         def fn(self, x, y, n):
-            self.x = 'default'
+            self.X = 'default'
         self.obj.fn = fn
 
             #Test that x takes fn body value, n gets picked up (NOT y)
         obj.fn(x='not_default', y= -1, n=3)
-        actual = [obj.x, obj.n]
+        actual = [obj.X, obj.n]
         expected = ["default", 3]
         self.assertListEqual(actual, expected)
             #Test that the y value wasn't injected in
         with self.assertRaises(AttributeError):
-            obj.y
+            obj.Y
         
             #Test that a passed z value is not injected
         with self.assertRaises(TypeError):
@@ -186,12 +186,12 @@ class InjectArgsTest(unittest.TestCase):
         obj = self.obj()
         @Wrappers.inject_args(ignores=['z'])
         def fn(self, x, y, n):
-            self.x = 'default'
+            self.X = 'default'
         self.obj.fn = fn
         
             #Test that x takes fn body value, y and n get picked up
         obj.fn(x='not_default', y= -1, n=3)
-        actual = [obj.x, obj.y, obj.n]
+        actual = [obj.X, obj.Y, obj.n]
         expected = ["default", -1, 3]
         self.assertListEqual(actual, expected)
         
@@ -211,12 +211,12 @@ class InjectArgsTest(unittest.TestCase):
         obj = self.obj()
         @Wrappers.inject_args(ignores=None)
         def fn(self, x='def_x', y='def_y', n='def_n'):
-            self.x = 'default'
+            self.X = 'default'
         self.obj.fn = fn
 
             #Test that x takes fn body value, y and n get picked up
         obj.fn(x='not default', y= -1, n=3)
-        actual = [obj.x, obj.y, obj.n]
+        actual = [obj.X, obj.Y, obj.n]
         expected = ["default", -1, 3]
         self.assertListEqual(actual, expected)
         
@@ -227,14 +227,14 @@ class InjectArgsTest(unittest.TestCase):
             #Test that works with none passed
         obj.fn()
         
-        actual = [obj.x, obj.y, obj.n]
+        actual = [obj.X, obj.Y, obj.n]
         expected = ['default', 'def_y', 'def_n']
         self.assertListEqual(actual, expected)
         
             #Test that kwargs can be passed as positional
         obj.fn('not default x', 'not default y')
         
-        actual = [obj.x, obj.y, obj.n]
+        actual = [obj.X, obj.Y, obj.n]
         expected = ['default', 'not default y', 'def_n']
         self.assertListEqual(actual, expected)
             
@@ -246,17 +246,17 @@ class InjectArgsTest(unittest.TestCase):
         obj = self.obj()
         @Wrappers.inject_args(ignores=['y'])
         def fn(self, x='def_x', y='def_y', n='def_n'):
-            self.x = 'default'
+            self.X = 'default'
         self.obj.fn = fn
 
             #Test that x takes fn body value, n gets picked up (NOT y)
         obj.fn(x='not_default', y= -1, n=3)
-        actual = [obj.x, obj.n]
+        actual = [obj.X, obj.n]
         expected = ["default", 3]
         self.assertListEqual(actual, expected)
             #Test that the y value wasn't injected in
         with self.assertRaises(AttributeError):
-            obj.y
+            obj.Y
         
             #Test that a passed z value is not injected
         with self.assertRaises(TypeError):
@@ -274,12 +274,12 @@ class InjectArgsTest(unittest.TestCase):
         obj = self.obj()
         @Wrappers.inject_args(ignores=['z'])
         def fn(self, x='def_x', y='def_y', n='def_n'):
-            self.x = 'default'
+            self.X = 'default'
         self.obj.fn = fn
         
             #Test that x takes fn body value, y and n get picked up
         obj.fn(x='not_default', y= -1, n=3)
-        actual = [obj.x, obj.y, obj.n]
+        actual = [obj.X, obj.Y, obj.n]
         expected = ["default", -1, 3]
         self.assertListEqual(actual, expected)
         
@@ -295,12 +295,12 @@ class InjectArgsTest(unittest.TestCase):
         obj = self.obj()
         @Wrappers.inject_args(ignores=None)
         def fn(self, x, y, n='def_n', m='def_m'):
-            self.x = 'default'
+            self.X = 'default'
         self.obj.fn = fn
 
             #Test that x takes fn body value, y and n get picked up
         obj.fn(x='not default', y= -1, n=3)
-        actual = [obj.x, obj.y, obj.n, obj.m]
+        actual = [obj.X, obj.Y, obj.n, obj.m]
         expected = ["default", -1, 3, 'def_m']
         self.assertListEqual(actual, expected)
         
@@ -314,13 +314,13 @@ class InjectArgsTest(unittest.TestCase):
         
             #Test positional kwarg
         obj.fn('x_anything', 'y_value', 'n_value', m='m_value')
-        actual = [obj.x, obj.y, obj.n, obj.m]
+        actual = [obj.X, obj.Y, obj.n, obj.m]
         expected = ['default', 'y_value', 'n_value', 'm_value']
         self.assertListEqual(actual, expected)
         
             #Test named arg
         obj.fn('x_anything', n='n_value', y='y_value', m='m_value')
-        actual = [obj.x, obj.y, obj.n, obj.m]
+        actual = [obj.X, obj.Y, obj.n, obj.m]
         expected = ['default', 'y_value', 'n_value', 'm_value']
         self.assertListEqual(actual, expected)
         
@@ -332,15 +332,15 @@ class InjectArgsTest(unittest.TestCase):
         obj = self.obj()
         @Wrappers.inject_args(ignores='y')
         def fn(self, x, y, n='def_n', m='def_m'):
-            self.x = 'default'
+            self.X = 'default'
         self.obj.fn = fn
             #Test that the y value wasn't injected in
         with self.assertRaises(AttributeError):
-            obj.y
+            obj.Y
             
             #Test that x takes fn body value, y and n get picked up
         obj.fn(x='not default', y= -1, n=3)
-        actual = [obj.x, obj.n, obj.m]
+        actual = [obj.X, obj.n, obj.m]
         expected = ["default", 3, 'def_m']
         self.assertListEqual(actual, expected)
         
@@ -354,13 +354,13 @@ class InjectArgsTest(unittest.TestCase):
         
             #Test positional kwarg
         obj.fn('x_anything', 'y_value', 'n_value', m='m_value')
-        actual = [obj.x, obj.n, obj.m]
+        actual = [obj.X, obj.n, obj.m]
         expected = ['default', 'n_value', 'm_value']
         self.assertListEqual(actual, expected)
         
             #Test named arg
         obj.fn('x_anything', n='n_value', y='y_value', m='m_value')
-        actual = [obj.x, obj.n, obj.m]
+        actual = [obj.X, obj.n, obj.m]
         expected = ['default', 'n_value', 'm_value']
         self.assertListEqual(actual, expected)
         
@@ -372,15 +372,15 @@ class InjectArgsTest(unittest.TestCase):
         obj = self.obj()
         @Wrappers.inject_args(ignores='z')
         def fn(self, x, y, n='def_n', m='def_m'):
-            self.x = 'default'
+            self.X = 'default'
         self.obj.fn = fn
             #Test that the y value wasn't injected in
         with self.assertRaises(AttributeError):
-            obj.y
+            obj.Y
             
             #Test that x takes fn body value, y and n get picked up
         obj.fn(x='not default', y= -1, n=3)
-        actual = [obj.x, obj.y, obj.n, obj.m]
+        actual = [obj.X, obj.Y, obj.n, obj.m]
         expected = ["default", -1, 3, 'def_m']
         self.assertListEqual(actual, expected)
         
@@ -394,13 +394,13 @@ class InjectArgsTest(unittest.TestCase):
         
             #Test positional kwarg
         obj.fn('x_anything', 'y_value', 'n_value', m='m_value')
-        actual = [obj.x, obj.y, obj.n, obj.m]
+        actual = [obj.X, obj.Y, obj.n, obj.m]
         expected = ['default', 'y_value', 'n_value', 'm_value']
         self.assertListEqual(actual, expected)
         
             #Test named arg
         obj.fn('x_anything', n='n_value', y='y_value', m='m_value')
-        actual = [obj.x, obj.y, obj.n, obj.m]
+        actual = [obj.X, obj.Y, obj.n, obj.m]
         expected = ['default', 'y_value', 'n_value', 'm_value']
         self.assertListEqual(actual, expected)
         

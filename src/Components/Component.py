@@ -5,7 +5,7 @@ Base component, handles layering management, position, selection, etc.
 import Util
 import Engine.ID
 
-class BaseComponent(object):
+class Component(object):
     """
     Base Component from which all components (combo/check boxes, list selection boxes)
     are derived.
@@ -16,7 +16,6 @@ class BaseComponent(object):
     _enabled = False
     
     _parent = None
-    _children = []
     
     _has_focus = False
     __is_content_loaded = False
@@ -27,40 +26,47 @@ class BaseComponent(object):
     _anchor_x = 'left'
     _anchor_y = 'top'
     
-    _name = "BaseComponent"
+    _name = "Component"
     _tooltip = "Empty Tooltip"
     
-    __triggers_redraw = ["x", "y", "width", "height",
+    _tab_index = 0
+    
+    _triggers_redraw = ["X", "Y", "Width", "Height",
                          "anchor_x", "anchor_y", "parent"]
 
-    @Util.Wrappers.inject_args(['coords', 'id_manager','custom_id'])
-    def __init__(self, Parent=None, x=0, y=0, width=0, height=0, #pylint:disable-msg=C0103,W0613,C0301
+    @Util.Wrappers.inject_args(['coords','custom_id'])
+    def __init__(self, Parent=None, X=0, Y=0, Width=0, Height=0, #pylint:disable-msg=C0103,W0613,C0301
                  anchor_x="left", anchor_y="top", coords="local", #pylint:disable-msg=C0103,W0613,C0301
-                 Name="BaseComponent", Tooltip="Empty Tooltip", #pylint:disable-msg=C0103,W0613,C0301
+                 Name="Component", Tooltip="Empty Tooltip", #pylint:disable-msg=C0103,W0613,C0301
                  Visible=True, Enabled=True, custom_id=None): #pylint:disable-msg=C0103,W0613,C0301
         """
         Pass a screen as parent if this is DIRECTLY attached to the screen
         
-        coords is either "global" or "local" referring to the value of x and y.
-        EX. BaseComponent(None, 20, 20, "local", 10, 10) attached to a component
-            with global x,y [50, 100] would have global coords [70, 120].
+        coords is either "global" or "local" referring to the value of X and Y.
+        EX. Component(None, 20, 20, "local", 10, 10) attached to a component
+            with global X,Y [50, 100] would have global coords [70, 120].
             Coordinates are stored in local, and transformed to global.
         """
         
         self.cid = Engine.ID.get_id(self, custom_id = custom_id)
         
-        self._tab_index = 0
+        self._children = []
+        
+        self._triggers_redraw = []
+        self._triggers_redraw.extend(Component._triggers_redraw)
+        
+        
         if Visible:
             #Make sure that content loads properly, since args may have been
                 #injected out of order
             self._load_content()
         
     def __setattr__(self, name, value):
-        if name in BaseComponent.__triggers_redraw:
+        if name in self._triggers_redraw:
             old_value = getattr(self, name)
             if old_value != value:
                 self._needs_redraw = True
-        super(BaseComponent, self).__setattr__(name, value)
+        super(Component, self).__setattr__(name, value)
     
     def __get_settings(self):
         """Settings from screen (or parent's screen)"""
@@ -75,16 +81,16 @@ class BaseComponent(object):
         if self.Parent is None:
             return None
         #If parent is a component, use its screen
-        if isinstance(self.Parent, BaseComponent):
+        if hasattr(self.Parent, 'Screen'):
             return self.Parent.Screen
         #Otherwise self._parent IS the screen
         return self.Parent
     def __get_parent(self):
         """Returns the parent component.
-            This is expecting an actual BaseComponent- 
+            This is expecting an actual Component- 
             don't return true unless we 
             ACTUALLY have a Component for a parent."""
-        if isinstance(self._parent, BaseComponent):
+        if isinstance(self._parent, Component):
             return self._parent
         return None
     
@@ -116,16 +122,16 @@ class BaseComponent(object):
         return self._tooltip
     
     def __get_x(self):
-        """Get x coordinate.  Not sure if local or global..."""
+        """Get X coordinate.  Not sure if local or global..."""
         return self._x
     def __get_y(self):
-        """Get y coordinate.  Not sure if local or global..."""
+        """Get Y coordinate.  Not sure if local or global..."""
         return self._y
     def __get_width(self):
-        """Get the width of the component"""
+        """Get the Width of the component"""
         return self._width
     def __get_height(self):
-        """Get the height of the component"""
+        """Get the Height of the component"""
         return self._height
     def __get_anchor_x(self):
         """Get the horizontal anchor of the component
@@ -177,16 +183,16 @@ class BaseComponent(object):
         """Set the tooltip for the component"""
         self._tooltip = value
     def __set_x(self, value):
-        """Set x coordinate.  Not sure if local or global..."""
+        """Set X coordinate.  Not sure if local or global..."""
         self._x = value #pylint:disable-msg=C0103
     def __set_y(self, value):
-        """Set y coordinate.  Not sure if local or global..."""
+        """Set Y coordinate.  Not sure if local or global..."""
         self._y = value #pylint:disable-msg=C0103
     def __set_width(self, value):
-        """Set the width of the component"""
+        """Set the Width of the component"""
         self._width = value
     def __set_height(self, value):
-        """Set the height of the component"""
+        """Set the Height of the component"""
         self._height = value
     def __set_anchor_x(self, value):
         """Set the horizontal anchor of the component
@@ -198,8 +204,9 @@ class BaseComponent(object):
         self._anchor_y = value.lower()
     
     def _load_content(self, recursive=True):
-        """Protected method for loading graphical content when 
-            Visible set to True (from False)
+        """Protected method for loading graphical content. 
+            
+            (When called, Visible state:: False -> True)
             If recursive, calls on child components"""
         if recursive:
             for child in self._children:
@@ -209,7 +216,8 @@ class BaseComponent(object):
         
     def _unload_content(self, recursive=True):
         """Protected method for unloading graphical content
-            when Visible set to False (from True)
+        
+            (When called, Visible state:: True -> False)
             If recursive, calls on child components"""
         if recursive:
             for child in self._children:
@@ -218,9 +226,12 @@ class BaseComponent(object):
         self._needs_redraw = False
         
     def _reload_content(self, recursive=True):
-        """Protected method for reloading graphical content.  
-            Called when x, y, width, height, anchor_x, anchor_y change.
-            If recursive, calls on child components"""
+        """Protected method for reloading graphical content.
+        
+            (When called, Visible state:: True -> True)
+            Called when X, Y, Width, Height, anchor_x, anchor_y change.
+            If recursive, calls on child components
+            """
         if recursive:
             for child in self._children:
                 child._reload_content(recursive) #pylint:disable-msg=W0212
@@ -239,25 +250,33 @@ class BaseComponent(object):
     Tab_Index = property(__get_tab_index, __set_tab_index)
     Tooltip = property(__get_tooltip, __set_tooltip)
     
-    x = property(__get_x, __set_x)
-    y = property(__get_y, __set_y)
-    width = property(__get_width, __set_width)
-    height = property(__get_height, __set_height)
+    X = property(__get_x, __set_x)
+    Y = property(__get_y, __set_y)
+    Width = property(__get_width, __set_width)
+    Height = property(__get_height, __set_height)
     anchor_x = property(__get_anchor_x, __set_anchor_x)
     anchor_y = property(__get_anchor_y, __set_anchor_y)
     
-    def add_child(self, child):
+    def add_child(self, child, force_reload = True):
         """Adds the Component to Children, as long as the Component
-            isn't already considered a child."""
+            isn't already considered a child.
+            You can force a content reload on the child,
+            in case the child was created without a screen to batch onto,
+            for example."""
         if not Util.contains(self._children, child):
             self._children.append(child)
+            if force_reload:
+                if child.Visible:
+                    child._reload_content()
+                else:
+                    child._load_content()
             
     def contains(self, x, y): # pylint: disable-msg=C0103
-        """Returns the Component that contains (x, y)- this allows parent
+        """Returns the Component that contains (X, Y)- this allows parent
             Components to pass the contain check to their most appropriate
             child Component if they have one).
             Trys to return the most specific (child-first) container.
-            Returns None if not containing the point x,y"""
+            Returns None if not containing the point X,Y"""
         for child in self._children:
             #Containing component
             ccomponent = child.contains(x, y)
@@ -265,24 +284,24 @@ class BaseComponent(object):
                 return ccomponent
         
         #Didn't contain the point in any child, check this Component
-        minx = maxx = self.x
-        miny = maxy = self.y
+        minx = maxx = self.X
+        miny = maxy = self.Y
         
         if self.anchor_x == "left":
-            maxx += self.width
+            maxx += self.Width
         elif self.anchor_x == "center":
-            minx -= 0.5 * self.width
-            maxx += 0.5 * self.width
+            minx -= 0.5 * self.Width
+            maxx += 0.5 * self.Width
         elif self.anchor_x == "right":
-            maxx += self.width
+            maxx += self.Width
         
         if self.anchor_y == "top":
-            miny -= self.height
+            miny -= self.Height
         elif self.anchor_y == "center":
-            miny -= 0.5 * self.height
-            maxy += 0.5 * self.height
+            miny -= 0.5 * self.Height
+            maxy += 0.5 * self.Height
         elif self.anchor_y == "bottom":
-            maxy += self.height
+            maxy += self.Height
         
         #Within this Component
         if (minx < x < maxx) and (miny < y < maxy):
@@ -327,7 +346,7 @@ class BaseComponent(object):
     
     def update(self, dt): #pylint:disable-msg=C0103
         """Derived classes should call this method AFTER their implementation,
-            so that changes made to critical values (x, y, etc) are reflected
+            so that changes made to critical values (X, Y, etc) are reflected
             in the frame of their change.  Calling base before overriding
             method logic will effectively apply that logic to the NEXT update
             call, not THIS call."""

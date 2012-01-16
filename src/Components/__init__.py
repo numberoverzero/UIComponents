@@ -2,4 +2,4 @@
 Screen components
 """
 
-import BaseComponent
+import Component
