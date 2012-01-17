@@ -14,12 +14,17 @@ class Circle(object):
         self.y = y #pylint:disable-msg=C0103
         self.r = r #pylint:disable-msg=C0103
 
-    def center(self):
+    
+    def center_at(self, point):
+        """Attempt to center the shape at the point"""
+        self.x, self.y = point.x, point.y
+        
+    def get_center(self):
         """
         Returns a point at the center of the circle
         """
         return Point(self.x, self.y)
-
+        
     def __eq__(self, other):
         try:
             return ((self.r == other.r) and
@@ -37,18 +42,40 @@ class Line(object):
         self.p1 = p1 #pylint:disable-msg=C0103
         self.p2 = p2 #pylint:disable-msg=C0103
 
-    def center(self):
+    def center_at(self, point):
+        """Attempt to center the shape at the point"""
+        #Get original center coords
+        dx, dy = self.dxdy() #pylint:disable-msg=C0103
+        ocx, ocy = self.p1.x + dx / 2.0, self.p1.y + dy / 2.0
+        
+        #Find the change in center coords
+        dcx, dcy = point.x - ocx, point.y - ocy
+        
+        #Apply the change in coords to both p1 and p2
+        self.p1.x += dcx
+        self.p1.y += dcy
+        
+        self.p2.x += dcx
+        self.p2.y += dcy
+    
+    def dxdy(self):
+        """
+        Returns (delta x, delta y)
+        
+        Deltas have sign such that
+        dx, dy = self.dxdy()
+        self.p1.x + dx == self.p2.x
+        self.p1.y + dy == self.p2.y
+        
+        """
+        return (self.p2.x - self.p1.x), (self.p2.y - self.p1.y)
+    
+    def get_center(self):
         """
         Returns a point at the midpoint of the line
         """
         dx, dy = self.dxdy() #pylint:disable-msg=C0103
         return Point(self.p1.x + 0.5 * dx, self.p1.y + 0.5 * dy)
-
-    def dxdy(self):
-        """
-        Returns (delta x, delta y)
-        """
-        return (self.p2.x - self.p1.x), (self.p2.y - self.p1.y)
 
     def __eq__(self, other):
         try:
@@ -65,7 +92,11 @@ class Point(object):
         self.x = x #pylint:disable-msg=C0103
         self.y = y #pylint:disable-msg=C0103
 
-    def center(self):
+    def center_at(self, point):
+        """Attempt to center the shape at the point"""
+        self.x, self.y = point.x, point.y
+        
+    def get_center(self):
         """
         Returns itself (points have no size)
         """
@@ -88,7 +119,11 @@ class Rectangle(object):
         self.w = w #pylint:disable-msg=C0103
         self.h = h #pylint:disable-msg=C0103
 
-    def center(self):
+    def center_at(self, point):
+        """Attempt to center the shape at the point"""
+        self.x, self.y = point.x - self.w / 2.0, point.y - self.h / 2.0
+        
+    def get_center(self):
         """
         Returns a point at the center of the rectangle
         """

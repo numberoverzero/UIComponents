@@ -7,7 +7,7 @@ import Shapes
 
 def d2(shape1, shape2): #pylint:disable-msg=C0103
     """Returns the square of the distance between two shapes' centers"""
-    c1, c2 = shape1.center(), shape2.center() #pylint:disable-msg=C0103
+    c1, c2 = shape1.get_center(), shape2.get_center() #pylint:disable-msg=C0103
     return (c1.x - c2.x) ** 2 + (c1.y - c2.y) ** 2
 
 def coll_circle_circle(circle1, circle2, eps):
@@ -18,7 +18,7 @@ def coll_circle_circle(circle1, circle2, eps):
 def coll_circle_line(circle, line, eps):
     """Circle-line collision detection."""
     d = line.p2 - line.p1 #pylint:disable-msg=C0103
-    f = line.p1 - circle.center() #pylint:disable-msg=C0103
+    f = line.p1 - circle.get_center() #pylint:disable-msg=C0103
 
     a = d.dot(d) #pylint:disable-msg=C0103
     b = 2 * f.dot(d) #pylint:disable-msg=C0103
@@ -51,7 +51,7 @@ def coll_circle_rect(circle, rect, eps):
                                 rect.y - circle.r,
                                 rect.w + circle.r * 2,
                                 rect.h + circle.r * 2)
-    return coll_point_rect(circle.center(), big_rect, eps)
+    return coll_point_rect(circle.get_center(), big_rect, eps)
 
 def coll_line_line(line1, line2, eps):
     """Line-line collision detection."""
