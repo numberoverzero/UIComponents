@@ -103,11 +103,6 @@ class Rectangle(object):
         except AttributeError:
             return False
 
-class Square(Rectangle):
-    """Collidable square"""
-    def __init__(self, x, y, w): #pylint:disable-msg=C0103
-        super(Square, self).__init__(x, y, w, w)
-
 _VEC_MUL_ERR = "Multiplication of vectors is ambiguous ({}, {})."
 _VEC_FMT = "<{},{}>"
 class vec(object): #pylint:disable-msg=C0103

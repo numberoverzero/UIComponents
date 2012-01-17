@@ -4,6 +4,7 @@ Collision checking using mediator pattern to decouple shapes.
 
 import functools
 import Shapes
+from Shapes import Circle, Line, Point, Rectangle
 import lib
 
 def reverse_args(func):
@@ -21,26 +22,18 @@ COLLIDE_FNS = {
     (Shapes.Circle, Shapes.Line): lib.coll_circle_line,
     (Shapes.Circle, Shapes.Point): lib.coll_circle_point,
     (Shapes.Circle, Shapes.Rectangle): lib.coll_circle_rect,
-    (Shapes.Circle, Shapes.Square): lib.coll_circle_rect,
     
     #Line-x collisions
     (Shapes.Line, Shapes.Line): lib.coll_line_line,
     (Shapes.Line, Shapes.Point): lib.coll_line_point,
     (Shapes.Line, Shapes.Rectangle): lib.coll_line_rect,
-    (Shapes.Line, Shapes.Square): lib.coll_line_rect,
     
     #Point-x collisions
     (Shapes.Point, Shapes.Point): lib.coll_point_point,
     (Shapes.Point, Shapes.Rectangle): lib.coll_point_rect,
-    (Shapes.Point, Shapes.Square): lib.coll_point_rect,
 
     #Rectangle-x collisions
-    (Shapes.Rectangle, Shapes.Rectangle): lib.coll_rect_rect,
-    (Shapes.Rectangle, Shapes.Square): lib.coll_rect_rect,
-    
-    #Square-x collisions
-    (Shapes.Square, Shapes.Square): lib.coll_rect_rect,
-    
+    (Shapes.Rectangle, Shapes.Rectangle): lib.coll_rect_rect,    
     }
 
 class Collider(object):
@@ -53,7 +46,6 @@ class Collider(object):
         Shapes.Line
         Shapes.Point
         Shapes.Rectangle
-        Shapes.Square
     """
     @staticmethod
     def _collision_fn(shape1, shape2):
