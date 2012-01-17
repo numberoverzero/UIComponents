@@ -74,7 +74,6 @@ class Rectangle(object):
 
     def _recalc_verts(self):
         """Calculates vertices and passes that info to the gfx card"""
-        #rot(o_x, o_y, p_x, p_y, theta)
         rot = MKROT(self.x, self.y, self.r)
         if self.__changed[0] or not self.verts:
             p0x, p0y = rot(self.x - self.w / 2.0, self.y - self.h / 2.0)
@@ -82,7 +81,8 @@ class Rectangle(object):
             p2x, p2y = rot(self.x + self.w / 2.0, self.y + self.h / 2.0)
             p3x, p3y = rot(self.x - self.w / 2.0, self.y + self.h / 2.0)
         if not self.verts:
-            self.verts = self.batch.add_indexed(4, pyglet.gl.GL_TRIANGLES, self.group, #pylint:disable-msg=C0301
+            self.verts = self.batch.add_indexed(4, pyglet.gl.GL_TRIANGLES, 
+                                                self.group,
                                                 [0, 1, 2, 0, 2, 3],
                                                 ('v2f', (p0x, p0y,
                                                          p1x, p1y,
