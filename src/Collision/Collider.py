@@ -4,7 +4,6 @@ Collision checking using mediator pattern to decouple shapes.
 
 import functools
 import Shapes
-from Shapes import Circle, Line, Point, Rectangle
 import lib
 
 def reverse_args(func):
