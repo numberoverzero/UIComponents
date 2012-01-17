@@ -2,6 +2,7 @@
 Standard game entity.
 """
 import Collision.Shapes
+import ID
 
 class Entity(object):
     """
@@ -14,6 +15,8 @@ class Entity(object):
         self._x, self._y = kwargs.get('x', 0), kwargs.get('y', 0) #pylint:disable-msg=C0103,C0301
         self._timescale = 1.0
         self._collider = None
+        self._last_dmg_src = None
+        self._id = ID.get_id(self)
         self._dirty = False
         self._dt = 0.0
     
@@ -37,6 +40,9 @@ class Entity(object):
         
         Returns the amount of damage that was applied.  
         Can return negative numbers.
+        
+        If the source damages the entity, use self._last_dmg_src = source
+        so that the damage dealer can be notified on state changes.
         """
         return 0
     
