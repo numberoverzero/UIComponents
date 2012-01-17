@@ -34,7 +34,7 @@ class Component(object):
     _triggers_redraw = ["X", "Y", "Width", "Height",
                          "anchor_x", "anchor_y", "parent"]
 
-    @Util.Wrappers.inject_args(['coords','custom_id'])
+    @Util.Wrappers.inject_args_ignoring(['coords','custom_id'])
     def __init__(self, Parent=None, X=0, Y=0, Width=0, Height=0, #pylint:disable-msg=C0103,W0613,C0301
                  anchor_x="left", anchor_y="top", coords="local", #pylint:disable-msg=C0103,W0613,C0301
                  Name="Component", Tooltip="Empty Tooltip", #pylint:disable-msg=C0103,W0613,C0301

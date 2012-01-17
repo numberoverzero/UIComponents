@@ -8,14 +8,26 @@ MKROT = Util.Math.mk_rot_fn
 
 class Rectangle(object):
     """Displayable rectangle"""
-    __triggers_recalc = ['x', 'y', 'w', 'h', 'r', 'c']
-    __triggers_full_redraw = ['batch', 'group']
-
-    __batching_updates = False
-    __batch_or_group_changed = False
-    auto_batch = True
+    
+    __slots__ = ['x', 'y', 'w', 'h', 'r', 'c',
+                 'batch', 'group', 'verts',
+                 '__trig_recalc', '__trig_full_redraw',
+                 '__trig_vert_recalc', '__trig_color_recalc',
+                 '__batching_updates', '__batch_or_group_changed',
+                 '__changed', 'auto_batch',
+                 ]
+    
+    __trig_recalc = ['x', 'y', 'w', 'h', 'r', 'c']
+    __trig_vert_recalc = ['x', 'y', 'w', 'h', 'r']
+    __trig_color_recalc = ['c']
+    __trig_full_redraw = ['batch', 'group']
     
     def __init__(self, x, y, w, h, r, c, batch, group): #pylint:disable-msg=C0103,C0301
+        self.__batching_updates = False
+        self.__batch_or_group_changed = False
+        self.__changed = [False, False]
+        self.auto_batch = True
+    
         self.begin_batched_update()
             
         self.x = x #pylint:disable-msg=C0103
@@ -64,34 +76,49 @@ class Rectangle(object):
         """Calculates vertices and passes that info to the gfx card"""
         #rot(o_x, o_y, p_x, p_y, theta)
         rot = MKROT(self.x, self.y, self.r)
-
-        p0x, p0y = rot(self.x - self.w / 2.0, self.y - self.h / 2.0)
-        p1x, p1y = rot(self.x + self.w / 2.0, self.y - self.h / 2.0)
-        p2x, p2y = rot(self.x + self.w / 2.0, self.y + self.h / 2.0)
-        p3x, p3y = rot(self.x - self.w / 2.0, self.y + self.h / 2.0)
-        
-        self.verts = self.batch.add_indexed(4, pyglet.gl.GL_TRIANGLES, self.group, #pylint:disable-msg=C0301
-                                            [0, 1, 2, 0, 2, 3],
-                                            ('v2f', (p0x, p0y,
-                                                     p1x, p1y,
-                                                     p2x, p2y,
-                                                     p3x, p3y)),
-                                            ('c4B', self.c * 4),
-                                            )
+        if self.__changed[0] or not self.verts:
+            p0x, p0y = rot(self.x - self.w / 2.0, self.y - self.h / 2.0)
+            p1x, p1y = rot(self.x + self.w / 2.0, self.y - self.h / 2.0)
+            p2x, p2y = rot(self.x + self.w / 2.0, self.y + self.h / 2.0)
+            p3x, p3y = rot(self.x - self.w / 2.0, self.y + self.h / 2.0)
+        if not self.verts:
+            self.verts = self.batch.add_indexed(4, pyglet.gl.GL_TRIANGLES, self.group, #pylint:disable-msg=C0301
+                                                [0, 1, 2, 0, 2, 3],
+                                                ('v2f', (p0x, p0y,
+                                                         p1x, p1y,
+                                                         p2x, p2y,
+                                                         p3x, p3y)),
+                                                ('c4B', self.c * 4),
+                                                )
+        else:
+            if self.__changed[0]:
+                self.verts.vertices = (p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y)
+            if self.__changed[1]:
+                self.verts.colors = self.c[:] * 4
+        self.__changed = [False, False]
 
     def __setattr__(self, name, value):
         super(Rectangle, self).__setattr__(name, value)
+        
         if self.__batching_updates:
-            if name in Rectangle.__triggers_full_redraw:
+            if name in Rectangle.__trig_full_redraw:
                 self.__batch_or_group_changed = True
+            elif name in Rectangle.__trig_vert_recalc:
+                self.__changed[0] = True
+            elif name in Rectangle.__trig_color_recalc:
+                self.__changed[1] = True
             elif name == "auto_batch" and not value:
                 #Turn auto_batch off
                 self.end_batched_update()
         else:
-            if name in Rectangle.__triggers_full_redraw:
+            if name in Rectangle.__trig_full_redraw:
                 self._clear_verts()
                 self._recalc_verts()
-            elif name in Rectangle.__triggers_recalc:
+            elif name in Rectangle.__trig_recalc:
+                if name in Rectangle.__trig_vert_recalc:
+                    self.__changed[0] = True
+                elif name in Rectangle.__trig_color_recalc:
+                    self.__changed[1] = True
                 self._recalc_verts()
             elif name == "auto_batch" and value:
                 #Turn auto_batch on
