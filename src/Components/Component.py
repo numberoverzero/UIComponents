@@ -27,24 +27,29 @@ class Component(object):
           batch :             rendering batch               : None
           group :    the component's base rendering group   : None
         visible :      if the component is drawing/visible  : True
-        enabled : if the component is taking input/updating : True
         """
         self._x, self._y = kwargs.get('x', 0), kwargs.get('y', 0) #pylint:disable-msg=C0103,C0301
         self._w, self._h = kwargs.get('w', 0), kwargs.get('h', 0) #pylint:disable-msg=C0103,C0301
         
         self._visible = kwargs.get('visible', True)
-        self._enabled = kwargs.get('enabled', True)
         
         self._collider = Collision.Shapes.Rectangle(self._x, self._y, 
                                                     self._w, self._h)
         self._id = Engine.ID.get_id(self)
         self._parent = kwargs.get('parent', None)
-        self._batch = kwargs.get('batch', None)
-        self._group = kwargs.get('group', None)
         self._children = []
         self._elements = []
         
-        self._dirty = False
+        
+        self._batch = kwargs.get('batch', None)
+        self._group = kwargs.get('group', None)
+        self._element_group = None
+        self.update_batch(self._batch, self._group)
+    
+    def __setattr__(self, name, value):
+        super(Component, self).__setattr__(name, value)
+        if name in Component.__dirty_vars:
+            self._dirty = True
     
     def _get_x(self):
         """Local x position"""
@@ -54,6 +59,11 @@ class Component(object):
         self._x = value
     x = property(_get_x, _set_x)
     
+    def _get_gx(self):
+        """Global x position"""
+        return self._gx
+    gx = property(_get_gx)
+    
     def _get_y(self):
         """Local y position"""
         return self._y
@@ -61,6 +71,11 @@ class Component(object):
         """Set local y position"""
         self._y = value
     y = property(_get_y, _set_y)
+    
+    def _get_gy(self):
+        """Global y position"""
+        return self._gy
+    gy = property(_get_gy)
     
     def _get_w(self):
         """Width"""
@@ -92,14 +107,6 @@ class Component(object):
         return self._parent
     parent = property(_get_parent)
     
-    def _get_enabled(self):
-        """The component is updating and handling input"""
-        return self._enabled
-    def _set_enabled(self, value):
-        """Set the component's enabled state"""
-        self._enabled = value
-    enabled = property(_get_enabled, _set_enabled)
-    
     def add_child(self, child):
         """
         Add a child component to the component's children.
@@ -107,15 +114,21 @@ class Component(object):
         A component's parent should fully contain it for proper hit testing.
         """
         
-        #Update the child's parent
         child.update_parent(self)
-        
-        #Add the child to our children
         self._children.append(child)
-        
-        
-        #Update our batch and group
         self.update_batch(self._batch, self._group)
+    
+    def add_element(self, element):
+        """
+        Add an element to this component.
+        
+        Elements are _part of_ the component,
+        while children are _contained/owned by_ the component
+        """
+        group = pyglet.graphics.OrderedGroup(len(self._elements),
+                                             self._element_group)
+        element.update_batch((self._batch if self.visible else None), group)
+        self._elements.append(element)
     
     def find_root(self):
         """Find the root component"""
@@ -144,13 +157,25 @@ class Component(object):
                 child.remove(recursive)
         else:
             for child in self._children:
-                #self.x, self.y are local offsets to parent
-                #add them so the components don't move from their
-                #current position
+                #Correct offsets
                 child.x += self.x
                 child.y += self.y
                 child.update_parent(self.parent)
         self._children = []
+    
+    def update(self, dt): #pylint:disable-msg=C0103
+        """
+        Updates component elements and children, graphical and logical.
+        """
+        self.update_global_coords()
+        
+        for child in self._children:
+            child.update(dt)
+        
+        for element in self._elements:
+            element.update(dt)
+        
+        self._dirty = False
     
     def update_batch(self, batch, group):
         """
@@ -161,14 +186,17 @@ class Component(object):
         self._batch, self._group = batch, group
         
         child_group = pyglet.graphics.OrderedGroup(0, group)
-        own_group = pyglet.graphics.OrderedGroup(1, group)
+        self._element_group = pyglet.graphics.OrderedGroup(1, group)
         
         for child in self._children:
             #Pass children the lower of the layers
             child.update_batch((batch if self.visible else None), child_group)
         
         for element in self._elements:
-            element.update_batch((batch if self.visible else None), own_group)
+            element.update_batch((batch if self.visible else None), 
+                                 self._element_group)
+        
+        self._dirty = True
     
     def update_global_coords(self):
         """Update global coordinates"""
@@ -178,3 +206,5 @@ class Component(object):
             self._gy += self.parent.gy
         for child in self._children:
             child.update_global_coords()
+    
+    
