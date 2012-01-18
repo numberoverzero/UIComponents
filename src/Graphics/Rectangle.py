@@ -150,6 +150,10 @@ class Rectangle(object):
             elif self.__batching_updates and not value:
                 #Turning auto off from on state
                 self.end_batched_update()
+            
+            # If we were toggling auto_batch, we DO NOT
+            # want to trigger another recalc below
+            return
         
         #Apply changes immediately if we're not batching
         if not self.__batching_updates:
