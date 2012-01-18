@@ -13,16 +13,16 @@ def d2(shape1, shape2): #pylint:disable-msg=C0103
 def coll_circle_circle(circle1, circle2, eps):
     """Circle-circle collision detection."""
     cd2 = d2(circle1, circle2)
-    return cd2 <= (circle1.r + circle2.r + eps) ** 2
+    return cd2 <= (circle1.radius + circle2.radius + eps) ** 2
 
 def coll_circle_line(circle, line, eps):
     """Circle-line collision detection."""
-    d = line.p2 - line.p1 #pylint:disable-msg=C0103
-    f = line.p1 - circle.get_center() #pylint:disable-msg=C0103
+    d = Shapes.vec(line.p2 - line.p1) #pylint:disable-msg=C0103
+    f = Shapes.vec(line.p1 - circle.get_center()) #pylint:disable-msg=C0103
 
     a = d.dot(d) #pylint:disable-msg=C0103
     b = 2 * f.dot(d) #pylint:disable-msg=C0103
-    c = f.dot(f) - (circle.r * circle.r + eps) #pylint:disable-msg=C0103
+    c = f.dot(f) - (circle.radius * circle.radius + eps) #pylint:disable-msg=C0103,C0301
     disc = b * b - 4 * a * c
 
     if disc < 0:
@@ -43,21 +43,21 @@ def coll_circle_line(circle, line, eps):
 def coll_circle_point(circle, point, eps):
     """Circle-point collision detection."""
     cd2 = d2(circle, point)
-    return cd2 <= (circle.r + eps) ** 2
+    return cd2 <= (circle.radius + eps) ** 2
 
 def coll_circle_rect(circle, rect, eps):
     """Circle-rect collision detection."""
-    big_rect = Shapes.Rectangle(rect.x - circle.r,
-                                rect.y - circle.r,
-                                rect.w + circle.r * 2,
-                                rect.h + circle.r * 2)
+    big_rect = Shapes.Rectangle(rect.x - circle.radius,
+                                rect.y - circle.radius,
+                                rect.w + circle.radius * 2,
+                                rect.h + circle.radius * 2)
     return coll_point_rect(circle.get_center(), big_rect, eps)
 
 def coll_line_line(line1, line2, eps):
     """Line-line collision detection."""
 
     #Get eq line1
-    dy1, dx1 = line1.dxdy()
+    dy1, dx1 = line1.dx, line1.dy
     vert1 = False
     if abs(dx1) > 1E-8:
         m1 = dy1/dx1 #pylint:disable-msg=C0103
@@ -66,7 +66,7 @@ def coll_line_line(line1, line2, eps):
         vert1 = True
 
     #Get eq line 2
-    dy2, dx2 = line2.dxdy()
+    dy2, dx2 = line2.dx, line2.dy
     vert2 = False
     if abs(dx2) > 1E-8:
         m2 = dy2/dx2 #pylint:disable-msg=C0103

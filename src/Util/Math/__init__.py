@@ -82,6 +82,10 @@ def iwrap(val, max_):
     """Returns the wrapped integer on [0,max_]"""
     return int(val % max_)
 
+def lerp(min_, max_, t): #pylint:disable-msg=C0103
+    """Standard lerp from min_"""
+    return min_ + float(t) * (max_ - min_)
+
 def limit_vector(vec_x, vec_y, mag_max):
     """Limits the magnitude of the vector to no greater than mag_max."""
     if mag_max < 0:
