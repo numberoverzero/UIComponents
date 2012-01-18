@@ -98,7 +98,11 @@ class Rectangle(object):
         self.__changed = [False, False]
 
     def __setattr__(self, name, value):
+        changed = getattr(self, name) != value
         super(Rectangle, self).__setattr__(name, value)
+        
+        if not changed:
+            return
         
         if self.__batching_updates:
             if name in Rectangle.__trig_full_redraw:

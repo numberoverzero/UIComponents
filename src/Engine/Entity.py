@@ -12,13 +12,32 @@ class Entity(object):
     entity's center.
     """
     def __init__(self, **kwargs):
+        """
+        Create a new Entity.
+        
+            kwarg :            description            : default
+       --------------------------------------------------------
+                x : center of the entity's x position : 0
+                y : center of the entity's y position : 0
+          visible :    is the entity drawn/visible    : True
+          enabled :      is the entity updating       : True
+        timescale :        see update methods         : 1.0
+         collider :  collision object for the entity  : None
+        """
         self._x, self._y = kwargs.get('x', 0), kwargs.get('y', 0) #pylint:disable-msg=C0103,C0301
-        self._timescale = 1.0
-        self._collider = None
+        self._visible = kwargs.get('visible', True)
+        self._enabled = kwargs.get('enabled', True)
+        self._timescale = kwargs.get('timescale', 1.0)
+        self._collider = kwargs.get('collider', None)
         self._last_dmg_src = None
         self._id = ID.get_id(self)
         self._dirty = False
         self._dt = 0.0
+    
+    def _get_id(self):
+        """Return the entity's id"""
+        return self._id
+    eid = property(_get_id)
     
     def _get_timescale(self):
         """
@@ -74,8 +93,9 @@ class Entity(object):
         """
         Update the entity.
         
-        dt is the time since the last update call,
-        post global-timescale modifiers.
+        dt is the time since the last update call, 
+            post global-timescale modifiers.
+        Applies local timescale modifier before calling _pre_update
         """
         self._dt = dt * self.timescale #pylint:disable-msg=C0103,
         self._pre_update()
