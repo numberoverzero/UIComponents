@@ -45,6 +45,7 @@ class Component(object):
         self._group = kwargs.get('group', None)
         self._element_group = None
         self.update_batch(self._batch, self._group)
+        self._dirty = False
     
     def __setattr__(self, name, value):
         super(Component, self).__setattr__(name, value)
@@ -131,7 +132,7 @@ class Component(object):
         self._elements.append(element)
     
     def find_root(self):
-        """Find the root component"""
+        """Find the root component (should be a screen)"""
         parent = self
         while parent.parent:
             parent = parent.parent
