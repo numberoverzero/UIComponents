@@ -11,8 +11,7 @@ class Rectangle(object):
     
     __slots__ = ['x', 'y', 'w', 'h', 'r', 'c',
                  'batch', 'group', 'verts',
-                 '__trig_vert_recalc',
-                 '__trig_color_recalc', '__batching_updates',
+                 '__batching_updates',
                  '_dirty', 'auto_batch',
                  ]
     
