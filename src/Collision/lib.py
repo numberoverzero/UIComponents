@@ -3,12 +3,34 @@ Collection of collision functions that check between two shapes.
 Use Collision.check(shape1, shape2) to check supported shapes.
 """
 
+from Collider import Collider
 import Shapes
 
 def d2(shape1, shape2): #pylint:disable-msg=C0103
     """Returns the square of the distance between two shapes' centers"""
     c1, c2 = shape1.get_center(), shape2.get_center() #pylint:disable-msg=C0103
     return (c1.x - c2.x) ** 2 + (c1.y - c2.y) ** 2
+
+def coll_collect_collect(collect1, collect2, eps):
+    """Collection-collection collision detection."""
+    for item1 in collect1:
+        for item2 in collect2:
+            colliding = Collider.check(item1, item2, eps)
+            if colliding:
+                return colliding
+    return False
+
+def coll_collect_single(collect, other_shape, eps):
+    """
+    Collection-x collision detection.
+    
+    x should not be a collision collection.
+    """
+    for shape in collect:
+        colliding = Collider.check(shape, other_shape, eps)
+        if colliding:
+            return colliding
+    return False
 
 def coll_circle_circle(circle1, circle2, eps):
     """Circle-circle collision detection."""

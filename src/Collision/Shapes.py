@@ -6,12 +6,14 @@ import Util.Structs
 import Util.Math
 
 COLLISION_SHAPETYPES = Util.Structs.enum("Circle",
+                                         "Collection",
                                          "Line",
                                          "Pill",
                                          "Point",
                                          "Rectangle",
                                          )
 
+_COLLECT_FMT = "Collection<{}>"
 _CIRCLE_FMT = "Circle<c:{}, rad:{}, rot:{}>"
 _LINE_FMT = "Line<p1:{}, p2:{}, rot:{}>"
 _PILL_FMT = "Pill<c:{}, rad:{}, height:{}, rot:{}>"
@@ -20,6 +22,52 @@ _RECT_FMT = "Rect<pos:({},{}), dim:({},{}), rot:{}>"
 _VEC_MUL_ERR = "Multiplication of vectors is ambiguous ({}, {})."
 _VEC_FMT = "<{},{}>"
 
+class Collection(object):
+    """Group of collision objects"""
+    __slots__ = ['shapes']
+    collision_type = COLLISION_SHAPETYPES.Collection
+    def __init__(self, shapes = None):
+        self.shapes = []
+        if shapes:
+            self.shapes.extend(shapes)
+    
+    def add_shape(self, shape):
+        """Add a shape to the collection"""
+        self.shapes.append(shape)
+    
+    def copy(self):
+        """Return a copy of the object"""
+        return Collection(shapes = [shape.copy() for shape in self.shapes])
+    
+    def center_at(self, point):
+        """Attempt to center the collection at the point"""
+        raise NotImplementedError()
+    
+    def get_center(self):
+        """Return the center of the collection"""
+        raise NotImplementedError()
+    
+    def remove_shape(self, shape):
+        """Remove a shape from the collection"""
+        self.shapes.remove(shape)
+    
+    def rotate(self, theta):
+        """Rotate the shape about its center by theta radians"""
+        raise NotImplementedError()
+    
+    def rotate_about(self, theta, pivot):
+        """
+        Rotate the shape theta degrees around another point
+        
+        """
+        raise NotImplementedError()
+    
+    def __eq__(self, other):
+        raise NotImplementedError()
+    
+    def __str__(self):
+        return _COLLECT_FMT.format(", ".join(self.shapes))
+        
 
 class Circle(object):
     """Collidable circle"""
@@ -388,6 +436,10 @@ class Rectangle(object):
     
     def rotate(self, theta):
         """Rotate the shape about its center by theta radians"""
+        #This is tricky because we can't just grab x and y
+        #and rotate them around center- they may already be
+        #somewhat rotated.  so for example, top right corner
+        #isn't necessarily x+w, y+h
         raise NotImplementedError()
     
     def rotate_about(self, theta, pivot):
@@ -396,7 +448,10 @@ class Rectangle(object):
         
         For more details see Circle.rotate_about()
         """
-        raise NotImplementedError()
+        center = self.get_center()
+        center.rotate_about(theta, pivot)
+        self.center_at(center)
+        self.rotate(theta)
 
     def __eq__(self, other):
         try:
@@ -415,6 +470,11 @@ class Rectangle(object):
     def __str__(self):
         return _RECT_FMT.format(self.x, self.y,
                                 self.w, self.h, self.rot)
+
+class Square(Rectangle):
+    """Collidable square"""
+    def __init__(self, x, y, s, rot=0): #pylint:disable-msg=C0103
+        Rectangle.__init__(x, y, s, s, rot=rot)
 
 class vec(object): #pylint:disable-msg=C0103
     """2d vector"""

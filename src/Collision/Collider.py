@@ -9,6 +9,13 @@ import lib
 COLL_SHAPES = Shapes.COLLISION_SHAPETYPES
 
 COLLIDE_FNS = {
+    #Collection-x collisions
+    (COLL_SHAPES.Collection, COLL_SHAPES.Collection): lib.coll_collect_collect,
+    (COLL_SHAPES.Collection, COLL_SHAPES.Circle): lib.coll_collect_single,
+    (COLL_SHAPES.Collection, COLL_SHAPES.Line): lib.coll_collect_single,
+    (COLL_SHAPES.Collection, COLL_SHAPES.Point): lib.coll_collect_single,
+    (COLL_SHAPES.Collection, COLL_SHAPES.Rectangle): lib.coll_collect_single,
+    
     #Circle-x collisions
     (COLL_SHAPES.Circle, COLL_SHAPES.Circle): lib.coll_circle_circle,
     (COLL_SHAPES.Circle, COLL_SHAPES.Line): lib.coll_circle_line,
