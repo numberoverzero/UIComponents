@@ -79,9 +79,12 @@ class Circle(object):
 class Line(object):
     """Collidable line segment"""
 
-    __slots__ = ['p1', 'p2', 'rot']
-
+    __slots__ = ['p1', 'p2', 'rot', 'dirty', '_bbox']
+    
+    __triggers_dirty = ['p1', 'p2', 'rot']
     def __init__(self, p1, p2, rot): #pylint:disable-msg=C0103
+        self.dirty = False
+        self._bbox = None
         self.p1 = p1 #pylint:disable-msg=C0103
         self.p2 = p2 #pylint:disable-msg=C0103
         self.rot = rot
@@ -110,6 +113,24 @@ class Line(object):
         """Return delta y between endpoints"""
         return self.p2.y - self.p1.y
     
+    def get_bbox(self):
+        """
+        Returns the minimum axis-aligned bounding box of the line.
+        
+        Returns the smalled aabb that contains self.
+        Caches value and lazy updates for performance.
+        """
+        is_dirty = self.dirty or self.p1.dirty or self.p2.dirty
+        if self._bbox and not is_dirty:
+            return self._bbox
+        
+        xmin, xmax = min(self.p1.x, self.p2.x), max(self.p1.x, self.p2.x)
+        ymin, ymax = min(self.p1.y, self.p2.y), max(self.p1.y, self.p2.y)
+        
+        self._bbox = Rectangle(xmin, ymin, xmax-xmin, ymax-ymin, rot = 0)
+        self.dirty = self.p1.dirty = self.p2.dirty = False
+        return self._bbox
+    
     def get_center(self):
         """
         Returns a point at the midpoint of the line
@@ -134,6 +155,22 @@ class Line(object):
         new_center.rotate_about(theta, pivot)
         self.center_at(new_center)
         self.rotate(theta)
+    
+    def slope_intercept(self):
+        """
+        Returns m, b, is_vert for the equation y = mx + b
+        
+        if is_vert, m and b are None.
+        """
+        
+        _dx = self.dx
+        _dy = self.dy
+        if abs(_dx <= 1E-8):
+            return None, None, True
+        
+        m = _dy / _dx #pylint:disable-msg=C0103
+        b = self.p1.y - m * self.p1.x #pylint:disable-msg=C0103
+        return m, b, False
 
     def __eq__(self, other):
         try:
@@ -142,6 +179,11 @@ class Line(object):
                     self.rot == other.rot)
         except AttributeError:
             return False
+    
+    def __setattr__(self, name, value):
+        super(Line, self).__setattr__(name, value)
+        if name in Line.__triggers_dirty:
+            self.dirty = True
     
     def __str__(self):
         return _LINE_FMT.format(self.p1, self.p2, self.rot)
@@ -227,12 +269,13 @@ class Pill(object):
 class Point(object):
     """Collidable 2D point"""
     
-    __slots__ = ['x', 'y', 'rot']
-    
+    __slots__ = ['x', 'y', 'rot', 'dirty']
+    __triggers_dirty = ['x', 'y']
     def __init__(self, x, y, rot=0): #pylint:disable-msg=C0103
         self.x = x #pylint:disable-msg=C0103
         self.y = y #pylint:disable-msg=C0103
         self.rot = rot
+        self.dirty = False
 
     def center_at(self, point):
         """Attempt to center the shape at the point"""
@@ -261,7 +304,12 @@ class Point(object):
         self.x, self.y = Util.Math.rotate(pivot.x, pivot.y, 
                                           self.x, self.y, theta)
         self.rotate(theta)
-        
+    
+    def __setattr__(self, name, value):
+        super(Point, self).__setattr__(name, value)
+        if name in Point.__triggers_dirty:
+            self.dirty = True
+            
     def __diff__(self, other):
         return Point(self.x-other.x, self.y-other.y)
     
@@ -279,11 +327,11 @@ class Point(object):
 class Rectangle(object):
     """Collidable rectangle"""
     
-    __slots__ = ['x', 'y', 'w', 'h', 'rot', '_dirty', '_mbb']
+    __slots__ = ['x', 'y', 'w', 'h', 'rot', 'dirty', '_bbox']
     __triggers_dirty = ['x', 'y', 'w', 'h', 'rot']
     def __init__(self, x, y, w, h, rot=0): #pylint:disable-msg=C0103
-        self._dirty = True
-        self._mbb = None
+        self.dirty = False
+        self._bbox = None
         self.x = x #pylint:disable-msg=C0103
         self.y = y #pylint:disable-msg=C0103
         self.w = w #pylint:disable-msg=C0103
@@ -308,12 +356,11 @@ class Rectangle(object):
         """
         Returns the minimum axis-aligned bounding box of the rectangle.
         
-        When self.rot is within 1E-5, simply returns self.
-        Otherwise, returns the smalled aabb that contains self.
+        Returns the smalled aabb that contains self.
         Caches value and lazy updates for performance.
         """
-        if not self._dirty and self._mbb:
-            return self._mbb
+        if not self.dirty and self._bbox:
+            return self._bbox
         
         w2, h2 = self.w / 2.0, self.h / 2.0 #pylint:disable-msg=C0103
         pivotfn = Util.Math.mk_rot_fn(self.x + w2, self.y + h2, self.rot)    
@@ -326,9 +373,9 @@ class Rectangle(object):
         xmin, xmax = min(x1, x2, x3, x4), max(x1, x2, x3, x4)
         ymin, ymax = min(y1, y2, y3, y4), max(y1, y2, y3, y4)
         
-        self._mbb = Rectangle(xmin, ymin, xmax-xmin, ymax-ymin, rot = 0)
-        self._dirty = False
-        return self._mbb
+        self._bbox = Rectangle(xmin, ymin, xmax-xmin, ymax-ymin, rot = 0)
+        self.dirty = False
+        return self._bbox
     
     def rotate(self, theta):
         """Rotate the shape about its center by theta radians"""
@@ -354,7 +401,7 @@ class Rectangle(object):
     def __setattr__(self, name, value):
         super(Rectangle, self).__setattr__(name, value)
         if name in Rectangle.__triggers_dirty:
-            self._dirty = True
+            self.dirty = True
             
     def __str__(self):
         return _RECT_FMT.format(self.x, self.y,

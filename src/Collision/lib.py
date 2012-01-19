@@ -46,7 +46,12 @@ def coll_circle_point(circle, point, eps):
     return cd2 <= (circle.radius + eps) ** 2
 
 def coll_circle_rect(circle, rect, eps):
-    """Circle-rect collision detection."""
+    """
+    Circle-rect collision detection.
+    
+    Extend the rectangle's width and height by 2*radius and check 
+    if the center of the circle is inside that square
+    """
     big_rect = Shapes.Rectangle(rect.x - circle.radius,
                                 rect.y - circle.radius,
                                 rect.w + circle.radius * 2,
@@ -57,26 +62,14 @@ def coll_line_line(line1, line2, eps):
     """Line-line collision detection."""
 
     #Get eq line1
-    dy1, dx1 = line1.dx, line1.dy
-    vert1 = False
-    if abs(dx1) > 1E-8:
-        m1 = dy1/dx1 #pylint:disable-msg=C0103
-        b1 = line1.p1.y - m1 * line1.p1.x #pylint:disable-msg=C0103
-    else:
-        vert1 = True
+    m1, b1, is_vert1 = line1.slope_intercept()  #pylint:disable-msg=C0103
 
     #Get eq line 2
-    dy2, dx2 = line2.dx, line2.dy
-    vert2 = False
-    if abs(dx2) > 1E-8:
-        m2 = dy2/dx2 #pylint:disable-msg=C0103
-        b2 = line2.p1.y - m2 * line2.p1.x #pylint:disable-msg=C0103
-    else:
-        vert2 = True
+    m2, b2, is_vert2 = line2.slope_intercept()  #pylint:disable-msg=C0103
 
-    if vert1 and vert2:
+    if is_vert1 and is_vert2:
         #Both vertical lines
-        if abs(vert1-vert2) > eps:
+        if abs(line1.p1.x - line2.p1.x) > eps:
             #Too far apart
             return False
 
@@ -84,19 +77,18 @@ def coll_line_line(line1, line2, eps):
         return (coll_line_point(line1, line2.p1, eps) or
                 coll_line_point(line1, line2.p2, eps))
 
-    elif vert1:
+    elif is_vert1:
         #Can't use line 1 for the slope
         coll_x = line1.p1.x
         coll_y = m2 * coll_x + b2
-    elif vert2:
+    elif is_vert2:
         #Can't use line 2 for the slope
         coll_x = line2.p1.x
         coll_y = m1 * coll_x + b1
     else:
-        #Both slopes ok, solve linear equation w/substitution for x2
-        dm = m2 / m1 #pylint:disable-msg=C0103
-        coll_y = (b2 - dm * b1) / (1 - dm)
-        coll_x = (coll_y - b1) / m1
+        #Both slopes ok, solve linear equation w/substitution
+        coll_x = (b2 - b1) / (m1 - m2)
+        coll_y = m1 * coll_x + b1
     
     #Get the supposed collision point
     coll_pt = Shapes.Point(coll_x, coll_y)
@@ -107,22 +99,14 @@ def coll_line_line(line1, line2, eps):
 
 def coll_line_point(line, point, eps):
     """Line-point collision detection."""
-    minx = min(line.p1.x, line.p2.x)
-    maxx = max(line.p1.x, line.p2.x)
-    miny = min(line.p1.y, line.p2.y)
-    maxy = max(line.p1.y, line.p2.y)
+    line_bbox = line.get_bbox()
 
-    return ((minx - eps / 2.0 <= point.x <= maxx + eps / 2.0) and
-            (miny - eps / 2.0 <= point.y <= maxy + eps / 2.0))
+    return coll_point_rect(point, line_bbox, eps)
 
 def coll_line_rect(line, rect, eps):
     """Line-rect collision detection."""
-    minx = min(line.p1.x, line.p2.x)
-    maxx = max(line.p1.x, line.p2.x)
-    miny = min(line.p1.y, line.p2.y)
-    maxy = max(line.p1.y, line.p2.y)
-    line_as_rect = Shapes.Rectangle(minx, miny, maxx-minx, maxy-miny)
-    return coll_rect_rect(line_as_rect, rect, eps)
+    line_bbox = line.get_bbox()
+    return coll_rect_rect(line_bbox, rect, eps)
 
 def coll_point_point(point1, point2, eps):
     """Point-point collision detection."""
@@ -130,7 +114,7 @@ def coll_point_point(point1, point2, eps):
 
 def coll_point_rect(point, rect, eps):
     """Point-rect collision detection."""
-    if abs(rect.rot) <= 1E-5:
+    if abs(rect.rot) <= 1E-8:
         #Close enough to zero rotation
         return ((rect.x - eps / 2.0 <= point.x <= rect.x+rect.w - eps / 2.0) and
                 (rect.y - eps / 2.0 <= point.y <= rect.y+rect.h - eps / 2.0))
