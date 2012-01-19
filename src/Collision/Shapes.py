@@ -2,8 +2,15 @@
 Collision shapes.  Use Collider.check(shape1, shape2) to
 check for collision between supported shapes.
 """
-
+import Util.Structs
 import Util.Math
+
+COLLISION_SHAPETYPES = Util.Structs.enum("Circle",
+                                         "Line",
+                                         "Pill",
+                                         "Point",
+                                         "Rectangle",
+                                         )
 
 _CIRCLE_FMT = "Circle<c:{}, rad:{}, rot:{}>"
 _LINE_FMT = "Line<p1:{}, p2:{}, rot:{}>"
@@ -18,7 +25,7 @@ class Circle(object):
     """Collidable circle"""
     
     __slots__ = ['x', 'y', 'radius', 'rot']
-    
+    collision_type = COLLISION_SHAPETYPES.Circle
     def __init__(self, x, y, radius, rot): #pylint:disable-msg=C0103
         self.x = x #pylint:disable-msg=C0103
         self.y = y #pylint:disable-msg=C0103
@@ -80,8 +87,8 @@ class Line(object):
     """Collidable line segment"""
 
     __slots__ = ['p1', 'p2', 'rot', 'dirty', '_bbox']
-    
     __triggers_dirty = ['p1', 'p2', 'rot']
+    collision_type = COLLISION_SHAPETYPES.Line
     def __init__(self, p1, p2, rot): #pylint:disable-msg=C0103
         self.dirty = False
         self._bbox = None
@@ -192,7 +199,7 @@ class Pill(object):
     """Collidable pill-shaped object"""
     __slots__ = ['center', 'radius', 'height', 
                  'top', 'middle', 'bottom', 'rot']
-    
+    collision_type = COLLISION_SHAPETYPES.Pill
     def __init__(self, center, radius, height, rot=0):
         """
         Construct a collidable pill
@@ -271,6 +278,7 @@ class Point(object):
     
     __slots__ = ['x', 'y', 'rot', 'dirty']
     __triggers_dirty = ['x', 'y']
+    collision_type = COLLISION_SHAPETYPES.Point
     def __init__(self, x, y, rot=0): #pylint:disable-msg=C0103
         self.x = x #pylint:disable-msg=C0103
         self.y = y #pylint:disable-msg=C0103
@@ -329,6 +337,7 @@ class Rectangle(object):
     
     __slots__ = ['x', 'y', 'w', 'h', 'rot', 'dirty', '_bbox']
     __triggers_dirty = ['x', 'y', 'w', 'h', 'rot']
+    collision_type = COLLISION_SHAPETYPES.Rectangle
     def __init__(self, x, y, w, h, rot=0): #pylint:disable-msg=C0103
         self.dirty = False
         self._bbox = None

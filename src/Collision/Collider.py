@@ -6,33 +6,26 @@ import functools
 import Shapes
 import lib
 
-def reverse_args(func):
-    """
-        Returns a fuction that passes arguments
-        to an underlying function in reverse order"""
-    @functools.wraps(func)
-    def wrapper(arg1, arg2): #pylint:disable-msg=C0111
-        return func(arg2, arg1)
-    return wrapper
+COLL_SHAPES = Shapes.COLLISION_SHAPETYPES
 
 COLLIDE_FNS = {
     #Circle-x collisions
-    (Shapes.Circle, Shapes.Circle): lib.coll_circle_circle,
-    (Shapes.Circle, Shapes.Line): lib.coll_circle_line,
-    (Shapes.Circle, Shapes.Point): lib.coll_circle_point,
-    (Shapes.Circle, Shapes.Rectangle): lib.coll_circle_rect,
+    (COLL_SHAPES.Circle, COLL_SHAPES.Circle): lib.coll_circle_circle,
+    (COLL_SHAPES.Circle, COLL_SHAPES.Line): lib.coll_circle_line,
+    (COLL_SHAPES.Circle, COLL_SHAPES.Point): lib.coll_circle_point,
+    (COLL_SHAPES.Circle, COLL_SHAPES.Rectangle): lib.coll_circle_rect,
     
     #Line-x collisions
-    (Shapes.Line, Shapes.Line): lib.coll_line_line,
-    (Shapes.Line, Shapes.Point): lib.coll_line_point,
-    (Shapes.Line, Shapes.Rectangle): lib.coll_line_rect,
+    (COLL_SHAPES.Line, COLL_SHAPES.Line): lib.coll_line_line,
+    (COLL_SHAPES.Line, COLL_SHAPES.Point): lib.coll_line_point,
+    (COLL_SHAPES.Line, COLL_SHAPES.Rectangle): lib.coll_line_rect,
     
     #Point-x collisions
-    (Shapes.Point, Shapes.Point): lib.coll_point_point,
-    (Shapes.Point, Shapes.Rectangle): lib.coll_point_rect,
+    (COLL_SHAPES.Point, COLL_SHAPES.Point): lib.coll_point_point,
+    (COLL_SHAPES.Point, COLL_SHAPES.Rectangle): lib.coll_point_rect,
 
     #Rectangle-x collisions
-    (Shapes.Rectangle, Shapes.Rectangle): lib.coll_rect_rect,    
+    (COLL_SHAPES.Rectangle, COLL_SHAPES.Rectangle): lib.coll_rect_rect,    
     }
 
 class Collider(object):
@@ -52,12 +45,23 @@ class Collider(object):
             Returns a function that checks for collision between
             shape1 and shape2 (IN THAT ORDER)
         """
-        _t1 = type(shape1)
-        _t2 = type(shape2)
+        _k1 = shape1.collision_type
+        _k2 = shape2.collision_type
         try:
-            return COLLIDE_FNS[(_t1, _t2)]
+            return COLLIDE_FNS[(_k1, _k2)]
         except KeyError:
-            return reverse_args(COLLIDE_FNS[(_t2, _t1)])
+            return Collider.reverse_args(COLLIDE_FNS[(_k2, _k1)])
+    
+    @staticmethod
+    def reverse_args(func):
+        """
+        Returns a fuction that passes arguments
+        to an underlying function in reverse order
+        """
+        @functools.wraps(func)
+        def wrapper(arg1, arg2): #pylint:disable-msg=C0111
+            return func(arg2, arg1)
+        return wrapper
 
     @staticmethod
     def collision_check(shape1, shape2, eps=0):
