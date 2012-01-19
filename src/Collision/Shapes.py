@@ -279,15 +279,17 @@ class Point(object):
 class Rectangle(object):
     """Collidable rectangle"""
     
-    __slots__ = ['x', 'y', 'w', 'h', 'rot']
-    
+    __slots__ = ['x', 'y', 'w', 'h', 'rot', '_dirty', '_mbb']
+    __triggers_dirty = ['x', 'y', 'w', 'h', 'rot']
     def __init__(self, x, y, w, h, rot=0): #pylint:disable-msg=C0103
+        self._dirty = True
+        self._mbb = None
         self.x = x #pylint:disable-msg=C0103
         self.y = y #pylint:disable-msg=C0103
         self.w = w #pylint:disable-msg=C0103
         self.h = h #pylint:disable-msg=C0103
         self.rot = rot
-
+        
     def center_at(self, point):
         """Attempt to center the shape at the point"""
         self.x, self.y = point.x - self.w / 2.0, point.y - self.h / 2.0
@@ -301,6 +303,32 @@ class Rectangle(object):
         Returns a point at the center of the rectangle
         """
         return Point(self.x + self.w / 2.0, self.y + self.h / 2.0)
+    
+    def get_bbox(self):
+        """
+        Returns the minimum axis-aligned bounding box of the rectangle.
+        
+        When self.rot is within 1E-5, simply returns self.
+        Otherwise, returns the smalled aabb that contains self.
+        Caches value and lazy updates for performance.
+        """
+        if not self._dirty and self._mbb:
+            return self._mbb
+        
+        w2, h2 = self.w / 2.0, self.h / 2.0 #pylint:disable-msg=C0103
+        pivotfn = Util.Math.mk_rot_fn(self.x + w2, self.y + h2, self.rot)    
+        
+        x1, y1 = pivotfn(self.x, self.y) #pylint:disable-msg=C0103
+        x2, y2 = pivotfn(self.x + w2, self.y) #pylint:disable-msg=C0103
+        x3, y3 = pivotfn(self.x + w2, self.y + h2) #pylint:disable-msg=C0103
+        x4, y4 = pivotfn(self.x, self.y + h2) #pylint:disable-msg=C0103
+        
+        xmin, xmax = min(x1, x2, x3, x4), max(x1, x2, x3, x4)
+        ymin, ymax = min(y1, y2, y3, y4), max(y1, y2, y3, y4)
+        
+        self._mbb = Rectangle(xmin, ymin, xmax-xmin, ymax-ymin, rot = 0)
+        self._dirty = False
+        return self._mbb
     
     def rotate(self, theta):
         """Rotate the shape about its center by theta radians"""
@@ -323,6 +351,11 @@ class Rectangle(object):
         except AttributeError:
             return False
     
+    def __setattr__(self, name, value):
+        super(Rectangle, self).__setattr__(name, value)
+        if name in Rectangle.__triggers_dirty:
+            self._dirty = True
+            
     def __str__(self):
         return _RECT_FMT.format(self.x, self.y,
                                 self.w, self.h, self.rot)

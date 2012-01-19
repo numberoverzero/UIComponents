@@ -130,12 +130,72 @@ def coll_point_point(point1, point2, eps):
 
 def coll_point_rect(point, rect, eps):
     """Point-rect collision detection."""
-    return ((rect.x - eps / 2.0 <= point.x <= rect.x+rect.w - eps / 2.0) and
-            (rect.y - eps / 2.0 <= point.y <= rect.y+rect.h - eps / 2.0))
-        
+    if abs(rect.rot) <= 1E-5:
+        #Close enough to zero rotation
+        return ((rect.x - eps / 2.0 <= point.x <= rect.x+rect.w - eps / 2.0) and
+                (rect.y - eps / 2.0 <= point.y <= rect.y+rect.h - eps / 2.0))
+    
+    #Rectangle is rotated- unrotate it, pivot the point to be compared
+    #about the rectangle's center, compare, undo rotations
+    
+    pivot = rect.get_center()
+    negrot = -rect.rot
+    
+    #unrotate the rect
+    rect.rotate(negrot)
+    #rotate the point by negrot around the pivot
+    point.rotate_about(negrot, pivot)
+    #Close enough to zero rotation
+    coll =  ((rect.x - eps / 2.0 <= point.x <= rect.x+rect.w - eps / 2.0) and
+             (rect.y - eps / 2.0 <= point.y <= rect.y+rect.h - eps / 2.0))
+    
+    #undo rotation
+    rect.rotate(-negrot)
+    point.rotate_about(-negrot, pivot)
+    return coll
+    
+
+def _dni(rect1, rect2, eps):
+    """
+    Definitely not intersecting function 
+    
+    unrotates rect1, pivots rect2 by the same amount about rect1.center,
+    then checks for intersection.  Use _dni(r1, r2) and _dni(r2, r1) to check
+    rotated rectangle collision.
+    """
+    #we're unrotating around the center of rect1
+    pivot = rect1.get_center()
+    rot = rect1.rot
+    
+    #unrotate rect1
+    rect1.rotate(-rot)
+    
+    #pivot rect2 by same rotation
+    rect2.rotate_about(-rot, pivot)
+    #get rect2's min bounding box
+    rect2_bbox = rect2.get_bbox()
+    
+    #check for collision
+    coll = ((rect1.x + rect1.w + eps >= rect2_bbox.x) and
+            (rect1.x <= rect2_bbox.x + rect2_bbox.w + eps) and
+            (rect1.y + rect1.h + eps >= rect2_bbox.h) and
+            (rect1.y <= rect2_bbox.y + rect2_bbox.h + eps))
+    
+    #undo rotations and pivots
+    rect1.rotate(rot)
+    rect2.rotate_about(rot, pivot)
+    
+    return coll
+    
 def coll_rect_rect(rect1, rect2, eps):
     """Rect-rect collision detection."""
-    return ((rect1.x + rect1.w + eps >= rect2.x) and
-            (rect1.x <= rect2.x + rect2.w + eps) and
-            (rect1.y + rect1.h + eps >= rect2.h) and
-            (rect1.y <= rect2.y + rect2.h + eps))
+    if abs(rect1.rot) <= 1E-5 and abs(rect1.rot) <= 1E-5:
+        return ((rect1.x + rect1.w + eps >= rect2.x) and
+                (rect1.x <= rect2.x + rect2.w + eps) and
+                (rect1.y + rect1.h + eps >= rect2.h) and
+                (rect1.y <= rect2.y + rect2.h + eps))
+    
+    #SAT dni from:
+    #http://forums.xkcd.com/viewtopic.php?f=11&t=63710
+    return not (_dni(rect1, rect2, eps) and _dni(rect2, rect1, eps))
+    
