@@ -74,10 +74,9 @@ def coll_circle_rect(circle, rect, eps):
     Extend the rectangle's width and height by 2*radius and check 
     if the center of the circle is inside that square
     """
-    big_rect = Shapes.Rectangle(rect.x - circle.radius,
-                                rect.y - circle.radius,
-                                rect.w + circle.radius * 2,
-                                rect.h + circle.radius * 2)
+    big_rect = rect.copy()
+    big_rect.w += 2 * circle.radius
+    big_rect.h += 2 * circle.radius
     return coll_point_rect(circle.get_center(), big_rect, eps)
 
 def coll_line_line(line1, line2, eps):
@@ -138,26 +137,30 @@ def coll_point_rect(point, rect, eps):
     """Point-rect collision detection."""
     if abs(rect.rot) <= 1E-8:
         #Close enough to zero rotation
-        return ((rect.x - eps / 2.0 <= point.x <= rect.x+rect.w - eps / 2.0) and
-                (rect.y - eps / 2.0 <= point.y <= rect.y+rect.h - eps / 2.0))
+        eps2 = eps / 2.0
+        w2, h2 = rect.w / 2.0, rect.h / 2.0 #pylint:disable-msg=C0103
+        return ((rect.x - eps2 - w2 <= point.x <= rect.x + eps2 + w2) and
+                (rect.h - eps2 - h2 <= point.y <= rect.y + eps2 + h2))
     
     #Rectangle is rotated- unrotate it, pivot the point to be compared
     #about the rectangle's center, compare, undo rotations
     
     pivot = rect.get_center()
-    negrot = -rect.rot
+    rot = rect.rot
     
     #unrotate the rect
-    rect.rotate(negrot)
+    rect.rotate(-rot)
     #rotate the point by negrot around the pivot
-    point.rotate_about(negrot, pivot)
+    point.rotate_about(-rot, pivot)
     #Close enough to zero rotation
-    coll =  ((rect.x - eps / 2.0 <= point.x <= rect.x+rect.w - eps / 2.0) and
-             (rect.y - eps / 2.0 <= point.y <= rect.y+rect.h - eps / 2.0))
+    eps2 = eps / 2.0
+    w2, h2 = rect.w / 2.0, rect.h / 2.0 #pylint:disable-msg=C0103
+    coll = ((rect.x - eps2 - w2 <= point.x <= rect.x + eps2 + w2) and
+            (rect.h - eps2 - h2 <= point.y <= rect.y + eps2 + h2))
     
     #undo rotation
-    rect.rotate(-negrot)
-    point.rotate_about(-negrot, pivot)
+    rect.rotate(rot)
+    point.rotate_about(rot, pivot)
     return coll
     
 
@@ -179,13 +182,15 @@ def _dni(rect1, rect2, eps):
     #pivot rect2 by same rotation
     rect2.rotate_about(-rot, pivot)
     #get rect2's min bounding box
-    rect2_bbox = rect2.get_bbox()
+    r2bbox = rect2.get_bbox()
     
     #check for collision
-    coll = ((rect1.x + rect1.w + eps >= rect2_bbox.x) and
-            (rect1.x <= rect2_bbox.x + rect2_bbox.w + eps) and
-            (rect1.y + rect1.h + eps >= rect2_bbox.h) and
-            (rect1.y <= rect2_bbox.y + rect2_bbox.h + eps))
+    r1w2, r1h2 = rect1.w / 2.0, rect1.h / 2.0
+    r2w2, r2h2 = r2bbox.w / 2.0, r2bbox.h / 2.0
+    coll = ((rect1.x + r1w2 + eps >= r2bbox.x - r2w2) and
+            (rect1.x - r1w2 <= r2bbox.x + r2w2 + eps) and
+            (rect1.y + r1h2 + eps >= r2bbox.h - r2h2) and
+            (rect1.y - r1h2 <= r2bbox.y + r2h2 + eps))
     
     #undo rotations and pivots
     rect1.rotate(rot)
@@ -195,11 +200,13 @@ def _dni(rect1, rect2, eps):
     
 def coll_rect_rect(rect1, rect2, eps):
     """Rect-rect collision detection."""
-    if abs(rect1.rot) <= 1E-5 and abs(rect1.rot) <= 1E-5:
-        return ((rect1.x + rect1.w + eps >= rect2.x) and
-                (rect1.x <= rect2.x + rect2.w + eps) and
-                (rect1.y + rect1.h + eps >= rect2.h) and
-                (rect1.y <= rect2.y + rect2.h + eps))
+    if abs(rect1.rot) <= 1E-5 and abs(rect2.rot) <= 1E-5:
+        r1w2, r1h2 = rect1.w / 2.0, rect1.h / 2.0
+        r2w2, r2h2 = rect2.w / 2.0, rect2.h / 2.0
+        return ((rect1.x + r1w2 + eps >= rect2.x - r2w2) and
+                (rect1.x - r1w2 <= rect2.x + r2w2 + eps) and
+                (rect1.y + r1h2 + eps >= rect2.h - r2h2) and
+                (rect1.y - r1h2 <= rect2.y + r2h2 + eps))
     
     #SAT dni from:
     #http://forums.xkcd.com/viewtopic.php?f=11&t=63710
