@@ -54,3 +54,64 @@ def surrounded_by_parens(string):
     """Determines if the string is surrounded in 
             (matching) parens of any sort"""
     return (string[0] + string[-1]) in ['()', '{}', '[]']
+
+class StringBuilder(object):
+    """
+    Helper class for building strings out of small pieces.
+    
+    Periodically compacts itself down to reduce footprint.
+    To prevent this behavior (no idea why) use size <= 0
+    Otherwise, compacts when number of pieces > size.
+    To force a compact, use build()
+    
+    To get the current string, call the StringBuilder object.
+    """
+    __slots__ = ['_size', '_msize', '_data']
+    
+    def __init__(self, size = -1):
+        self._size = 0
+        self._msize = size
+        self._data = []
+        
+    def __add__(self, other):
+        """Standard string concat"""
+        return self.__call__() + other
+    
+    def __call__(self):
+        """Return the built string"""
+        if self._size > 1:
+            self.build()
+            return self._data[0]
+        elif self._size == 1:
+            return self._data[0]
+        else:
+            return ""
+    
+    def __iadd__(self, other):
+        """Standard string append"""
+        self._data.append(other)
+        self._size += 1
+        self._check_build()
+        return self
+    
+    def __radd__(self, other):
+        return other + self.__call__()
+    
+    def __repr__(self, *args, **kwargs):
+        return repr(self.__str__())
+    
+    def __str__(self):
+        return self.__call__()
+    
+    def _check_build(self):
+        """Check if the string needs to be compacted, and if so, build."""
+        if self._msize > 0 and self._size >= self._msize:
+            self.build()
+    
+    def build(self):
+        """Compact the string down in memory."""
+        _str = ''.join(self._data)
+        self._data = [_str]
+        self._size = 1
+
+sb = StringBuilder();sb += "Hello";sb += ", ";sb += "World";sb += ".";
