@@ -3,7 +3,7 @@ Base component, handles layering management, position, selection, etc.
 """
 
 import Engine.ID
-import Collision.Shapes
+import Collision
 import pyglet
 
 class Component(object):
@@ -33,11 +33,10 @@ class Component(object):
         
         self._visible = kwargs.get('visible', True)
         
-        self._collider = Collision.Shapes.Rectangle(self._x, self._y, 
-                                                    self._w, self._h)
+        self._collider = Collision.make_rect_at_bottom_left(
+                            self._x, self._y, self._w, self._h)
         self._id = Engine.ID.get_id(self)
         self._parent = kwargs.get('parent', None)
-        self._children = []
         self._elements = []
         
         
@@ -60,10 +59,10 @@ class Component(object):
         self._x = value
     x = property(_get_x, _set_x)
     
-    def _get_gx(self):
+    @property
+    def gx(self): #pylint:disable-msg=C0103
         """Global x position"""
         return self._gx
-    gx = property(_get_gx)
     
     def _get_y(self):
         """Local y position"""
@@ -73,10 +72,10 @@ class Component(object):
         self._y = value
     y = property(_get_y, _set_y)
     
-    def _get_gy(self):
+    @property
+    def gy(self): #pylint:disable-msg=C0103
         """Global y position"""
         return self._gy
-    gy = property(_get_gy)
     
     def _get_w(self):
         """Width"""
@@ -103,28 +102,17 @@ class Component(object):
         self.update_batch(self._batch, self._group)
     visible = property(_get_visible, _set_visible)
     
-    def _get_parent(self):
+    @property
+    def parent(self):
         """Get the component's parent"""
         return self._parent
-    parent = property(_get_parent)
-    
-    def add_child(self, child):
-        """
-        Add a child component to the component's children.
-        
-        A component's parent should fully contain it for proper hit testing.
-        """
-        
-        child.update_parent(self)
-        self._children.append(child)
-        self.update_batch(self._batch, self._group)
     
     def add_element(self, element):
         """
         Add an element to this component.
         
-        Elements are _part of_ the component,
-        while children are _contained/owned by_ the component
+        Elements are _part of_ the component
+        (Containers' children are contained by the component)
         """
         group = pyglet.graphics.OrderedGroup(len(self._elements),
                                              self._element_group)
@@ -138,40 +126,22 @@ class Component(object):
             parent = parent.parent
         return parent
     
-    def remove(self, recursive=True):
+    def remove(self):
         """
         Remove the component.
         
-        If recursive, removes children as well.
-        If has children and not recursive, children are appended to
-            this parent.
-            If this parent is None, children are discarded
+        Calls remove on each of its elements.
         """
-        
-        if not recursive and not self.parent:
-            #No parent to attach children to, remove them anyway
-            recursive = True
-        
-        if recursive:
-            #Remove all children
-            for child in self._children:
-                child.remove(recursive)
-        else:
-            for child in self._children:
-                #Correct offsets
-                child.x += self.x
-                child.y += self.y
-                child.update_parent(self.parent)
-        self._children = []
+        self.update_parent(None)
+        for element in self._elements:
+            element.remove()
+        self._elements = []
     
     def update(self, dt): #pylint:disable-msg=C0103
         """
-        Updates component elements and children, graphical and logical.
+        Updates component elements, graphical and logical.
         """
         self.update_global_coords()
-        
-        for child in self._children:
-            child.update(dt)
         
         for element in self._elements:
             element.update(dt)
@@ -182,21 +152,13 @@ class Component(object):
         """
         Update the batch and group of the component.
         
-        Called when visibility changes and children are added.
+        Auto-called when visibility changes.
         """
         self._batch, self._group = batch, group
-        
-        child_group = pyglet.graphics.OrderedGroup(0, group)
         self._element_group = pyglet.graphics.OrderedGroup(1, group)
-        
-        for child in self._children:
-            #Pass children the lower of the layers
-            child.update_batch((batch if self.visible else None), child_group)
-        
         for element in self._elements:
             element.update_batch((batch if self.visible else None), 
                                  self._element_group)
-        
         self._dirty = True
     
     def update_global_coords(self):
@@ -205,7 +167,26 @@ class Component(object):
         if self.parent:
             self._gx += self.parent.gx
             self._gy += self.parent.gy
-        for child in self._children:
-            child.update_global_coords()
     
+    def update_parent(self, parent):
+        """
+        Update the component's parent.
+        
+        Removes the component from its old parent, if it can.
+        Adds the component to its new parent, if it can.
+        """
+        if self._parent:
+            try:
+                self._parent.remove_child(self)
+            except AttributeError:
+                #Old parent doesn't have a remove_child method
+                pass
+        self._parent = parent
+        if self._parent:
+            try:
+                self._parent.add_child(self)
+            except AttributeError:
+                #New parent doesn't have an add_child method
+                pass
+        
     
