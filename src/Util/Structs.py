@@ -2,6 +2,8 @@
 Useful structures such as double buffers and typechecked lists
 """
 
+from collections import defaultdict
+
 def enum(*sequential, **named):
     """Creates a classic enumerable.  For details,
             see http://stackoverflow.com/q/1695250""" 
@@ -145,27 +147,17 @@ class LockableList(list):
     _changed_since_last_call = False
     
     def __init__(self, values=None):
-        self._to_change = {}
+        self._to_change = defaultdict(int)
         if values is None:
             values = []
         super(LockableList, self).__init__(values)
-    
-    def _apply_change_diff(self, value, amt):
-        """Checks self._to_change and if there is an existing value, 
-            increments by value. 
-            
-            Otherwise, sets self._to_change[value] = amt"""
-        if self._to_change.has_key(value):
-            self._to_change[value] += amt
-        else:
-            self._to_change[value] = amt
     
     def append(self, value):
         self._changed_since_last_call = True
         if not self._locked:
             super(LockableList, self).append(value)
         else:
-            self._apply_change_diff(value, 1)
+            self._to_change[value] += 1
             self._needs_update = True
     
     def _apply_pending_changes(self):
@@ -178,7 +170,7 @@ class LockableList(list):
                 super(LockableList, self).append(key)
             else:
                 super(LockableList, self).remove(key)
-        
+        self._to_change = defaultdict(int)
         self._needs_update = False
     
     def __g_changed_since_last_call(self):
@@ -192,7 +184,7 @@ class LockableList(list):
         Does not check lock status. This might need to be changed..."""
         while len(self) > 0:
             self.pop()
-        self._to_change = {}
+        self._to_change = defaultdict(int)
         self._changed_since_last_call = True
     
     def clear_change_flag(self):
@@ -207,7 +199,7 @@ class LockableList(list):
             super(LockableList, self).extend(values)
         else:
             for value in values:
-                self._apply_change_diff(value, 1)
+                self._to_change[value] += 1
             self._needs_update = True
     
     def __g_has_pending_updates(self):
@@ -263,7 +255,7 @@ class LockableList(list):
         if not self._locked:
             super(LockableList, self).remove(value)
         else:
-            self._apply_change_diff(value, -1)
+            self._to_change[value] -= 1
             self._needs_update = True
 
     def sort(self, cmp_=None, key_=None, reverse_=False):

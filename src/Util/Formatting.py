@@ -87,6 +87,9 @@ class StringBuilder(object):
         else:
             return ""
     
+    def __getitem__(self, key):
+        return self.__call__()[key]
+    
     def __iadd__(self, other):
         """Standard string append"""
         self._data.append(other)

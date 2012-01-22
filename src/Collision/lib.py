@@ -3,7 +3,6 @@ Collection of collision functions that check between two shapes.
 Use Collision.check(shape1, shape2) to check supported shapes.
 """
 
-from Collider import Collider
 import Shapes
 
 def d2(shape1, shape2): #pylint:disable-msg=C0103
@@ -13,6 +12,7 @@ def d2(shape1, shape2): #pylint:disable-msg=C0103
 
 def coll_collect_collect(collect1, collect2, eps):
     """Collection-collection collision detection."""
+    from Collider import Collider
     for item1 in collect1:
         for item2 in collect2:
             colliding = Collider.check(item1, item2, eps)
@@ -26,6 +26,7 @@ def coll_collect_single(collect, other_shape, eps):
     
     x should not be a collision collection.
     """
+    from Collider import Collider
     for shape in collect:
         colliding = Collider.check(shape, other_shape, eps)
         if colliding:
