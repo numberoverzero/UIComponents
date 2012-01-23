@@ -19,6 +19,8 @@ _LINE_FMT = "Line<p1:{}, p2:{}, rot:{}>"
 _PILL_FMT = "Pill<c:{}, rad:{}, height:{}, rot:{}>"
 _POINT_FMT = "Point<({},{}), rot:{}>"
 _RECT_FMT = "Rect<c:{}, dim:({},{}), rot:{}>"
+_VEC_ADD_ERR = "Couldn't add vec and other ({}, {})."
+_VEC_DIV_ERR = "Division of vectors is ambiguous ({}, {})."
 _VEC_MUL_ERR = "Multiplication of vectors is ambiguous ({}, {})."
 _VEC_FMT = "<{},{}>"
 
@@ -517,20 +519,26 @@ class vec(object): #pylint:disable-msg=C0103
         mag2 = self.mag2()
         return vec(self.x * self.x / mag2, self.y * self.y / mag2)
 
-    def __diff__(self, other):
-        return vec(self.x-other.x, self.y-other.y)
-
     def __add__(self, other):
         try:
-            return vec(self.x+other.x, self.y-other.y)
+            return vec(self.x + other.x, self.y + other.y)
         except AttributeError:
             try:
                 return vec(self.x+other, self.y+other)
             except: #pylint:disable-msg=W0702
-                return vec(0, 0)
+                raise AttributeError(_VEC_ADD_ERR.format(self, other))
+            
+    def __diff__(self, other):
+        return vec(self.x-other.x, self.y-other.y)
+
+    def __div__(self, other):
+        if hasattr(other, 'x'):
+            raise ArithmeticError(_VEC_MUL_ERR.format(self, other))
+        else:
+            return vec(self.x*other, self.y*other)
 
     def __mul__(self, other):
-        if hasattr(other, 'x') or hasattr(other, 'y'):
+        if hasattr(other, 'x'):
             raise ArithmeticError(_VEC_MUL_ERR.format(self, other))
         else:
             return vec(self.x*other, self.y*other)
