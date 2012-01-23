@@ -101,8 +101,7 @@ class MathTest(unittest.TestCase):
             self.assertEqual(Math.gcd(a, b), r)
         #Test 1, 0
         check(1, 0, 1)
-        with self.assertRaises(TypeError):
-            check(0, 0, 1)
+        check(0, 0, 0)
         check(1, 100, 1)
         check(1, -100, 1)
         
