@@ -15,15 +15,25 @@ import Formatting
 import Structs
 import Wrappers
 
-#__all__ = ['Math', 'Formatting', 'Structs', 'Wrappers']
-
 def class_name(obj):
-    """Returns the class name of an object."""
+    """
+    Returns the class name of an object.
+    
+    Includes namespaces; for example-
+    in module a.py:
+    class b(object):
+        def __init__(self):
+            class c(object):
+                pass
+            self.c = c()
+    d = b().c
+    class_name(d) == "a.b.c"
+    """
     return ".".join(str(obj.__class__).split("'")[1].split(".")[1:])
 
 def ensure_type(iterable, dtype):
     """Attempts to convert each item in iterable to type dtype."""
-    return [dtype(item) for item in iterable]
+    return type(iterable)(dtype(item) for item in iterable)
 
 def profile(str_to_execute, max_results= -1):
     """Runs a quick profile on the str_to_execute, and 
