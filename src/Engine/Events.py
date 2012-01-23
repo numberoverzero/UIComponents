@@ -34,7 +34,7 @@ class EventHandler(object):
             for listener in listener_or_iter:
                 self.add_listener(listener)
         else:
-            if not Util.contains(self._listeners, listener_or_iter):
+            if not listener_or_iter in self._listeners:
                 self._listeners.append(listener_or_iter)                
     
     def __call__(self, sender, event_args=NONEARGS):
@@ -80,5 +80,5 @@ class EventHandler(object):
     
     def remove_listener(self, listener):
         """Removes the listener from those pushed on invocation."""
-        if Util.contains(self._listeners, listener):
+        if listener in self._listeners:
             self._listeners.remove(listener)

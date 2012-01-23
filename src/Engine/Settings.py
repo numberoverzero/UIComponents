@@ -50,7 +50,7 @@ class Setting(object):
     def __s_current_option(self, value):
         """Sets the current option of the setting.
             If option is not a valid option, does not make a change"""
-        if Util.contains(self._options, value):
+        if value in self._options:
             self._current_index = self._options.index(value)
         else:
             raise KeyError(self.__no_opt_err.format(value))            
@@ -74,7 +74,7 @@ class Setting(object):
     def __s_default_option(self, value):
         """Sets the default option of the setting.
             If value is not a valid option, does not make a change"""
-        if Util.contains(self._options, value):
+        if value in self._options:
             self._default_index = self._options.index(value)
         else:
             raise KeyError(self.__no_opt_err.format(value))            
@@ -96,7 +96,7 @@ class Setting(object):
         
         if not self._options:
             err = "No values loaded in options."
-        elif Util.contains(self._options, value):
+        elif value in self._options:
             index = self._options.index(value)
         else:
             err = "Could not find option {} in self.options".format(value)
@@ -174,7 +174,7 @@ class Setting(object):
     def remove_option(self, value):
         """Removes an option from the options, and
             updates the current selection as needed."""
-        if Util.contains(self._options, value):
+        if value in self._options:
             self._options.remove(value)
         if self.current_index >= len(self._options):
             self.current_index = len(self._options) - 1

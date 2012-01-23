@@ -65,6 +65,7 @@ class StringBuilder(object):
     To force a compact, use build()
     
     To get the current string, call the StringBuilder object.
+    ie. myStringBuilder()
     """
     __slots__ = ['_size', '_msize', '_data']
     

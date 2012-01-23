@@ -21,10 +21,6 @@ def class_name(obj):
     """Returns the class name of an object."""
     return ".".join(str(obj.__class__).split("'")[1].split(".")[1:])
 
-def contains(list_, item):
-    """Tests that the list contains at least one occurance of item."""
-    return list_.count(item) > 0
-
 def ensure_type(iterable, dtype):
     """Attempts to convert each item in iterable to type dtype."""
     return [dtype(item) for item in iterable]
