@@ -46,7 +46,7 @@ def struct_to_str(struct):
         parens = "[]"
     else:
         parens = "()"
-    inner = ",".join(struct)
+    inner = ",".join((str(s) for s in struct))
     
     return parens[0]+inner+parens[1]
 
