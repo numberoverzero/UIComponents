@@ -27,7 +27,7 @@ class FormattingTest(unittest.TestCase):
         expected = Formatting.surrounded_by_parens(s)
         self.assertFalse(expected)
         
-    def test_str_to_tuple(self):
+    def test_str_to_struct(self):
         #Test int parsing with parens
         s = "(1,2,3,4,5)"
         expected = (1, 2, 3, 4, 5)

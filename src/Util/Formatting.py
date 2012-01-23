@@ -116,5 +116,3 @@ class StringBuilder(object):
         _str = ''.join(self._data)
         self._data = [_str]
         self._size = 1
-
-sb = StringBuilder();sb += "Hello";sb += ", ";sb += "World";sb += ".";
