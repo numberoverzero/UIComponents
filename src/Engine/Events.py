@@ -3,7 +3,6 @@ Describes EventArgs and EventHandlers
 """
 
 import ID
-import Util
 
 class EventArgs(object):
     """Base class for arguments of an event."""

@@ -69,14 +69,17 @@ class StringBuilder(object):
     """
     __slots__ = ['_size', '_msize', '_data']
     
-    def __init__(self, size = -1):
-        self._size = 0
+    def __init__(self, string=None, size = -1):
+        if string:
+            self._data = [string]
+        else:
+            self._data = []
         self._msize = size
-        self._data = []
+        self._size = len(self._data)
         
     def __add__(self, other):
-        """Standard string concat"""
-        return self.__call__() + other
+        """x.__add__(y) <==> x+y"""
+        return self.__call__().__add__(other)
     
     def __call__(self):
         """Return the built string"""
@@ -87,24 +90,72 @@ class StringBuilder(object):
             return self._data[0]
         else:
             return ""
+        
+    def __contains__(self, other):
+        """x.__contains__(y) <==> y in x"""
+        return self.__call__().__contains__(other)
+    
+    def __eq__(self, other):
+        """x.__eq__(y) <==> x==y"""
+        return self.__call__().__contains__(other)
+    
+    def __ge__(self, other):
+        """x.__ge__(y) <==> x>=y"""
+        return self.__call__().__ge__(other)
     
     def __getitem__(self, key):
         return self.__call__()[key]
     
+    def __gt__(self, other):
+        """x.__gt__(y) <==> x>y"""
+        return self.__call__().__gt__(other)
+    
     def __iadd__(self, other):
-        """Standard string append"""
+        """x.__iadd__(y) <==> x+=y"""
         self._data.append(other)
         self._size += 1
         self._check_build()
         return self
     
+    def __imul__(self, other):
+        """x.__imul__(y) <==> x*=y"""
+        self._data *= other
+        self._size = len(self._data)
+        self._check_build()
+        return self
+    
+    def __le__(self, other):
+        """x.__le__(y) <==> x<=y"""
+        return self.__call__().__le__(other)
+    
+    def __len__(self):
+        """x.__len__() <==> len(x)"""
+        return self.__call__().__len__()
+    
+    def __lt__(self, other):
+        """x.__lt__(y) <==> x<y"""
+        return self.__call__().__lt__(other)
+    
+    def __mul__(self, other):
+        """x.__mul__(n) <==> x*n"""
+        return self.__call__().__mul__(other)
+    
+    def __ne__(self, other):
+        """x.__ne__(y) <==> x!=y"""
+        return self.__call__().__ne__(other)
+    
+    def __repr__(self, *args, **kwargs):
+        return repr(self.__call__())
+    
     def __radd__(self, other):
         return other + self.__call__()
     
-    def __repr__(self, *args, **kwargs):
-        return repr(self.__str__())
+    def __rmul__(self, other):
+        """x.__rmul__(n) <==> n*x"""
+        return other * self.__call__()
     
     def __str__(self):
+        """x.__str__() <==> str(x)"""
         return self.__call__()
     
     def _check_build(self):
@@ -117,3 +168,4 @@ class StringBuilder(object):
         _str = ''.join(self._data)
         self._data = [_str]
         self._size = 1
+    
