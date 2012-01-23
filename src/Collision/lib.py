@@ -139,7 +139,7 @@ def coll_point_rect(point, rect, eps):
     if abs(rect.rot) <= 1E-8:
         #Close enough to zero rotation
         eps2 = eps / 2.0
-        w2, h2 = rect.w / 2.0, rect.h / 2.0 #pylint:disable-msg=C0103
+        w2, h2 = rect.dims / 2.0 #pylint:disable-msg=C0103
         return ((rect.x - eps2 - w2 <= point.x <= rect.x + eps2 + w2) and
                 (rect.h - eps2 - h2 <= point.y <= rect.y + eps2 + h2))
     
@@ -155,7 +155,7 @@ def coll_point_rect(point, rect, eps):
     point.rotate_about(-rot, pivot)
     #Close enough to zero rotation
     eps2 = eps / 2.0
-    w2, h2 = rect.w / 2.0, rect.h / 2.0 #pylint:disable-msg=C0103
+    w2, h2 = rect.dims / 2.0 #pylint:disable-msg=C0103
     coll = ((rect.x - eps2 - w2 <= point.x <= rect.x + eps2 + w2) and
             (rect.h - eps2 - h2 <= point.y <= rect.y + eps2 + h2))
     
@@ -186,8 +186,8 @@ def _dni(rect1, rect2, eps):
     r2bbox = rect2.get_bbox()
     
     #check for collision
-    r1w2, r1h2 = rect1.w / 2.0, rect1.h / 2.0
-    r2w2, r2h2 = r2bbox.w / 2.0, r2bbox.h / 2.0
+    r1w2, r1h2 = rect1.dims / 2.0
+    r2w2, r2h2 = r2bbox.dims / 2.0
     coll = ((rect1.x + r1w2 + eps >= r2bbox.x - r2w2) and
             (rect1.x - r1w2 <= r2bbox.x + r2w2 + eps) and
             (rect1.y + r1h2 + eps >= r2bbox.h - r2h2) and
@@ -202,8 +202,8 @@ def _dni(rect1, rect2, eps):
 def coll_rect_rect(rect1, rect2, eps):
     """Rect-rect collision detection."""
     if abs(rect1.rot) <= 1E-5 and abs(rect2.rot) <= 1E-5:
-        r1w2, r1h2 = rect1.w / 2.0, rect1.h / 2.0
-        r2w2, r2h2 = rect2.w / 2.0, rect2.h / 2.0
+        r1w2, r1h2 = rect1.dims / 2.0
+        r2w2, r2h2 = rect2.dims / 2.0
         return ((rect1.x + r1w2 + eps >= rect2.x - r2w2) and
                 (rect1.x - r1w2 <= rect2.x + r2w2 + eps) and
                 (rect1.y + r1h2 + eps >= rect2.h - r2h2) and

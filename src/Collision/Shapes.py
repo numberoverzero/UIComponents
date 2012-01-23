@@ -422,7 +422,12 @@ class Rectangle(object):
         """Return a copy of the object"""
         return Rectangle(self.center.x, self.center.y, 
                          self.w, self.h, self.rot)
-        
+    
+    @property
+    def dims(self):
+        """The dimensions of the rectangle, returned as a vec"""
+        return vec(self.w, self.h)
+    
     def get_center(self):
         """
         Returns a point at the center of the rectangle
@@ -441,7 +446,7 @@ class Rectangle(object):
             return self._bbox
         
         x, y = self.center.x, self.center.y #pylint:disable-msg=C0103
-        w2, h2 = self.w / 2.0, self.h / 2.0 #pylint:disable-msg=C0103
+        w2, h2 = self.dims / 2.0 #pylint:disable-msg=C0103
         pivotfn = Util.Math.mk_rot_fn(x, y, self.rot)    
         
         x1, y1 = pivotfn(x - w2, y - h2) #pylint:disable-msg=C0103
@@ -537,6 +542,10 @@ class vec(object): #pylint:disable-msg=C0103
         else:
             return vec(self.x*other, self.y*other)
 
+    def __iter__(self):
+        yield self.x
+        yield self.y
+    
     def __mul__(self, other):
         if hasattr(other, 'x'):
             raise ArithmeticError(_VEC_MUL_ERR.format(self, other))
