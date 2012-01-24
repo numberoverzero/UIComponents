@@ -98,8 +98,114 @@ class FormattingTest(unittest.TestCase):
         self.assertFalse(expected)
 
 class StringBuilderTest(unittest.TestCase):
-    pass
-
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        def mk_and_append(size, string):
+            sb = Formatting.StringBuilder(size=size)
+            for c in string:
+                sb += c
+            return sb
+        self.mk_and_append = mk_and_append
+    def test_size(self):
+        #test negative size - shouldn't ever build
+        sb = self.mk_and_append(-3, "Hello")
+        expected = 5
+        actual = len(sb.data)
+        self.assertEqual(actual, expected)
+        
+        
+        #test 0 size - shouldn't ever build
+        sb = self.mk_and_append(0, "Hello")
+        expected = 5
+        actual = len(sb.data)
+        self.assertEqual(actual, expected)
+        
+        #test 1 size - should build every call
+        sb = self.mk_and_append(1, "Hello")
+        expected = 1
+        actual = len(sb.data)
+        self.assertEqual(actual, expected)
+        
+        #test pos size - should build every n
+        sb = self.mk_and_append(2, "Hello")
+        expected = 1
+        actual = len(sb.data)
+        self.assertEqual(actual, expected)
+    
+    def test_iops(self):
+        #Test +=
+        sb = self.mk_and_append(5, "Yup")
+        sb += ", Bro"
+        self.assertTrue(isinstance(sb, Formatting.StringBuilder))
+        
+        #Test *=
+        sb = self.mk_and_append(5, "Yup")
+        sb *= 3
+        self.assertTrue(isinstance(sb, Formatting.StringBuilder))
+        
+    def test_ops(self):
+        #Test +
+        sb = self.mk_and_append(10, "")
+        a_string = "Hello"
+        
+        concat1 = sb + a_string
+        concat2 = a_string + sb
+        
+        self.assertTrue(isinstance(concat1, basestring))
+        self.assertTrue(isinstance(concat2, basestring))
+        
+        #Test <, <=, >, >=, ==, !=
+        sb = self.mk_and_append(15, "dog")
+        
+        self.assertTrue(sb < "elephant")
+        
+        self.assertTrue(sb <= "elephant")
+        self.assertTrue(sb <= "dog")
+        
+        self.assertTrue(sb == "dog")
+        self.assertTrue(sb != "Dog")
+        
+        self.assertTrue(sb >= "dog")
+        self.assertTrue(sb >= "cat")
+        
+        self.assertTrue(sb > "cat")
+    
+    def test_overloaded_fns(self):
+        #Test in
+        sb = self.mk_and_append(10, "burger")
+        self.assertTrue("b" in sb)
+        self.assertTrue("r" in sb)
+        self.assertTrue("g" in sb)
+        self.assertFalse("i" in sb)
+        
+        #Test slicing
+        sb = self.mk_and_append(10, "burger")
+        s = "burger"
+        self.assertEqual(sb[:], s[:])
+        self.assertEqual(sb[1:-1], s[1:-1])
+        self.assertEqual(sb[1:4], s[1:4])
+        self.assertEqual(sb[3:], s[3:])
+        self.assertEqual(sb[:-3], s[:-3])
+        
+        #test len with large append
+        sb = self.mk_and_append(10, "burger")
+        s = "burger"
+        self.assertEqual(len(sb), len(s))
+        
+        sb += " king makes you fat"
+        s += " king makes you fat"
+        self.assertEqual(len(sb), len(s))
+        
+        #test len with multiple small appends
+        sb = self.mk_and_append(10, "burger")
+        s = "burger"
+        self.assertEqual(len(sb), len(s))
+        
+        for c in " king makes you fat":
+            sb += c
+        s += " king makes you fat"
+        self.assertEqual(len(sb), len(s))
+        
 def suite():
     test_suite = unittest.TestSuite()
     suite1 = unittest.makeSuite(FormattingTest)

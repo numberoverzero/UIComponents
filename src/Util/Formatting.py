@@ -70,6 +70,29 @@ class StringBuilder(object):
     __slots__ = ['_size', '_msize', '_data']
     
     def __init__(self, string=None, size = -1):
+        """
+        StringBuilder is reduce string concat overhead.
+        
+        Standard += cost is O(n**2), where ''.join(iter) is O(n).
+        This class acts in all relavant ways like a string
+        (+=, +, *, *=) and when called- MyStringBuilder()
+        returns the compressed string that's been building.
+        You can manually force compression by calling build().
+        
+        string: an existing base string that will be loaded into data
+        size: the maximum number of chunks of string to keep at once
+                before the next append compresses the data.
+                negative or 0 sizes will only compress
+                when the string representation is requested, or a
+                build is explicitly requested.
+             
+                ex. sb = StringBuilder(size=4)
+                sb += "B" # size = 1 after call
+                sb += "o" # size = 2 after call
+                sb += "b" # size = 3 after call
+                sb += "!" # <-- THIS call compresses the pieces
+                                into one string internally
+        """     
         if string:
             self._data = [string]
         else:
@@ -169,3 +192,7 @@ class StringBuilder(object):
         self._data = [_str]
         self._size = 1
     
+    @property
+    def data(self):
+        """Returns a copy of the internal list that StringBuilder joins"""
+        return self._data[:]
