@@ -17,7 +17,7 @@ class IOTest(unittest.TestCase):
     
     def test_ensdir(self):
         #Test a bad folder name
-        path = "!@#$%^&*():;[]{}"
+        path = "!@#$%^&*():;[]{}+-`~\"/|"
         with self.assertRaises(WindowsError):
             IO.ensdir(path)
         
@@ -34,7 +34,7 @@ class IOTest(unittest.TestCase):
     def test_ensfile(self):
         #Test a bad filename
         filename = "!@#$%^&*():;[]{}.txt"
-        with self.assertRaises(WindowsError):
+        with self.assertRaises(IOError):
             IO.ensfile(filename)
         
         import os, os.path
@@ -49,7 +49,24 @@ class IOTest(unittest.TestCase):
         self.assertTrue(os.path.isfile(filename))
         os.remove(filename)
         os.rmdir(path)
-
+    
+    def test_remove_file(self):
+        #Test file that doesn't exist
+        result = IO.remove_file("sadksal21r45ewq90&&&&%%!@####:::")
+        self.assertFalse(result)
+        
+        #Test file that does exist
+        IO.ensfile("test_remove_file.exe")
+        result = IO.remove_file("test_remove_file.exe")
+        self.assertTrue(result)
+        
+        #Test file that exists, but can't be removed.
+        IO.ensfile("test_remove_file.txt")
+        with open("test_remove_file.txt") as f:
+            result = IO.remove_file("test_remove_file.txt")
+            self.assertFalse(result)
+        result = IO.remove_file("test_remove_file.txt")
+        self.assertTrue(result)
 def suite():
     suite1 = unittest.makeSuite(IOTest)
     return unittest.TestSuite(suite1)

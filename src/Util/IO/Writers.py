@@ -7,9 +7,12 @@ import Util.Time
 import functools
 
 class BufferedWriter(object):
-    """Writes lines to memory, then when it hits the buffer limit,
-        writes memory to file.  Use neg BufferSize for full-file buffering.
-        Use BufferSize = 0 for immediate writing."""
+    """
+    Writes lines to memory, dumps to file when buffer is full.
+    
+    Use neg buffer_size for full-file buffering.
+    Use buffer_size = 0 for immediate writing.
+    """
     def __init__(self, filename, buffer_size = -1):
         self._filename = filename
         self._buffer_size = buffer_size
@@ -76,9 +79,10 @@ class BufferedWriter(object):
         self._write(data + "\n")
 
 class Logger(object):
-    """Used for logging info to a logfile.
-        To log execution of something, you can do any of the following:
-        
+    """
+    Used for logging info to a logfile.
+    
+    To log execution of something, you can do any of the following:
         - use the log_func_time decorator
         - 1) call your_logger.start()
           2) execute the code
