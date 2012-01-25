@@ -13,9 +13,10 @@ def d2(shape1, shape2): #pylint:disable-msg=C0103
 def coll_collect_collect(collect1, collect2, eps):
     """Collection-collection collision detection."""
     from Collider import Collider
+    check = Collider.check
     for item1 in collect1:
         for item2 in collect2:
-            colliding = Collider.check(item1, item2, eps)
+            colliding = check(item1, item2, eps)
             if colliding:
                 return colliding
     return False
@@ -27,8 +28,9 @@ def coll_collect_single(collect, other_shape, eps):
     x should not be a collision collection.
     """
     from Collider import Collider
+    check = Collider.check
     for shape in collect:
-        colliding = Collider.check(shape, other_shape, eps)
+        colliding = check(shape, other_shape, eps)
         if colliding:
             return colliding
     return False
