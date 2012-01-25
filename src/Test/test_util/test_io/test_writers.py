@@ -2,6 +2,7 @@ import unittest
 import time
 
 import Util.IO.Writers as Writers
+import Util.IO
 
 class BufferedWriteTest(unittest.TestCase):
     def setUp(self):
@@ -9,14 +10,19 @@ class BufferedWriteTest(unittest.TestCase):
         
         #Where we'll write to
         self.filename = 'temp_writer_test_file.txt'
-            
+    
     def tearDown(self):
         unittest.TestCase.tearDown(self) 
-        import os
-        try:
-            os.remove(self.filename)
-        except WindowsError:
-            pass
+        Util.IO.remove_file(self.filename)
+    
+    def test_buffer_sizes(self):
+        #Test 0 buffer
+        
+        #Test 10 buffer
+        
+        pass
+    
+    def test
 
 def suite():
     suite1 = unittest.makeSuite(BufferedWriteTest)

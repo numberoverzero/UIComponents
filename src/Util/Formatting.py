@@ -104,6 +104,15 @@ class StringBuilder(object):
         """x.__add__(y) <==> x+y"""
         return self.__call__().__add__(other)
     
+    def __bool__(self):
+        """Python 3.x of __nonzero__"""
+        if len(self._data) == 0:
+            return False
+        elif len(self._data) == 1:
+            return bool(self._data[0])
+        else:
+            return True
+    
     def __call__(self):
         """Return the built string"""
         if self._size > 1:
@@ -167,6 +176,8 @@ class StringBuilder(object):
         """x.__ne__(y) <==> x!=y"""
         return self.__call__().__ne__(other)
     
+    __nonzero__ = __bool__
+    
     def __repr__(self, *args, **kwargs):
         return repr(self.__call__())
     
@@ -192,6 +203,11 @@ class StringBuilder(object):
         self._data = [_str]
         self._size = 1
     
+    def clear(self):
+        """Clear the string back to the empty string"""
+        self._data = [""]
+        self._size = 1
+        
     @property
     def data(self):
         """Returns a copy of the internal list that StringBuilder joins"""
