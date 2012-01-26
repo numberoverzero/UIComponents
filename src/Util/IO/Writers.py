@@ -92,6 +92,20 @@ class Logger(BufferedWriter):
     """
     Used for logging info to a logfile.
     
+    You do not need to manage your timer ids (tid) directly
+        unless you will be starting and stopping timers non-consecutively.
+    In either case (manual management or auto) logging a message w/o a tid
+        will tell the Logger to use the last tid that was stopped.
+    This assumption allows you to, in code, do the following:
+        ... #task completes
+        my_log.stop()
+        my_log.log_message_with_elapsed("My task complete!")
+    only as long as you know that the timer associated with "task" was the
+        LAST STARTED task, you also know that the first stop() will stop
+        the timer that was started when you began logging task.
+    For non-intersecting start/stops, this is always the case-
+        you don't need to track tids.
+        
     If the logger will be writing lines constantly,
     consider using a buffer_size ~= 8 << 10 or larger.
     Otherwise, you'll be opening and closing the file on every write.
@@ -109,10 +123,10 @@ class Logger(BufferedWriter):
     
     def __init__(self, filename, buffer_size=0):
         BufferedWriter.__init__(self, filename, buffer_size)
-        self.next_tid = [0, 0]
-        self.time_start = {}
-        self.time_end = {}
-        self.last_tid = None
+        self._next_tid = [0, 0]
+        self._time_start = {}
+        self._time_end = {}
+        self._last_tid = None
         
     def start(self, tid=None):
         """
@@ -122,10 +136,10 @@ class Logger(BufferedWriter):
         for logging sequential events.
         """
         if tid is None:
-            tid = self.next_tid[0]
-            self.next_tid[0] += 1
-            self.next_tid[1] = self.next_tid[0]
-        self.time_start[tid] = Util.Time.time.time()
+            tid = self._next_tid[0]
+            self._next_tid[0] += 1
+            self._next_tid[1] = self._next_tid[0]
+        self._time_start[tid] = Util.Time.time.time()
         return tid
 
     def stop(self, tid=None):
@@ -136,15 +150,15 @@ class Logger(BufferedWriter):
         for logging sequential events.
         """
         if tid is None:
-            for ptid in xrange(self.next_tid[1] - 1, -1, -1):
-                if ptid not in self.time_end:
+            for ptid in xrange(self._next_tid[1] - 1, -1, -1):
+                if ptid not in self._time_end:
                     tid = ptid
                     break
             if tid is None:
-                tid = self.next_tid[1]
-            self.next_tid[1] -= 1
-        self.time_end[tid] = Util.Time.time.time()
-        self.last_tid = tid
+                tid = self._next_tid[1]
+            self._next_tid[1] -= 1
+        self._time_end[tid] = Util.Time.time.time()
+        self._last_tid = tid
         return tid
 
     def log_message(self, msg, out=False):
@@ -166,9 +180,9 @@ class Logger(BufferedWriter):
         as time information.
         """
         if tid is None:
-            tid = self.last_tid
+            tid = self._last_tid
         try:
-            dtime = self.time_end[tid] - self.time_start[tid]
+            dtime = self._time_end[tid] - self._time_start[tid]
         except: #pylint:disable-msg=W0702
             dtime = 0
             
@@ -207,6 +221,4 @@ def make_log(name, use_date=True):
         filename = name
     
     filename += ext
-        
-    Util.IO.ensfile(filename)
     return Logger(filename)

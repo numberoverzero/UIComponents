@@ -90,6 +90,7 @@ class LoggerTest(unittest.TestCase):
         
         #Where we'll write to
         self.filename = 'temp_logger_test_file.txt'
+        Util.IO.remove_file(self.filename)
     
     def tearDown(self):
         unittest.TestCase.tearDown(self) 
