@@ -82,3 +82,17 @@ def ndigits(number):
         number /= 10
         ttl += 1
     return ttl
+
+def rotate_digit(number):
+    """
+    Moves the rightmost digit (least sig) to the left of the number (most sig).
+    
+    Returns number, digit where 
+    number is the new, rotated number
+    digit is the digit that was moved.  Can return 0.
+    """
+    nd_ = ndigits(number) - 1
+    digit = number % 10
+    number /= 10
+    number += digit * 10 ** nd_
+    return number, digit
