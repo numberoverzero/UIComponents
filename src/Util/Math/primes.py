@@ -3,8 +3,6 @@ common queries related to primes.
 mostly imported from project euler problems
 """
 
-import digits
-
 MAX_NUMBER = 1000000
 PRIMES = []
 
@@ -37,10 +35,6 @@ def generate_primes(n): #pylint:disable-msg=C0103
         m = 2 * i + 3 #pylint:disable-msg=C0103
     PRIMES = [2]+[x for x in s if x]
 
-def extend_primes(offset):
-    """Expands the prime table by offset values"""
-    raise NotImplementedError() 
-
 def is_prime(number, adjust_table=False, growth_margin=10):
     """
     Used to check if a number is prime.
@@ -72,11 +66,24 @@ def is_prime(number, adjust_table=False, growth_margin=10):
         _further_ to calculate as a sort of safety against needing
         to recalculate again.
     """
-    raise NotImplementedError()
-
-
+    if not adjust_table:
+        if number <= MAX_NUMBER:
+            return number in PRIMES
+        else:
+            return is_prime_dirty(number)
+    
+    #Adjust the table, return the result
+    offset = int((number - MAX_NUMBER) * growth_margin * 0.01)
+    try:
+        generate_primes(number + offset)
+        return number in PRIMES
+    except MemoryError:
+        return is_prime_dirty(number)
+    
 def is_prime_dirty(number):
     """Quick test if a single number is prime."""
+    if number == 2:
+        return True
     mid = int(number ** 0.5) + 1
     factor = 2
     while factor <= mid:
@@ -86,3 +93,5 @@ def is_prime_dirty(number):
             #No remainder, it's a factor
             return False
     return True
+
+generate_primes(MAX_NUMBER)

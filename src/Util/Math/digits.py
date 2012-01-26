@@ -15,7 +15,6 @@ def filter_numbers_with_digits(numbers, good_digits):
     """
     is_good = lambda number: is_made_of(number, good_digits)
     return [number for number in numbers if is_good(number)]
-    
 
 def gen_digits(number):
     """
