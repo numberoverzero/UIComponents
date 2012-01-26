@@ -5,6 +5,10 @@ Sub-modules will include (basic) 2d vectors and funcitons on them.
 
 import math
 import random
+
+import digits
+import factors
+import primes
 import trig_tables
 
 PI = math.pi

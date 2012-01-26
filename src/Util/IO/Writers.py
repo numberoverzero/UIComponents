@@ -21,6 +21,7 @@ class BufferedWriter(object):
     """
     def __init__(self, filename, buffer_size=0):
         self._filename = filename
+        Util.IO.ensfile(filename)
         self._buffer_size = buffer_size
         self._current_buffer_size = 0
         self._data = Util.Formatting.StringBuilder()

@@ -41,9 +41,9 @@ def is_prime(number, adjust_table=False, growth_margin=10):
     
     When checking large values, or values > primes.MAX_NUMBER,
     there are two solutions:
-        do a one-off check for this value using a custom algorithm
-        expand the table of primes to include the number,
-            plus growth_margin% further values.
+        - do a one-off check for this value using a custom algorithm
+        - expand the table of primes to include the number,
+                plus growth_margin% further values.
     
     Use the first option when you wont be checking many values that
         are outside the range of the table.

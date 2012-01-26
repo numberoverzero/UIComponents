@@ -108,7 +108,7 @@ def push_digit_left(number, digit, base=10):
     """Push a digit onto the left (most sig) side of the number."""
     return number + digit * base ** ndigits(number, base)
 
-def push_digit_right(number, digit, base=10):
+def push_digit_right(number, digit, base=10): #pylint:disable-msg=W0613
     """
     Push a digit onto the right( least sig) side of the number.
     
