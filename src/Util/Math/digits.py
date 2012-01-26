@@ -16,7 +16,7 @@ def filter_numbers_with_digits(numbers, good_digits):
     is_good = lambda number: is_made_of(number, good_digits)
     return [number for number in numbers if is_good(number)]
 
-def gen_digits(number):
+def gen_digits(number, base=10):
     """
     Digit generator that returns the digits of n.
     
@@ -25,25 +25,46 @@ def gen_digits(number):
     3, 5, 9, 1.
     """
     while number:
-        yield number % 10
-        number /= 10
+        yield number % base
+        number /= base
 
-def has_digit(number, digit):
+def get_digit(number, index, base=10):
+    """
+    Return the digit at number[index]
+    
+    index is 0-based, left to right.
+    """
+    ndig = ndigits(number, base)
+    if index >= ndig:
+        msg = "{} only has {} digits. (Asked for {} digit.)"
+        raise IndexError(msg.format(number, ndig, index))
+    if index < 0:
+        msg = "get_digit doesn't handle index wrapping. (Asked for {} digit.)"
+        raise IndexError(msg.format(index))
+    
+    #Move the digit indexed to the rightmost spot
+    power = ndig - index - 1
+    digit = number / (base ** power)
+    
+    #Pull the digit off the right side
+    return digit % base
+    
+def has_digit(number, digit, base=10):
     """True if the digit is anywhere in number."""
     while number:
-        d_curr = number % 10
+        d_curr = number % base
         if d_curr == digit:
             return True
-        number /= 10
+        number /= base
     return False
 
-def has_any_digit(number, digits):
+def has_any_digit(number, digits, base=10):
     """True if any one of digits is a digit of number."""
     while number:
-        d_curr = number % 10
+        d_curr = number % base
         if d_curr in digits:
             return True
-        number /= 10
+        number /= base
     return False
 
 def is_made_of(number, digits):
@@ -53,7 +74,7 @@ def is_made_of(number, digits):
             return False
     return True
  
-def join_digits(digits, reverse=False):
+def join_digits(digits, base=10, reverse=False):
     """
     Combines an iterable of digits, into an integer.
     
@@ -67,32 +88,58 @@ def join_digits(digits, reverse=False):
     ttl = 0
     if reverse:
         for digit in reversed(digits):
-            ttl *= 10
+            ttl *= base
             ttl += digit
     else:
         for digit in digits:
-            ttl *= 10
+            ttl *= base
             ttl += digit
     return ttl
 
-def ndigits(number):
+def ndigits(number, base=10):
     """Returns the number of digits in number."""
     ttl = 0
     while number:
-        number /= 10
+        number /= base
         ttl += 1
     return ttl
 
-def rotate_digit(number):
+def push_digit_left(number, digit, base=10):
+    """Push a digit onto the left (most sig) side of the number."""
+    return number + digit * base ** ndigits(number, base)
+
+def push_digit_right(number, digit, base=10):
+    """
+    Push a digit onto the right( least sig) side of the number.
+    
+    Also known as "adding".  Provided for symmetry to push_digit_left."""
+    return number + digit
+
+def rotate_digit_left(number, base=10):
     """
     Moves the rightmost digit (least sig) to the left of the number (most sig).
     
     Returns number, digit where 
     number is the new, rotated number
     digit is the digit that was moved.  Can return 0.
+            (a 0 means the number is now 1 order mag smaller,
+                and the new number has 1 less digit.)
     """
-    nd_ = ndigits(number) - 1
-    digit = number % 10
-    number /= 10
-    number += digit * 10 ** nd_
+    digit = number % base
+    number /= base
+    number = push_digit_left(number, digit, base)
+    return number, digit
+
+def rotate_digit_right(number, base=10):
+    """
+    Moves the leftmost digit (most sig) to the right of the number (least sig).
+    
+    Returns number, digit where 
+    number is the new, rotated number
+    digit is the digit that was moved.  Cannot return digit = 0
+            (a 0 ins't moved- number will remain on the same order mag.)
+    """
+    digit = get_digit(number, 0, base)
+    number /= base
+    number = push_digit_right(number, digit, base)
     return number, digit
