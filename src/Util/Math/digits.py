@@ -2,6 +2,7 @@
 Common operations and queries regarding a numbers' digits.
 These are largely imported from various project euler problems.
 """
+from math import floor, log10
 
 def filter_numbers_with_digits(numbers, good_digits):
     """
@@ -16,7 +17,7 @@ def filter_numbers_with_digits(numbers, good_digits):
     is_good = lambda number: is_made_of(number, good_digits)
     return [number for number in numbers if is_good(number)]
 
-def gen_digits(number, base=10):
+def gen_digits(number):
     """
     Digit generator that returns the digits of n.
     
@@ -25,46 +26,27 @@ def gen_digits(number, base=10):
     3, 5, 9, 1.
     """
     while number:
-        yield number % base
-        number /= base
+        yield number % 10
+        number /= 10
 
-def get_digit(number, index, base=10):
+def get_digit(number, index):
     """
     Return the digit at number[index]
     
     index is 0-based, left to right.
     """
-    ndig = ndigits(number, base)
-    if index >= ndig:
-        msg = "{} only has {} digits. (Asked for {} digit.)"
-        raise IndexError(msg.format(number, ndig, index))
-    if index < 0:
-        msg = "get_digit doesn't handle index wrapping. (Asked for {} digit.)"
-        raise IndexError(msg.format(index))
+    return int(str(number)[index])
     
-    #Move the digit indexed to the rightmost spot
-    power = ndig - index - 1
-    digit = number / (base ** power)
-    
-    #Pull the digit off the right side
-    return digit % base
-    
-def has_digit(number, digit, base=10):
+def has_digit(number, digit):
     """True if the digit is anywhere in number."""
-    while number:
-        d_curr = number % base
-        if d_curr == digit:
-            return True
-        number /= base
-    return False
+    return str(digit) in str(number)
 
-def has_any_digit(number, digits, base=10):
+def has_any_digit(number, digits):
     """True if any one of digits is a digit of number."""
-    while number:
-        d_curr = number % base
-        if d_curr in digits:
+    snumber = str(number)
+    for digit in digits:
+        if str(digit) in snumber:
             return True
-        number /= base
     return False
 
 def is_made_of(number, digits):
@@ -74,48 +56,34 @@ def is_made_of(number, digits):
             return False
     return True
  
-def join_digits(digits, base=10, reverse=False):
+def join_digits(digits):
     """
     Combines an iterable of digits, into an integer.
     
-    Digits are passed in decreasing order of magnitude,
-    so the sequence (2, 7, 1, 4) would return 2714
-    
-    To pass digits in INCREASING order of magnitude,
-    ie. from gen_digits, use reversed = True
-    the sequence (2, 7, 1, 4) would now return 4172
+    Digits are passed in increasing order of magnitude,
+    so the sequence (2, 7, 1, 4) would return 4172
     """
-    ttl = 0
-    if reverse:
-        for digit in reversed(digits):
-            ttl *= base
-            ttl += digit
-    else:
-        for digit in digits:
-            ttl *= base
-            ttl += digit
-    return ttl
+    return sum(d * 10 ** i for i, d in enumerate(digits))
 
-def ndigits(number, base=10):
-    """Returns the number of digits in number."""
-    ttl = 0
-    while number:
-        number /= base
-        ttl += 1
-    return ttl
+def ndigits(number):
+    """
+    Returns the number of digits in number.
+    
+    Accurate for values of number < 1E15 - 1 """
+    return 1 + floor(log10(number))
 
-def push_digit_left(number, digit, base=10):
+def push_digit_left(number, digit):
     """Push a digit onto the left (most sig) side of the number."""
-    return number + digit * base ** ndigits(number, base)
+    return number + digit * 10 ** ndigits(number)
 
-def push_digit_right(number, digit, base=10): #pylint:disable-msg=W0613
+def push_digit_right(number, digit):
     """
     Push a digit onto the right( least sig) side of the number.
     
     Also known as "adding".  Provided for symmetry to push_digit_left."""
     return number + digit
 
-def rotate_digit_left(number, base=10):
+def rotate_digit_left(number):
     """
     Moves the rightmost digit (least sig) to the left of the number (most sig).
     
@@ -125,12 +93,12 @@ def rotate_digit_left(number, base=10):
             (a 0 means the number is now 1 order mag smaller,
                 and the new number has 1 less digit.)
     """
-    digit = number % base
-    number /= base
-    number = push_digit_left(number, digit, base)
+    digit = number % 10
+    number /= 10
+    number = push_digit_left(number, digit)
     return number, digit
 
-def rotate_digit_right(number, base=10):
+def rotate_digit_right(number):
     """
     Moves the leftmost digit (most sig) to the right of the number (least sig).
     
@@ -139,7 +107,7 @@ def rotate_digit_right(number, base=10):
     digit is the digit that was moved.  Cannot return digit = 0
             (a 0 ins't moved- number will remain on the same order mag.)
     """
-    digit = get_digit(number, 0, base)
-    number /= base
-    number = push_digit_right(number, digit, base)
+    digit = get_digit(number, 0)
+    number /= 10
+    number = push_digit_right(number, digit)
     return number, digit
