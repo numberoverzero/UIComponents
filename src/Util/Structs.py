@@ -2,6 +2,7 @@
 Useful structures such as double buffers and typechecked lists
 """
 
+from copy import deepcopy
 from collections import defaultdict
 
 def enum(*sequential, **named):
@@ -126,15 +127,15 @@ class DoubleBuffer(object):
         return self.__fbuffer.pop(0)
 
     def push(self, value):
-        """Push a value onto the back buffer."""
+        """Push a value onto the bottom of the back buffer."""
         self._write_back_buffer(value)
     
     def _write_back_buffer(self, value):
-        """For directly appending to the back buffer"""
+        """For directly appending to the bottom of the back buffer"""
         self.__bbuffer.append(value)
         
     def _write_front_buffer(self, value):
-        """For directly appending to the front buffer"""
+        """For directly appending to the bottom of the front buffer"""
         self.__fbuffer.append(value)
 
 class LockableList(list):
@@ -143,8 +144,7 @@ class LockableList(list):
             Protects basic actions"""
     
     _locked = False
-    _needs_update = False
-    _changed_since_last_call = False
+    _dirty = False
     
     def __init__(self, values=None):
         self._to_change = defaultdict(int)
@@ -153,12 +153,11 @@ class LockableList(list):
         super(LockableList, self).__init__(values)
     
     def append(self, value):
-        self._changed_since_last_call = True
         if not self._locked:
             super(LockableList, self).append(value)
         else:
             self._to_change[value] += 1
-            self._needs_update = True
+            self._dirty = True
     
     def _apply_pending_changes(self):
         """Apply changes that are pending, only if unlocked."""
@@ -171,13 +170,14 @@ class LockableList(list):
             else:
                 super(LockableList, self).remove(key)
         self._to_change = defaultdict(int)
-        self._needs_update = False
+        self._dirty = False
     
-    def __g_changed_since_last_call(self):
-        """If there are pending updates 
-            (almost always same as HasPendingChanges)"""
-        return self._changed_since_last_call
-    ChangedSinceLastCall = property(__g_changed_since_last_call)
+    def copy(self):
+        new_lockablelist = LockableList(self)
+        new_lockablelist._to_change = deepcopy(self._to_change)
+        new_lockablelist._dirty = self._dirty
+        new_lockablelist._locked = self._locked
+        return new_lockablelist
     
     def clear(self):
         """Clear all values from the list and pending changes.
@@ -185,26 +185,18 @@ class LockableList(list):
         while len(self) > 0:
             self.pop()
         self._to_change = defaultdict(int)
-        self._changed_since_last_call = True
-    
-    def clear_change_flag(self):
-        """Manually clear the change flag.
-            Useful when you want to ignore behavior that triggers off of
-            changes, even if changes HAVE taken place."""
-        self._changed_since_last_call = False
-        
+            
     def extend(self, values):
-        self._changed_since_last_call = True
         if not self._locked:
             super(LockableList, self).extend(values)
         else:
             for value in values:
                 self._to_change[value] += 1
-            self._needs_update = True
+            self._dirty = True
     
     def __g_has_pending_updates(self):
         """Needs update when there are pending changes."""
-        return self._needs_update
+        return self._dirty
     HasPendingUpdates = property(__g_has_pending_updates)
     
     def __g_is_locked(self):
@@ -212,10 +204,17 @@ class LockableList(list):
         return self._locked
     IsLocked = property(__g_is_locked)
     
+    def __iadd__(self, other):
+        self.extend(other)
+        return self
+    
+    def __add__(self, other):
+        new_lockablelist = self.copy()
+        new_lockablelist.extend(other)
+        return new_lockablelist
+    
     def __iter__(self):
         self._apply_pending_changes()
-            #Using iter is effectively calling the object
-        self._changed_since_last_call = False
         return super(LockableList, self).__iter__()
     
     def lock(self, set_lock=None, force_update=True):
@@ -233,7 +232,6 @@ class LockableList(list):
 
     def __g_pending_additions(self):
         """Returns a list of all values to be added when next unlocked"""
-        #self._apply_change_diff(value,1
         additions = []
         for key in self._to_change:
             if self._to_change[key] > 0:
@@ -251,16 +249,14 @@ class LockableList(list):
     PendingRemovals = property(__g_pending_removals)
     
     def remove(self, value):
-        self._changed_since_last_call = True
         if not self._locked:
             super(LockableList, self).remove(value)
         else:
             self._to_change[value] -= 1
-            self._needs_update = True
+            self._dirty = True
 
     def sort(self, cmp_=None, key_=None, reverse_=False):
         self._apply_pending_changes()
-        self._changed_since_last_call = True
         super(LockableList, self).sort(cmp_,
                                             key=key_,
                                             reverse=reverse_)

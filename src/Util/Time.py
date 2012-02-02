@@ -3,6 +3,7 @@ Functions related to displaying and comparing times
 """
 
 import time
+from math import floor
 
 FMT_DATE = "%Y_%d_%m"
 FMT_DATETIME = "%Y_%d_%m__%H_%M_%S"
@@ -51,10 +52,9 @@ def log_fmt_time(time_ = None):
 def split_time(sec):
     """Splits a time in seconds into hours, minutes, seconds, ms."""
     
-    #Get ms using int before floating operations take their toll on accuracy
-    ms = (1000*sec) - round(1000*sec, -3) #pylint:disable-msg=C0103
+    msec = 1000*sec - 1000*floor(sec)
     
     hrs, sec = divmod(sec, 3600)
     mins, sec = divmod(sec, 60)
     
-    return int(hrs), int(mins), int(sec), int(ms)
+    return int(hrs), int(mins), int(sec), int(msec)

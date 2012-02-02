@@ -21,7 +21,7 @@ _POINT_FMT = "Point<({},{}), rot:{}>"
 _RECT_FMT = "Rect<c:{}, dim:({},{}), rot:{}>"
 _VEC_ADD_ERR = "Couldn't add vec and other ({}, {})."
 _VEC_DIV_ERR = "Division of vectors is ambiguous ({}, {})."
-_VEC_MUL_ERR = "Multiplication of vectors is ambiguous ({}, {})."
+_VEC_MUL_ERR = "Vector mul. with a non-constant is ambiguous ({}, {})."
 _VEC_FMT = "<{},{}>"
 
 class Collection(object):
