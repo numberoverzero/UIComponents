@@ -244,27 +244,27 @@ class MathTest(unittest.TestCase):
         
     def test_normalize(self):
         #Test on single value
-        actual = [4.5]
+        base = [4.5]
         expected = [1.0]
-        Math.normalize(actual)
+        actual = Math.normalize(base)
         self.assertAlmostEqualSequence(expected, actual, 5)
         
         #Test on roughly (isZero) equal values
-        actual = [4.5, 4.50000000001, 4.4999999999999]
-        expected = [1.0] * len(actual)
-        Math.normalize(actual)
+        base = [4.5, 4.50000000001, 4.4999999999999]
+        expected = [1.0 / len(base)] * len(base)
+        actual = Math.normalize(base)
         self.assertAlmostEqualSequence(expected, actual, 5)
         
         #Test on negatives
-        actual = [-4.0, -4.0]
-        expected = [1.0] * len(actual)
-        Math.normalize(actual)
+        base = [-4.0, -4.0]
+        expected = [1.0 / len(base)] * len(base)
+        actual = Math.normalize(base)
         self.assertAlmostEqualSequence(expected, actual, 5)
         
         #Test on positives
-        actual = [2.0, 1.5, 1.0]
+        base = [2.0, 1.5, 1.0]
         expected = [1.0, 0.5, 0.0]
-        Math.normalize(actual)
+        actual = Math.normalize(base)
         self.assertAlmostEqualSequence(expected, actual, 5)
     
     def test_rotate(self):
