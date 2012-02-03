@@ -327,7 +327,7 @@ class LockableListTest(unittest.TestCase):
         tll.lock(set_lock=True, force_update=False)
         tll.append("Yellow")
         
-        actual = len(tll.PendingAdditions)
+        actual = len(tll.pending_additions)
         expected = 1
         self.assertTrue(actual == expected)
         
@@ -348,7 +348,7 @@ class LockableListTest(unittest.TestCase):
         tll.lock(set_lock=True, force_update=False)
         tll.extend(["Yellow", "Red"])
         
-        actual = len(tll.PendingAdditions)
+        actual = len(tll.pending_additions)
         expected = 2
         self.assertTrue(actual == expected)
         
@@ -385,7 +385,7 @@ class LockableListTest(unittest.TestCase):
         #Test locking an item
         tll = Structs.LockableList(values=None)
         tll.lock(set_lock=True, force_update=False)
-        self.assertTrue(tll.IsLocked)
+        self.assertTrue(tll.is_locked)
         
         #Test unlocking an item with update
         tll = Structs.LockableList(values=None)
@@ -402,11 +402,11 @@ class LockableListTest(unittest.TestCase):
         
         #Test toggle lock
         tll = Structs.LockableList(values=None)
-        self.assertTrue(not tll.IsLocked)
+        self.assertTrue(not tll.is_locked)
         tll.lock()
-        self.assertTrue(tll.IsLocked)
+        self.assertTrue(tll.is_locked)
         tll.lock()
-        self.assertTrue(not tll.IsLocked)
+        self.assertTrue(not tll.is_locked)
         
     def test_call(self):
         #Test normal behavior
@@ -467,28 +467,24 @@ class LockableListTest(unittest.TestCase):
         self.assertListEqual(actual, expected)
     
     def test_properties(self):
-        #Check HasPendingUpdates, IsLocked, ChangedSinceLastCall
+        #Check HasPendingUpdates, is_locked, ChangedSinceLastCall
         tll = Structs.LockableList(values=None)
         
         tll.lock(set_lock=True, force_update=False)
-        self.assertFalse(tll.HasPendingUpdates)
-        self.assertTrue(tll.IsLocked)
-        self.assertFalse(tll.ChangedSinceLastCall)
+        self.assertFalse(tll.is_dirty)
+        self.assertTrue(tll.is_locked)
         
         tll.lock(set_lock=False, force_update=False)
         tll.extend([5, 3, 4])
             #Extending while unlocked shouldn't queue updates
-        self.assertFalse(tll.HasPendingUpdates)
-        self.assertFalse(tll.IsLocked)
-        self.assertTrue(tll.ChangedSinceLastCall)
-        tll.clear_change_flag()
+        self.assertFalse(tll.is_dirty)
+        self.assertFalse(tll.is_locked)
         
         tll.lock(set_lock=True, force_update=False)
         tll.extend([0, 1, 2])
             #Now they should be queued
-        self.assertTrue(tll.HasPendingUpdates)
-        self.assertTrue(tll.IsLocked)
-        self.assertTrue(tll.ChangedSinceLastCall)
+        self.assertTrue(tll.is_dirty)
+        self.assertTrue(tll.is_locked)
     
     def test_clear(self):
         #Test normal clear, no lcoks
@@ -496,8 +492,8 @@ class LockableListTest(unittest.TestCase):
         tll.extend([3, 4, 5])
         tll.clear()
         self.assertFalse(tll)
-        self.assertFalse(tll.PendingAdditions)
-        self.assertFalse(tll.PendingRemovals)
+        self.assertFalse(tll.pending_additions)
+        self.assertFalse(tll.pending_removals)
         
         #Test with lock and pending updates
         tll = Structs.LockableList(values=None)
@@ -506,8 +502,8 @@ class LockableListTest(unittest.TestCase):
         tll.extend([100, 200])
         tll.clear()
         self.assertFalse(tll)
-        self.assertFalse(tll.PendingAdditions)
-        self.assertFalse(tll.PendingRemovals)
+        self.assertFalse(tll.pending_additions)
+        self.assertFalse(tll.pending_removals)
         
 
 def suite():

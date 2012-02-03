@@ -2,8 +2,7 @@
 Useful structures such as double buffers and typechecked lists
 """
 
-from copy import deepcopy
-from collections import defaultdict
+
 
 def enum(*sequential, **named):
     """Creates a classic enumerable.  For details,
@@ -143,79 +142,82 @@ class LockableList(list):
             such as LockableList[i] =k 
             Protects basic actions"""
     
-    _locked = False
     _dirty = False
+    _locked = False
+    _pending_index = 0
+    
     
     def __init__(self, values=None):
-        self._to_change = defaultdict(int)
+        self._to_change = {}
         if values is None:
             values = []
         super(LockableList, self).__init__(values)
-    
-    def append(self, value):
-        if not self._locked:
-            super(LockableList, self).append(value)
-        else:
-            self._to_change[value] += 1
-            self._dirty = True
     
     def _apply_pending_changes(self):
         """Apply changes that are pending, only if unlocked."""
         if self._locked:
             return
 
-        for key in self._to_change:
-            if self._to_change[key] > 0:
-                super(LockableList, self).append(key)
+        changes = []
+        for value, (index, count) in self._to_change.iteritems():
+            changes.append((index, value, count))
+        changes.sort()
+
+        for index, value, count in changes:
+            if count > 0:
+                super(LockableList, self).append(value)
             else:
-                super(LockableList, self).remove(key)
-        self._to_change = defaultdict(int)
+                super(LockableList, self).remove(value)
+        self._to_change = {}
+        self._pending_index = 0
         self._dirty = False
-    
-    def copy(self):
-        new_lockablelist = LockableList(self)
-        new_lockablelist._to_change = deepcopy(self._to_change)
-        new_lockablelist._dirty = self._dirty
-        new_lockablelist._locked = self._locked
-        return new_lockablelist
+
+    def _track_change(self, value, count):
+        """
+        Start tracking a pending change
+        
+        Keeps track of the order that items were appended in.
+        Keeps ref counter in case items are added/removed multiple times
+            during a lock
+        """
+        if value in self._to_change:
+            self._to_change[value][1] += count
+        else:
+            self._to_change[value] = [self._pending_index, 1 + count]
+            self._pending_index += 1
+            
+    def append(self, value):
+        if not self._locked:
+            super(LockableList, self).append(value)
+        else:
+            self._track_change(value, 1)
+            self._dirty = True
     
     def clear(self):
         """Clear all values from the list and pending changes.
         Does not check lock status. This might need to be changed..."""
         while len(self) > 0:
             self.pop()
-        self._to_change = defaultdict(int)
+        self._to_change = {}
+        self._pending_index = 0
             
     def extend(self, values):
         if not self._locked:
             super(LockableList, self).extend(values)
         else:
             for value in values:
-                self._to_change[value] += 1
+                self._track_change(value, 1)
             self._dirty = True
     
-    def __g_has_pending_updates(self):
+    @property
+    def is_dirty(self): #pylint:disable-msg=C0103
         """Needs update when there are pending changes."""
         return self._dirty
-    HasPendingUpdates = property(__g_has_pending_updates)
     
-    def __g_is_locked(self):
+    @property
+    def is_locked(self):
         """Lock prevents direct append/removal, such as when looping over."""
         return self._locked
-    IsLocked = property(__g_is_locked)
-    
-    def __iadd__(self, other):
-        self.extend(other)
-        return self
-    
-    def __add__(self, other):
-        new_lockablelist = self.copy()
-        new_lockablelist.extend(other)
-        return new_lockablelist
-    
-    def __iter__(self):
-        self._apply_pending_changes()
-        return super(LockableList, self).__iter__()
     
     def lock(self, set_lock=None, force_update=True):
         """If set_lock is not True or False, toggles lock state.
@@ -230,29 +232,29 @@ class LockableList(list):
         if force_update:
             self._apply_pending_changes()
 
-    def __g_pending_additions(self):
+    @property
+    def pending_additions(self):
         """Returns a list of all values to be added when next unlocked"""
         additions = []
         for key in self._to_change:
-            if self._to_change[key] > 0:
+            if self._to_change[key][1] > 0:
                 additions.append(key)
         return additions
-    PendingAdditions = property(__g_pending_additions)
     
-    def __g_pending_removals(self):
+    @property
+    def pending_removals(self):
         """Returns a list of all values to be removed when next unlocked"""
         removals = []
         for key in self._to_change:
-            if self._to_change[key] <= 0:
+            if self._to_change[key][1] <= 0:
                 removals.append(key)
         return removals
-    PendingRemovals = property(__g_pending_removals)
     
     def remove(self, value):
         if not self._locked:
             super(LockableList, self).remove(value)
         else:
-            self._to_change[value] -= 1
+            self._track_change(value, -1)
             self._dirty = True
 
     def sort(self, cmp_=None, key_=None, reverse_=False):
@@ -260,6 +262,14 @@ class LockableList(list):
         super(LockableList, self).sort(cmp_,
                                             key=key_,
                                             reverse=reverse_)
+    
+    def __iadd__(self, other):
+        self.extend(other)
+        return self
+        
+    def __iter__(self):
+        self._apply_pending_changes()
+        return super(LockableList, self).__iter__()
 
 class TypeCheckedList(list):
     """A list with a certain type that is checked
