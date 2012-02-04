@@ -2,7 +2,7 @@
 Useful structures such as double buffers and typechecked lists
 """
 
-
+_ERR_LISTLOCK_AMBIGUOUS = "Can't {} while locked- behavior is ambiguous."
 
 def enum(*sequential, **named):
     """Creates a classic enumerable.  For details,
@@ -137,80 +137,76 @@ class DoubleBuffer(object):
         """For directly appending to the bottom of the front buffer"""
         self.__fbuffer.append(value)
 
+
+class ListLockException(Exception):
+    """
+    Exception during a list operation on a LockableList. 
+    
+    Some actions, such as insert, are non-deterministic in a locked state.
+    The index 3 may have wildly different meanings for the snapshot and the full
+    buffer list, and it's complex if at all possible to know which the user means.
+    """
+    def __init__(self, value):
+        Exception.__init__(self)
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+
 class LockableList(list):
     """Does not protect many of the possible assignments, 
             such as LockableList[i] =k 
             Protects basic actions"""
-    
+    __hash__ = None
     _dirty = False
     _locked = False
-    _pending_index = 0
-    
     
     def __init__(self, values=None):
-        self._to_change = {}
         if values is None:
             values = []
-        super(LockableList, self).__init__(values)
-    
-    def _apply_pending_changes(self):
-        """Apply changes that are pending, only if unlocked."""
-        if self._locked:
-            return
-
-        changes = []
-        for value, (index, count) in self._to_change.iteritems():
-            changes.append((index, value, count))
-        changes.sort()
-
-        for index, value, count in changes:
-            if count > 0:
-                super(LockableList, self).append(value)
-            else:
-                super(LockableList, self).remove(value)
-        self._to_change = {}
-        self._pending_index = 0
-        self._dirty = False
-
-    def _track_change(self, value, count):
-        """
-        Start tracking a pending change
         
-        Keeps track of the order that items were appended in.
-        Keeps ref counter in case items are added/removed multiple times
-            during a lock
-        """
-        if value in self._to_change:
-            self._to_change[value][1] += count
-        else:
-            self._to_change[value] = [self._pending_index, 1 + count]
-            self._pending_index += 1
-            
+        list.__init__(self, values)
+        self._buffer = []
+        self.extend(values)
+        
+    def _copy_buff_to_self(self):
+        """Helper method for copying the buffer to super (list)"""
+        full_range = slice(len(self))
+        list.__setitem__(self, full_range, self._buffer)
+        
     def append(self, value):
         if not self._locked:
-            super(LockableList, self).append(value)
+            list.append(self, value)
         else:
-            self._track_change(value, 1)
+            self._buffer.append(value)
             self._dirty = True
     
     def clear(self):
-        """Clear all values from the list and pending changes.
-        Does not check lock status. This might need to be changed..."""
-        while len(self) > 0:
-            self.pop()
-        self._to_change = {}
-        self._pending_index = 0
-            
-    def extend(self, values):
-        if not self._locked:
-            super(LockableList, self).extend(values)
+        """
+        Clear all values from the list and pending changes
+        
+        Does not check lock status. This might need to be changed...
+        """
+        self._buffer = []
+        self._copy_buff_to_self()
+        self._dirty = False
+                
+    def extend(self, iterable):
+        for value in iterable:
+            self.append(value)
+        
+    def insert(self, index, value):
+        if self._dirty:
+            raise ListLockException(_ERR_LISTLOCK_AMBIGUOUS.format("insert"))
         else:
-            for value in values:
-                self._track_change(value, 1)
-            self._dirty = True
+            if self._locked:
+                self._buffer.insert(index, value)
+                self._dirty = True
+            else:
+                list.insert(self, index, value)
     
     @property
-    def is_dirty(self): #pylint:disable-msg=C0103
+    def is_dirty(self):
         """Needs update when there are pending changes."""
         return self._dirty
     
@@ -219,57 +215,130 @@ class LockableList(list):
         """Lock prevents direct append/removal, such as when looping over."""
         return self._locked
     
-    def lock(self, set_lock=None, force_update=True):
-        """If set_lock is not True or False, toggles lock state.
-            force_update forces a call to apply_pending_changes."""
+    def lock(self, set_lock=None):
+        """If set_lock is None, toggles lock state"""
         if set_lock is None:
-            self._locked = not self._locked
-        elif set_lock:
-            self._locked = True
-        else:
-            self._locked = False
-
-        if force_update:
-            self._apply_pending_changes()
-
-    @property
-    def pending_additions(self):
-        """Returns a list of all values to be added when next unlocked"""
-        additions = []
-        for key in self._to_change:
-            if self._to_change[key][1] > 0:
-                additions.append(key)
-        return additions
+            set_lock = not self._locked
+            
+        if self._locked and not set_lock:
+            #Unlocking - update from buffer
+            self._copy_buff_to_self()
+            self._dirty = False
+        
+        if not self._locked and set_lock:
+            #Locking- copy to buffer
+            self._buffer = self[:]
+            
+        self._locked = set_lock            
     
-    @property
-    def pending_removals(self):
-        """Returns a list of all values to be removed when next unlocked"""
-        removals = []
-        for key in self._to_change:
-            if self._to_change[key][1] <= 0:
-                removals.append(key)
-        return removals
+    def pop(self, index=-1):
+        if self._dirty:
+            msg = _ERR_LISTLOCK_AMBIGUOUS.format("pop (even when dirty)")
+            raise ListLockException(msg)
+        else:
+            if self._locked:
+                value = self._buffer.pop(index)
+                self._dirty = True
+            else:
+                value = list.pop(self, index)
+            return value
     
     def remove(self, value):
         if not self._locked:
-            super(LockableList, self).remove(value)
+            list.remove(self, value)
         else:
-            self._track_change(value, -1)
+            self._buffer.remove(value)
+            self._dirty = True
+    
+    def reverse(self):
+        if not self._locked:
+            list.reverse(self)
+        else:
+            self._buffer.reverse()
             self._dirty = True
 
-    def sort(self, cmp_=None, key_=None, reverse_=False):
-        self._apply_pending_changes()
-        super(LockableList, self).sort(cmp_,
-                                            key=key_,
-                                            reverse=reverse_)
+    def sort(self, cmp=None, key=None, reverse=False): #pylint:disable-msg=W0622
+        """stable sort *IN PLACE*; cmp(x, y) -> -1, 0, 1"""
+        if self._locked:
+            msg = _ERR_LISTLOCK_AMBIGUOUS.format("sort")
+            raise ListLockException(msg)
+        else:
+            list.sort(self, cmp=cmp, key=key, reverse=reverse)
+        
+    def __delitem__(self, i):
+        if self._dirty:
+            msg = _ERR_LISTLOCK_AMBIGUOUS.format("del x[y]")
+            raise ListLockException(msg)
+        else:
+            if self._locked:
+                del self._buffer[i]
+                self._dirty = True
+            else:
+                list.__delitem__(self, i)
+        
+    def __delslice__(self, i, j):
+        if self._dirty:
+            msg = _ERR_LISTLOCK_AMBIGUOUS.format("del x[i:j]")
+            raise ListLockException(msg)
+        else:
+            if self._locked:
+                del self._buffer[i:j]
+                self._dirty = True
+            else:
+                list.__delslice__(self, i, j)
     
+    def __eq__(self, other):
+        try:
+            return (self._buffer == other._buffer and #pylint:disable-msg=W0212
+                    list.__eq__(self, other))
+        except AttributeError:
+            return False
+          
     def __iadd__(self, other):
         self.extend(other)
         return self
-        
+      
+    def __imul__(self, other):
+        if self._dirty:
+            old_buf = self._buffer[:]
+        else:
+            old_buf = self[:]
+        for _ in xrange(other):
+            self.extend(old_buf)
+      
     def __iter__(self):
-        self._apply_pending_changes()
-        return super(LockableList, self).__iter__()
+        if self._dirty and not self._locked:
+            self._copy_buff_to_self()
+            self._dirty = False
+        return list.__iter__(self)
+      
+    def __reversed__(self):
+        if self._dirty and not self._locked:
+            self._copy_buff_to_self()
+            self._dirty = False
+        return list.__reversed__(self)
+      
+    def __setitem__(self, i, y): #pylint:disable-msg=C0103
+        if self._dirty:
+            msg = _ERR_LISTLOCK_AMBIGUOUS.format("x[i]=y")
+            raise ListLockException(msg)
+        else:
+            if self._locked:
+                self._buffer[i] = y
+                self._dirty = True
+            else:
+                list.__setitem__(self, i, y)
+      
+    def __setslice__(self, i, j, y): #pylint:disable-msg=C0103
+        if self._dirty:
+            msg = _ERR_LISTLOCK_AMBIGUOUS.format("x[i]=y")
+            raise ListLockException(msg)
+        else:
+            if self._locked:
+                self._buffer[i:j] = y
+                self._dirty = True
+            else:
+                list.__setslice__(self, i, j, y)
 
 class TypeCheckedList(list):
     """A list with a certain type that is checked
