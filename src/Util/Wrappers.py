@@ -265,3 +265,35 @@ def on_change(var_name, flag_on_change):
                 setattr(self, flag_on_change, True)
         return wrapped_call
     return fn_wrapper
+
+class Pipe(object):
+    """
+    Decorator that allows us to use the pipe notation (as seen in bash)
+    
+    Ex.
+    
+    @Pipe
+    def where(iterable, criteria_func):
+        return [x for x in iterable if criteria_func(x)]
+    
+    >>> evens = range(16) | where(lambda x: x%2 == 0)
+    >>> evens
+    [0, 2, 4, 6, 8, 10, 12, 14]
+    
+    Use with generators for memory-happy chaining fun!
+    
+    Easily wrap most current functional methods (sometimes you'll need to curry)
+    
+    >>> psum = Pipe(sum)
+    >>> print range(1,5) | psum
+    10
+    """
+    
+    def __init__(self, func):
+        self.func = func
+        self.__doc__ = func.__doc__
+    def __ror__(self, lhs):
+        return self.func(lhs)
+    def __call__(self, *args, **kwargs):
+        return Pipe(lambda lhs: self.func(lhs, *args, **kwargs)) #pylint:disable-msg=W0142,C0301
+    

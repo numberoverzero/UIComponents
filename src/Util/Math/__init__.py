@@ -6,5 +6,6 @@ Sub-modules will include (basic) 2d vectors and funcitons on them.
 import digits
 import factors
 import primes
+import sequences
 
 from _lib import * #pylint:disable-msg=W0401
